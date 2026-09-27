@@ -116,7 +116,8 @@ namespace Breach.Core.Match
 
         public void RecordShot(bool hit, bool headshot)
         {
-            if (Phase != MatchPhase.Live) return;
+            // Intermission included: the killing round resolves after the phase flips.
+            if (Phase != MatchPhase.Live && Phase != MatchPhase.Intermission) return;
             ShotsFired++;
             if (hit) ShotsHit++;
             if (hit && headshot) Headshots++;

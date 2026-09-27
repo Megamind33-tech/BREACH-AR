@@ -1,0 +1,97 @@
+# BREACH AR — headless pipeline. The human never opens Unity.
+#
+#   core-tests : engine-independent gameplay logic (dotnet + NUnit). No secrets needed.
+#   android    : Unity 6 headless Android build via game-ci → BREACH-dev.apk
+#                Requires a Unity license in repository secrets (see docs/BUILD.md).
+name: BREACH build
+
+on:
+  push:
+    branches: [main, "claude/**"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: breach-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  core-tests:
+    name: Core logic tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+      - name: Build core as Unity sees it (netstandard2.1, C# 9, warnings as errors)
+        run: dotnet build Tools/CoreTests/Breach.Core.csproj -c Release
+      - name: Run tests
+        run: dotnet test Tools/CoreTests/Tests/Breach.Core.Tests.csproj -c Release --logger "trx;LogFileName=core.trx"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: core-test-results
+          path: Tools/CoreTests/Tests/TestResults/*.trx
+
+  android:
+    name: Android APK (Unity headless)
+    needs: core-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+      UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+      UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+      UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+    steps:
+      - name: Check Unity license secrets
+        id: license
+        run: |
+          if [ -n "$UNITY_LICENSE" ] || [ -n "$UNITY_SERIAL" ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "::error title=Unity license missing::Add UNITY_LICENSE (or UNITY_SERIAL) plus UNITY_EMAIL and UNITY_PASSWORD as repository secrets. See docs/BUILD.md."
+          fi
+
+      - uses: jlumbroso/free-disk-space@v1.3.1
+        if: steps.license.outputs.ok == 'true'
+        with:
+          android: false
+          dotnet: false
+          large-packages: false
+
+      - uses: actions/checkout@v4
+        if: steps.license.outputs.ok == 'true'
+        with:
+          fetch-depth: 0
+
+      - uses: actions/cache@v4
+        if: steps.license.outputs.ok == 'true'
+        with:
+          path: Library
+          key: Library-Android-${{ hashFiles('Packages/manifest.json', 'ProjectSettings/ProjectVersion.txt') }}
+          restore-keys: Library-Android-
+
+      - name: Build BREACH-dev.apk
+        if: steps.license.outputs.ok == 'true'
+        uses: game-ci/unity-builder@v4
+        with:
+          unityVersion: auto
+          targetPlatform: Android
+          buildName: BREACH-dev
+          buildMethod: Breach.EditorTools.BuildScript.BuildAndroidCI
+          androidExportType: androidPackage
+          versioning: None
+
+      - uses: actions/upload-artifact@v4
+        if: steps.license.outputs.ok == 'true'
+        with:
+          name: BREACH-dev-apk
+          path: build/Android/*.apk
+          if-no-files-found: error
+
+      - name: Fail when no license (so the missing secret is visible)
+        if: steps.license.outputs.ok != 'true'
+        run: exit 1

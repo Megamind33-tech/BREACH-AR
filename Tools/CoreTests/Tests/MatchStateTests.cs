@@ -57,6 +57,18 @@ namespace Breach.Core.Tests
         }
 
         [Test]
+        public void KillingShotResolvedAfterPhaseFlipStillCounts()
+        {
+            var m = new MatchState(new MatchConfig());
+            m.BeginScanning(0);
+            m.ArenaReady(0);
+            m.Tick(10, 0.1f);
+            m.HunterKilled(100, false, 50, 11);
+            m.RecordShot(true, false);
+            Assert.That(m.ShotsHit, Is.EqualTo(1));
+        }
+
+        [Test]
         public void ShotsOutsideLiveAreNotCounted()
         {
             var m = new MatchState(new MatchConfig());
