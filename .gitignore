@@ -34,3 +34,5 @@ Tools/CoreTests/bin/
 Tools/CoreTests/obj/
 Tools/CoreTests/Tests/bin/
 Tools/CoreTests/Tests/obj/
+Tools/SyntaxCheck/bin/
+Tools/SyntaxCheck/obj/

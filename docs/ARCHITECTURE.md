@@ -37,7 +37,15 @@ Tools/
 * `HunterBrain.AttackStruck` → `GameDirector` → player `Health` → HUD damage direction + haptics → `MatchState.PlayerKilled` → after-action.
 * Marker → `MarkerOrigin` → `SharedOrigin` (locked; single-player falls back to the start pose). Ready for Stage 3 replication in shared coordinates.
 
-## Next stages (not built yet)
-* **Stage 3 — shared world:** Netcode for GameObjects 2.11.2 (pinned by Unity's 6.3 sample manifest) + Unity Transport; host runs `HunterBrain`; clients render it at `SharedOrigin.SharedToSession(pos)`; marker calibration becomes mandatory.
-* **Stage 4 — co-op:** host-authoritative damage (`ApplyHit` on host), replicated `HunterState`, health, score.
-* **Stage 5 — PvP:** avatar pose in shared space, fire requests validated on host, first-to-five.
+## Stage 3/4 — shared world + co-op (first cut, uncompiled)
+* **Transport:** Netcode for GameObjects 2.11.2 (version pinned by Unity's 6.3 sample manifest) + Unity Transport 2.6.0, used only as a **named-message pipe**. There are no NetworkObjects and no prefabs, because the world is built in code. `Runtime/Net/CoopSession.cs` creates the NetworkManager at runtime.
+* **Joining:** LAN, port 7788. The host shows the last two octets of its Wi-Fi IP as a room code (`Core/Net/RoomCode.cs`); the joiner types it on a keypad.
+* **Shared space:** every position and rotation on the wire is in marker space (`Core/Net/NetProtocol.cs`), converted with each device's `SharedOrigin`. Marker lock is mandatory in co-op. On simulated/desktop rooms the origin is identity.
+* **Authority:** the host runs `HunterBrain` against all players. `HunterActor.TargetProvider` feeds it every player's eye and forward vector; the Hunter picks the nearest living player (with hysteresis) and hides from *all* of them.
+* **Replication:** clients render a **puppet** Hunter from 20 Hz snapshots, interpolated 120 ms behind (`SnapshotBuffer`) and snapped to the client's own floor.
+* **Hits:** a client resolves its own hit on the puppet (so aiming feels immediate) and sends a `ShotClaim`. The host validates it (`ClaimValidator`: right spawn, near where the Hunter recently was, fire-rate limit, one-round damage cap), applies it, then broadcasts the hit or kill.
+* **Damage to players:** host strikes are routed to the targeted client. A downed player is revived when the team kills the Hunter; the match ends when everyone is down.
+* **Messages:** `breach.pose` (20 Hz, unreliable, relayed by the host), `breach.hunter` (20 Hz, unreliable), `breach.match` (4 Hz and on phase change, reliable), `breach.roster` (2 Hz), `breach.event` (reliable).
+
+## Next
+* **Stage 5 — PvP:** avatar pose in shared space (already replicated), fire requests validated on the host, first-to-five.

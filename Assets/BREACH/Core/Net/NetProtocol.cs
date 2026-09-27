@@ -58,6 +58,7 @@ namespace Breach.Core.Net
             return Encode(w =>
             {
                 w.Write(c.Sequence);
+                w.Write(c.Subject);
                 W(w, c.Eye);
                 W(w, c.Rotation);
                 w.Write(c.Health);
@@ -68,6 +69,7 @@ namespace Breach.Core.Net
         public static PlayerPose DecodePose(byte[] d) => Decode(d, r => new PlayerPose
         {
             Sequence = r.ReadUInt16(),
+            Subject = r.ReadUInt64(),
             Eye = RV(r),
             Rotation = RQ(r),
             Health = r.ReadSingle(),
@@ -206,6 +208,8 @@ namespace Breach.Core.Net
     public struct PlayerPose
     {
         public ushort Sequence;
+        /// <summary>Whose pose this is (the host relays teammates' poses to every client).</summary>
+        public ulong Subject;
         public Vector3 Eye;
         public Quaternion Rotation;
         public float Health;

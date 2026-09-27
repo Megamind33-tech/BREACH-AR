@@ -7,6 +7,7 @@ using Breach.Core.Hunter;
 using Breach.Core.Match;
 using Breach.Core.World;
 using Breach.Hunter;
+using Breach.Net;
 using Breach.Presentation;
 using Breach.UI;
 using Breach.Util;
@@ -21,7 +22,7 @@ namespace Breach.Game
     /// encounter … → player down → after-action → again.
     /// Every system terminates here in gameplay.
     /// </summary>
-    public sealed class GameDirector : MonoBehaviour
+    public sealed partial class GameDirector : MonoBehaviour
     {
         const float MinFloorArea = 1.0f;
 
@@ -104,8 +105,10 @@ namespace Breach.Game
             _rifle.ShotResolved += OnShotResolved;
 
             _hunter = HunterActor.Create(transform, _room, _rig.Camera, _fx);
-            _hunter.StruckPlayer += OnPlayerStruck;
+            _hunter.StruckPlayer += OnHunterStrike;
             _hunter.Died += OnHunterDied;
+            _session = CoopSession.Create(transform);
+            WireCoop();
             _hunter.TookHit += (zone, killed) => _hud.ShowHit(zone, killed);
 
             _hud.ReloadButton.onClick.AddListener(() => _rifle.RequestReload());
@@ -133,10 +136,15 @@ namespace Breach.Game
                 Resume();
                 EndMatch("MATCH ENDED");
             };
-            _screens.OnAgain = () => BeginFlow(_mode);
+            _screens.OnAgain = Again;
             _screens.OnMenu = ToMenu;
             _screens.OnDiagnostics = () => _diag.SetVisible(true);
             _screens.OnRecalibrate = () => _marker.Recalibrate();
+            _screens.OnCoop = () => _screens.Show("Coop");
+            _screens.OnHost = HostLobby;
+            _screens.OnJoinCode = JoinLobby;
+            _screens.OnLobbyStart = HostStartLobby;
+            _screens.OnLeave = LeaveCoop;
         }
 
         // ------------------------------------------------------------------ flow
@@ -152,7 +160,7 @@ namespace Breach.Game
         {
             Time.timeScale = 1f;
             _hunter.Despawn();
-            _match = new MatchState(new MatchConfig { Mode = _mode });
+            _match = new MatchState(new MatchConfig { Mode = _mode }) { Remote = IsClient };
             _match.EncounterStarted += OnEncounterStarted;
             _match.PhaseChanged += OnPhaseChanged;
             _match.BeginScanning(Time.timeAsDouble);
@@ -175,13 +183,23 @@ namespace Breach.Game
             _room.Boundary = null;
             _room.ScanVisible = true;
             _scanStarted = Time.time;
+            _localDown = false;
+            _coopReady = false;
             _input.LeftHanded = Settings.LeftHanded;
+            // Simulated rooms are identical on every device, so the shared origin is simply the world origin.
+            if (IsNetworked && _rig.Simulated && _marker.Origin.State != OriginState.Locked)
+                _marker.Origin.LockAt(RigidPose.Identity);
             _hud.SetCombatVisible(false);
             _screens.Show("Scan");
         }
 
         void BeginMatch()
         {
+            if (IsClient)
+            {
+                ClientReady();
+                return;
+            }
             var eye = _rig.Camera.transform.position;
             float floorY = _room.FloorY ?? eye.y - 1.4f;
             _boundary = new PlayBoundary(new System.Numerics.Vector3(eye.x, floorY, eye.z), Settings.ArenaRadius);
@@ -192,9 +210,8 @@ namespace Breach.Game
             if (_marker.Origin.State != OriginState.Locked)
                 _marker.Origin.LockAt(new RigidPose(new System.Numerics.Vector3(eye.x, floorY, eye.z), _rig.Camera.transform.rotation.ToS()));
 
-            _screens.Show("Countdown");
-            _hud.SetCombatVisible(true);
-            _rifle.SetViewModelVisible(true);
+            _coopReady = true;
+            EnterCombatPresentation();
             _match.ArenaReady(Time.timeAsDouble);
         }
 
@@ -203,11 +220,12 @@ namespace Breach.Game
             switch (to)
             {
                 case MatchPhase.Countdown:
+                    EnterCombatPresentation();
                     StartCoroutine(CountdownTicks());
                     break;
                 case MatchPhase.Live:
-                    _screens.HideAll();
-                    _rifle.InputEnabled = true;
+                    if (!_paused) _screens.HideAll();
+                    _rifle.InputEnabled = !_localDown;
                     break;
                 case MatchPhase.Intermission:
                     break;
@@ -237,8 +255,10 @@ namespace Breach.Game
             float floorY = _room.FloorY ?? cam.position.y - 1.4f;
             var point = _planner.Choose(_room.Points, cam.position.ToS(), cam.forward.ToS(), floorY, _boundary,
                 p => _room.HasLineOfSight(cam.position, p.ToU()));
-            _hunter.Spawn(point, HunterConfig.ForEncounter(encounter), Time.timeAsDouble);
+            _spawnId++;
+            _hunter.Spawn(point, HunterConfig.ForEncounter(encounter), Time.timeAsDouble, _spawnId);
             _lastHunterSpawn = Time.timeAsDouble;
+            OnHostHunterSpawned();
             StartCoroutine(ContactCue());
         }
 
@@ -246,7 +266,7 @@ namespace Breach.Game
         {
             // Once it has emerged, point the player toward it if it is out of view.
             yield return new WaitForSeconds(1.2f);
-            if (_hunter.IsAlive && !_hunter.Brain.VisibleToPlayer)
+            if (_hunter.IsAlive && !_hunter.VisibleToAnyPlayer)
             {
                 var cam = _rig.Camera.transform;
                 float yaw = ViewGeometry.SignedYaw(cam.position.ToS(), cam.forward.ToS(), _hunter.WorldPosition.ToS());
@@ -254,9 +274,10 @@ namespace Breach.Game
             }
         }
 
-        void OnHunterDied(bool headshot)
+        void OnHunterDied(bool headshot, ulong shooter)
         {
             if (_match == null) return;
+            OnHostHunterKilled(headshot, shooter);
             var cfg = _hunter.Brain.Config;
             int before = _match.Score;
             _match.HunterKilled(cfg.KillScore, headshot, cfg.HeadshotKillBonus, Time.timeAsDouble);
@@ -275,7 +296,7 @@ namespace Breach.Game
 
         void OnPlayerStruck(float damage, Vector3 hunterPos)
         {
-            if (_match == null || _match.Phase != MatchPhase.Live) return;
+            if (_match == null || _match.Phase != MatchPhase.Live || _localDown) return;
             var cam = _rig.Camera.transform;
             var dir = (cam.position - hunterPos).normalized;
             var r = _player.Apply(new DamageInfo(damage, HitZone.Body, 1, dir.ToS()), Time.timeAsDouble);
@@ -285,7 +306,11 @@ namespace Breach.Game
             _match.RecordDamageTaken(r.Applied);
             BreachAudio.Instance?.Play2D(Sfx.PlayerHurt, 1f, 0.05f);
             Haptics.Hurt();
-            if (r.Killed) _match.PlayerKilled(Time.timeAsDouble);
+            if (r.Killed)
+            {
+                if (IsNetworked) LocalPlayerDown();
+                else _match.PlayerKilled(Time.timeAsDouble);
+            }
         }
 
         void OnShotResolved(bool hit, HitZone zone, bool killed) =>
@@ -295,7 +320,7 @@ namespace Breach.Game
         {
             _hud.Flash("", 0f);
             yield return new WaitForSeconds(1.4f);
-            EndMatch("YOU WERE TAKEN");
+            EndMatch(IsNetworked ? "TEAM WIPED" : "YOU WERE TAKEN");
         }
 
         void EndMatch(string title)
@@ -315,6 +340,8 @@ namespace Breach.Game
 
         void ToMenu()
         {
+            if (IsNetworked) _session.Leave();
+            ClearAllyMarkers();
             Time.timeScale = 1f;
             _paused = false;
             _match = null;
@@ -330,7 +357,8 @@ namespace Breach.Game
         {
             if (_match == null || _paused) return;
             _paused = true;
-            Time.timeScale = 0f;
+            // A shared match cannot freeze time for everyone else.
+            if (!IsNetworked) Time.timeScale = 0f;
             _rifle.InputEnabled = false;
             _screens.Show("Pause");
         }
@@ -341,7 +369,7 @@ namespace Breach.Game
             _paused = false;
             Time.timeScale = 1f;
             _screens.HideAll();
-            _rifle.InputEnabled = _match != null && (_match.Phase == MatchPhase.Live || _match.Phase == MatchPhase.Intermission);
+            _rifle.InputEnabled = !_localDown && _match != null && (_match.Phase == MatchPhase.Live || _match.Phase == MatchPhase.Intermission);
         }
 
         // ------------------------------------------------------------------ per-frame
@@ -349,7 +377,9 @@ namespace Breach.Game
         void Update()
         {
             _frames.Add(Time.unscaledDeltaTime);
-            if (_match == null || _rig == null) return;
+            if (_rig == null) return;
+            UpdateCoop();
+            if (_match == null) return;
             double now = Time.timeAsDouble;
             float dt = Time.deltaTime;
 
@@ -391,6 +421,7 @@ namespace Breach.Game
                 ? (_room.WallCount == 0 ? "Look at nearby walls and furniture to give the Hunter somewhere to hide — or begin now." : "Stand where you want to fight, then begin.")
                 : "Sweep the phone slowly across the floor around you.";
             string origin = _marker.Supported ? "ORIGIN MARKER: " + _marker.Status.ToUpperInvariant() : "";
+            if (IsNetworked) CoopScanGate(ref ready, ref title, ref detail);
             _screens.SetScan(progress, ready, stats, origin, title, detail);
         }
 
@@ -458,11 +489,7 @@ namespace Breach.Game
             r.Row("marker", _marker != null ? $"{_marker.Status} (tracking: {_marker.MarkerTracking})" : "-");
             r.Row("origin", _marker != null ? _marker.Origin.State.ToString() : "-");
 
-            r.Section("NETWORK")
-                .Row("session", "OFFLINE — shared world is Stage 3 (not built yet)")
-                .Row("peers", "0")
-                .Row("ping", "n/a")
-                .Row("packet loss", "n/a");
+            AppendNetworkDiagnostics(r);
 
             r.Section("PLAYER");
             if (_player != null) r.Row("health", $"{_player.Current:0}/{_player.Max:0}{(_player.Invulnerable ? " (training)" : "")}");
@@ -471,7 +498,7 @@ namespace Breach.Game
                 var w = _rifle.Weapon;
                 r.Row("weapon", $"{w.Spec.DisplayName} {w.AmmoInMagazine}/{w.Spec.MagazineSize} +{(w.Spec.InfiniteReserve ? "inf" : w.Reserve.ToString())}{(w.IsReloading ? " reloading" : "")}");
             }
-            r.Row("pose sync", "n/a (single device)");
+            r.Row("pose sync", IsNetworked ? PoseSyncSummary() : "n/a (single device)");
             if (_boundary != null) r.Row("boundary", _boundary.Evaluate(_rig.Camera.transform.position.ToS()).ToString());
 
             r.Section("MATCH");
@@ -484,7 +511,9 @@ namespace Breach.Game
             }
             else r.Row("phase", "menu");
             if (_hunter != null && _hunter.Brain != null)
-                r.Row("hunter", $"{_hunter.Brain.State}, hp {_hunter.Brain.Health.Current:0}, seen {_hunter.Brain.VisibleToPlayer}, dist {Vector3.Distance(_hunter.WorldPosition, _rig.Camera.transform.position):0.0} m");
+                r.Row("hunter", $"{_hunter.Brain.State}, hp {_hunter.Brain.Health.Current:0}, seen {_hunter.Brain.VisibleToPlayer}, target {CoopSession.CallsignFor(_hunter.TargetClient)}, dist {Vector3.Distance(_hunter.WorldPosition, _rig.Camera.transform.position):0.0} m");
+            else if (_hunter != null && _hunter.Puppet)
+                r.Row("hunter", $"PUPPET {_hunter.CurrentState}, spawn {_hunter.SpawnId}, dist {Vector3.Distance(_hunter.WorldPosition, _rig.Camera.transform.position):0.0} m");
 
             r.Section("PERFORMANCE")
                 .Row("fps avg", _frames.AverageFps, "0.0")

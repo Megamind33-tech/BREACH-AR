@@ -27,7 +27,7 @@ Classification rule: **code and assets are judged separately**; anything with un
 
 ### Beyblade AR → shared-world concept
 * Positions are serialised **relative to the arena transform** (`rb.position - battleArena.position`) so peers agree → `SharedOrigin` expresses every pose relative to a marker-defined, gravity-aligned origin (yaw only), averaged over 30 samples with jump rejection. Tested with two simulated devices (`SharedOriginTests`).
-* Interpolation with teleport threshold (`MySynchronizationScript`) — noted for Stage 3 replication.
+* Interpolation with teleport threshold (`MySynchronizationScript`) → `Core/Net/SnapshotBuffer.cs` (time-stamped interpolation, bounded extrapolation, teleport reset).
 * Discarded: Photon PUN 2 (proprietary, account-bound; Stage 3 will use Unity Netcode for GameObjects 2.11.2, which the samples' 6.3 manifest pins), joystick controls, spinning-top gameplay/terminology.
 
 ### base-blitz → camera-centre hitscan & physical play

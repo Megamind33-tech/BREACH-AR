@@ -19,6 +19,17 @@
 7. It attacks at close range — back away during its wind-up to make it miss. Headshots do the most damage.
 8. Each kill scores and the next, bolder encounter begins. The match ends when you are taken.
 
+## Co-op (two phones)
+1. Print `docs/marker/BREACH_origin_marker_A4.pdf` at 100% scale and lay it flat on the floor in the middle of the room.
+2. Both phones on the **same Wi-Fi**.
+3. Phone A: **CO-OP → HOST**. It shows a room code such as `1.37`.
+4. Phone B: **CO-OP → JOIN**, type the code on the keypad, **JOIN**. Both lobbies should list ALPHA and BRAVO.
+5. Phone A: **START**. Both phones go through the safety and scan screens.
+6. On **both** phones, point the camera at the marker until the scan screen stops saying "SCAN THE BREACH MARKER". Hold steady while it calibrates. Then press **BEGIN**, phone B first, then the host.
+7. Check alignment: a small blue diamond with your teammate's callsign should float **right on their phone**. If it's off by more than a hand's width, pause → RECALIBRATE ORIGIN and scan the marker again. Report how far off it was.
+8. Fight. Both phones should see the **same Hunter in the same place**. Either player can damage it; the score is shared. If you're downed, you get back up when your teammate kills the Hunter. The match ends when everyone is down.
+9. Export a diagnostics report from **both** phones. The NETWORK section shows ping, pose freshness and hit-claim counts.
+
 ## Send results back
 1. Open **Diagnostics**: Settings → DIAGNOSTICS, or Pause (top-left) → DIAGNOSTICS, or **press and hold** the pause icon for about a second during a fight.
 2. Tap **EXPORT TEST REPORT**. Choose any app (email, chat) to send it — it is also copied to the clipboard.

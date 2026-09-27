@@ -9,6 +9,17 @@ namespace Breach.Hunter
     /// wind-up and swipe attacks, spring-based hit flinches, and sudden
     /// unnatural head twitches while it stalks.
     /// </summary>
+    /// <summary>What the animator needs — from the local brain (host/solo) or a network snapshot (client).</summary>
+    public struct HunterAnimInput
+    {
+        public HunterState State;
+        public float Speed;
+        public float AttackWindup;
+
+        public static HunterAnimInput From(HunterBrain b) =>
+            new HunterAnimInput { State = b.State, Speed = b.CurrentSpeed, AttackWindup = b.AttackWindup };
+    }
+
     public sealed class HunterAnimator
     {
         readonly HunterBody _b;
@@ -41,7 +52,7 @@ namespace Breach.Hunter
             _flinchVel += new Vector3(Mathf.Clamp(local.z, -1f, 1f) * 260f, local.x * 220f, Random.Range(-140f, 140f)) * strength;
         }
 
-        public void Tick(HunterBrain brain, float dt, Vector3 playerEyeWorld)
+        public void Tick(in HunterAnimInput brain, float dt, Vector3 playerEyeWorld)
         {
             var state = brain.State;
             if (state == HunterState.Attacking && _prevState != HunterState.Attacking) _strikeT = -1f;
@@ -65,7 +76,7 @@ namespace Breach.Hunter
             _rushBlend = Mathf.Lerp(_rushBlend, targetRush, k);
 
             // --- gait ---
-            float speed = brain.CurrentSpeed;
+            float speed = brain.Speed;
             float stride = Mathf.Lerp(0.85f, 1.5f, _rushBlend);
             _phase += speed / stride * Mathf.PI * 2f * dt;
             _gaitAmp = Mathf.Lerp(_gaitAmp, Mathf.Clamp01(speed / 0.6f), 1f - Mathf.Exp(-dt * 8f));

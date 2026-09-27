@@ -11,9 +11,10 @@ namespace Breach.Core.Tests
         [Test]
         public void PoseRoundTrips()
         {
-            var p = new PlayerPose { Sequence = 513, Eye = new Vector3(1, 1.5f, -2), Rotation = Quaternion.CreateFromYawPitchRoll(0.3f, 0.1f, 0), Health = 74, Flags = PlayerFlags.Alive | PlayerFlags.OriginLocked };
+            var p = new PlayerPose { Sequence = 513, Subject = 4, Eye = new Vector3(1, 1.5f, -2), Rotation = Quaternion.CreateFromYawPitchRoll(0.3f, 0.1f, 0), Health = 74, Flags = PlayerFlags.Alive | PlayerFlags.OriginLocked };
             var q = NetProtocol.DecodePose(NetProtocol.Encode(p));
             Assert.That(q.Sequence, Is.EqualTo(513));
+            Assert.That(q.Subject, Is.EqualTo(4UL));
             Assert.That(q.Eye, Is.EqualTo(p.Eye));
             Assert.That(q.Rotation, Is.EqualTo(p.Rotation));
             Assert.That(q.Health, Is.EqualTo(74));
