@@ -1,0 +1,36 @@
+# Unity
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Mm]emoryCaptures/
+/[Rr]ecordings/
+*.pidb.meta
+*.pdb.meta
+*.mdb.meta
+sysinfo.txt
+*.apk
+*.aab
+*.unitypackage
+crashlytics-buildid.txt
+.vs/
+.vscode/
+.idea/
+*.csproj
+!Tools/**/*.csproj
+*.sln
+*.suo
+*.user
+# Generated at build time by BREACH.Editor.BuildScript
+/Assets/BREACH/Resources/Generated/
+/Assets/BREACH/Resources/Generated.meta
+/Assets/BREACH/Scenes/
+/Assets/BREACH/Scenes.meta
+# Core test tooling
+Tools/CoreTests/bin/
+Tools/CoreTests/obj/
+Tools/CoreTests/Tests/bin/
+Tools/CoreTests/Tests/obj/
