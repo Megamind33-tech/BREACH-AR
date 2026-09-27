@@ -93,6 +93,7 @@ namespace Breach.Core.Match
 
         public void Tick(double now, float dt)
         {
+            if (Remote) return;
             switch (Phase)
             {
                 case MatchPhase.Countdown:
@@ -145,6 +146,25 @@ namespace Breach.Core.Match
             if (Phase == MatchPhase.Live || Phase == MatchPhase.Intermission)
                 SetPhase(MatchPhase.PlayerDown, now);
         }
+
+        /// <summary>
+        /// Client side of a shared match: mirror the host's authoritative state.
+        /// Phase-change events still fire locally so the presentation reacts.
+        /// </summary>
+        public void ApplyRemote(MatchPhase phase, int score, int kills, int headshots, int encounter, double liveSeconds, double now)
+        {
+            bool scoreChanged = score != Score;
+            Score = score;
+            Kills = kills;
+            Headshots = headshots;
+            Encounter = encounter;
+            LiveSeconds = liveSeconds;
+            SetPhase(phase, now);
+            if (scoreChanged) ScoreChanged?.Invoke(Score);
+        }
+
+        /// <summary>Client side: the host is authoritative, so local ticking must not advance phases.</summary>
+        public bool Remote { get; set; }
 
         public void End(double now) => SetPhase(MatchPhase.Ended, now);
         public void Abort(double now) => SetPhase(MatchPhase.Idle, now);
