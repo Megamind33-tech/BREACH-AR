@@ -175,6 +175,11 @@ footer { border-top:1px solid var(--line); padding:64px 0 36px; background:#f4f8
 @media (max-width:900px) { .hero3-in { grid-template-columns:minmax(0,1fr); gap:36px; } .hero3 { padding:44px 0 64px; } .collage .float { left:0; width:52%; } }
 @media (max-width:560px) { .grid3 { grid-template-columns:minmax(0,1fr); } .collage .float { display:none; } .collage { padding-bottom:0; } }
 
+/* ---- WhatsApp: one round button in the corner of every page ---- */
+.wa { position:fixed; right:18px; bottom:18px; z-index:60; display:inline-flex; align-items:center; gap:10px; padding:13px 18px 13px 14px; border-radius:999px; background:#128c4a; color:#fff; font-weight:600; font-size:15px; text-decoration:none; box-shadow:0 8px 24px rgba(0,0,0,.22); }
+.wa:hover { background:#0f7a40; text-decoration:none; } .wa svg { width:24px; height:24px; fill:#fff; flex:none; }
+@media (max-width:560px) { .wa span { display:none; } .wa { padding:14px; } }
+@media print { .wa { display:none; } }
 /* ---- comparison on a phone: one card per feature, never a sideways-scrolling table ---- */
 @media (max-width:700px) {
   .compare-wrap { border:0; background:transparent; overflow:visible; border-radius:0; }

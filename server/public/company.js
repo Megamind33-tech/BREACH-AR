@@ -12,6 +12,8 @@
     contactRole: 'Chief Operating Officer',
   };
   window.VIRO_COMPANY = COMPANY;
+  /** A WhatsApp link to the company with the message already typed. */
+  window.waLink = text => 'https://wa.me/' + COMPANY.phone.replace(/\D/g, '') + '?text=' + encodeURIComponent(text);
 
   const li = items => '<ul class="aboutlist">' + items.map(t => `<li>${t}</li>`).join('') + '</ul>';
   const row = (k, v) => `<dt>${k}</dt><dd>${v}</dd>`;

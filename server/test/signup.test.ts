@@ -31,13 +31,15 @@ test('an account only exists together with an order for a paid plan, and nothing
   await put('/api/v1/platform/billing/plans/care-year', { name: 'Care', audience: 'person', price: 250, currency: 'ZMW', period: 'year', active: true }, PK);
   const method = (await post('/api/v1/platform/billing/methods', { kind: 'mobile_money', label: 'MTN Mobile Money', instructions: 'Send the amount and quote your reference.', details: { Number: '0970000000' }, currency: 'ZMW' }, PK)).json().id;
   const pub = (await get('/api/v1/public/plans')).json(); assert.equal(pub.plans.length, 1); assert.equal(pub.methods[0].label, 'MTN Mobile Money'); assert.ok(!JSON.stringify(pub).includes('0970000000'), 'payment details are only given with an order');
-  const ok = { ...body, methodId: method };
+  const ok = { ...body, methodId: method, source: { source: 'facebook', campaign: 'slow-pc<script>', ref: 'm.facebook.com' } };
   assert.equal((await post('/api/v1/checkout', { ...ok, acceptTerms: false })).statusCode, 400);
   assert.equal((await post('/api/v1/checkout', { ...ok, password: 'short' })).statusCode, 400);
   assert.equal((await post('/api/v1/checkout', { ...ok, planCode: 'nope' })).statusCode, 404);
 
   const first = await post('/api/v1/checkout', ok); assert.equal(first.statusCode, 201); const order = first.json();
   assert.equal(order.amount, 250); assert.match(order.reference, /^VBL-/); assert.equal(order.pay.details.Number, '0970000000');
+  assert.deepEqual((await h.db.query(`SELECT source FROM billing_orders WHERE id=$1`, [order.id])).rows[0].source, { source: 'facebook', campaign: 'slow-pcscript', ref: 'm.facebook.com' }, 'the campaign is kept, cleaned of anything but plain text');
+  assert.equal((await get('/api/v1/platform/billing', PK)).json().orders[0].source.source, 'facebook', 'the operator sees where the order came from');
   assert.equal((await post('/api/v1/checkout', ok)).statusCode, 409, 'an existing customer signs in to buy more');
   const mail = outbox().find(m => m.to === 'chanda@example.com')!; assert.ok(mail.text.includes(order.reference) && mail.text.includes('0970000000'), 'the confirmation email keeps the way to pay');
 

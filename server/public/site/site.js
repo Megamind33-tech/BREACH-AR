@@ -7,6 +7,21 @@
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && nav.classList.contains('open')) { nav.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); btn.focus(); } });
     nav.querySelectorAll('.menu a').forEach(a => a.addEventListener('click', () => { nav.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); }));
   }
+  // Where did this visitor come from? A campaign link (?utm_source=facebook&utm_campaign=slow-pc) or the website they arrived from is remembered for 30 days on this device,
+  // and added to the links that go to the console, so the order can say which ad or post paid. Nothing personal is kept, and nothing is sent to anyone else.
+  (function () {
+    const KEY = 'viro_src', DAYS = 30 * 864e5; let src = null;
+    try { src = JSON.parse(localStorage.getItem(KEY) || 'null'); if (src && Date.now() - src.t > DAYS) src = null; } catch (e) { src = null; }
+    const q = new URLSearchParams(location.search), now = {};
+    ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content'].forEach(k => { const v = (q.get(k) || '').replace(/[^\w .:@/+-]/g, '').slice(0, 80); if (v) now[k.slice(4)] = v; });
+    if (!Object.keys(now).length) { try { const h = document.referrer ? new URL(document.referrer).hostname.replace(/^www\./, '') : ''; if (h && h !== location.hostname && !/(^|\.)viro3\.online$/.test(h) && !(src && Object.keys(src.v).length)) now.ref = h.slice(0, 80); } catch (e) { /* no referrer */ } }
+    if (Object.keys(now).length) { src = { t: Date.now(), v: now }; try { localStorage.setItem(KEY, JSON.stringify(src)); } catch (e) { /* storage blocked: the links below still carry this page's own values */ } }
+    const v = src && src.v ? src.v : {}; if (!Object.keys(v).length) return;
+    document.querySelectorAll('a[href^="https://control.viro3.online"]').forEach(a => {
+      const u = new URL(a.href); Object.keys(v).forEach(k => { if (k === 'ref') u.searchParams.set('ref', v[k]); else u.searchParams.set('utm_' + k, v[k]); }); a.href = u.toString();
+    });
+    document.querySelectorAll('a.wa').forEach(a => { const u = new URL(a.href); const t = u.searchParams.get('text') || ''; u.searchParams.set('text', t + ' (' + (v.source || v.ref || 'website') + (v.campaign ? ', ' + v.campaign : '') + ')'); a.href = u.toString(); });
+  })();
   // "Sign in" goes to the console. On the console's own address (or a local copy) that is this same site's root; on the company domain it is the console address in the link.
   if (/^(control\.|localhost$|127\.)/.test(location.hostname)) document.querySelectorAll('[data-signin]').forEach(a => a.setAttribute('href', '/'));
   // Prices on this page are the starting prices. When the owner has set plans on sale, the live price replaces the printed one, so the page never shows a price nobody chose.

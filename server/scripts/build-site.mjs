@@ -13,6 +13,9 @@ const CO = {
 const DEMO = `mailto:${CO.email}?subject=${encodeURIComponent('Viro WorkCare demonstration')}&body=${encodeURIComponent('Hello,\n\nI would like to see Viro WorkCare.\n\nNumber of computers we look after:\nNumber of sites:\nOrganization:\n')}`;
 const NAV = [['/site/features.html', 'Features'], ['/site/#pricing', 'Pricing'], ['/site/security.html', 'Security & privacy'], ['/site/about.html', 'About'], ['/site/contact.html', 'Contact']];
 const PRICE = { care: 250, careHelp: 450, orgFrom: 35, certificate: 60 };
+const WA = (text) => `https://wa.me/${CO.phone.replace(/\D/g, '')}?text=${encodeURIComponent(text)}`;
+const WA_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.04 2a9.9 9.9 0 00-8.5 14.96L2 22l5.2-1.5A9.9 9.9 0 1012.04 2zm5.8 14.1c-.25.7-1.4 1.34-1.93 1.4-.5.07-1.1.1-1.8-.12a14.8 14.8 0 01-1.64-.6c-2.9-1.25-4.8-4.18-4.94-4.37-.14-.2-1.18-1.57-1.18-3s.74-2.12 1-2.4c.27-.3.58-.37.78-.37h.56c.18 0 .42-.07.65.5.25.58.84 2 .9 2.15.08.15.12.32.02.5-.1.2-.15.32-.3.5l-.45.5c-.15.15-.3.3-.13.6.18.3.77 1.27 1.65 2.05 1.13 1 2.08 1.3 2.38 1.46.3.15.47.12.65-.07.17-.2.75-.87.95-1.17.2-.3.4-.25.67-.15.27.1 1.7.8 2 .95.3.15.5.22.57.35.07.12.07.7-.18 1.4z"/></svg>';
+const WA_BUTTON = `<a class="wa" href="${WA('Hello Viro, I have a question about Viro WorkCare.')}" target="_blank" rel="noopener" aria-label="Chat with us on WhatsApp">${WA_ICON}<span>Chat on WhatsApp</span></a>`;
 const DL = '/install/ViroAgent.msi', BUY = 'https://control.viro3.online/?buy=1';
 const esc = s => s.replace(/&(?!amp;|#)/g, '&amp;');
 const IMG = Object.fromEntries(readdirSync(join(OUT, 'img')).filter(f => f.endsWith('.webp')).map(f => [f.replace('.webp', ''), execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'stream=width,height', '-of', 'csv=p=0', join(OUT, 'img', f)]).toString().trim().split(',').map(Number)]));
@@ -51,6 +54,7 @@ const foot = () => `</main>
   </div>
   <div class="legal"><span>&copy; <span data-year>2026</span> ${CO.name}. All rights reserved.</span><span>Registered in Zambia &middot; PACRA no. ${CO.reg}</span></div>
 </div></footer>
+${WA_BUTTON}
 <script src="/site/site.js"></script>
 </body>
 </html>
@@ -349,6 +353,7 @@ pages['privacy.html'] = head('Privacy notice | Viro WorkCare', 'What Viro WorkCa
   <h2>What we collect</h2>
   <p><strong>Your account:</strong> your name, email address and a protected form of your password. We use your email to confirm your account and to send what you ask for, such as a buyer certificate or a payment confirmation.</p>
   <p><strong>About your computers:</strong> the computer's make and model, parts, Windows version, health readings (drive, battery, memory, start-up), the list of installed programs and their sizes, and what Viro fixed. We read this so we can tell you what is wrong and prove a fix worked.</p>
+  <p><strong>How you found us:</strong> if you arrive from an advertisement, a link we shared or another website, we note that (for example &ldquo;facebook, slow-pc&rdquo;) and keep it with your order, so we know which of our announcements work. It is kept on your device for 30 days, contains nothing about you, and is not shared with advertising companies.</p>
   <p><strong>Payments:</strong> the order reference, amount, and the transaction number or receipt you give us. We do not receive your mobile money PIN, card number or bank password.</p>
   <p><strong>Backups (Viro Move), if you use them:</strong> the files and settings you choose. They are encrypted on your computer before they leave it, with a key that only you hold, so we cannot read them. If you lose the key we cannot recover them.</p>
   <h2>What we do not do</h2>

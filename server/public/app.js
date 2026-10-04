@@ -72,6 +72,8 @@ function loginView(msg = '', creds = null) {
     <label for="l-pw">Password</label><input id="l-pw" name="password" type="password" placeholder="Your password" autocomplete="current-password" required>`}
     <button>${second ? 'Verify' : 'Sign in'}</button>${second ? '<button type="button" class="ghost" id="back">Back</button>' : ''}<span class="err" role="alert">${esc(msg === '' ? '' : msg)}</span></form><p class="mute signin-about">${second ? '' : 'New here? <a href="#" id="newacct">Get Viro Care</a> · '}<a href="/site/">About Viro WorkCare</a> · <a href="/site/contact.html">Contact us</a></p></div></div>`;
   if (second) $('#back').onclick = () => loginView();
+  // Remember which campaign link or website sent this person (the marketing site adds it to the link): it goes onto the order so we can see which ad pays.
+  try { const q = new URLSearchParams(location.search), s = {}; ['source', 'medium', 'campaign', 'content'].forEach(k => { const v = q.get('utm_' + k); if (v) s[k] = v; }); if (q.get('ref')) s.ref = q.get('ref'); if (Object.keys(s).length) sessionStorage.setItem('viro_src', JSON.stringify(s)); } catch { /* storage blocked */ }
   if (!second && /[?&](buy|signup)\b/.test(location.search) && !window.__buyShown) { window.__buyShown = true; setTimeout(() => $('#newacct')?.click(), 50); }
   $('#newacct')?.addEventListener('click', async e => {
     e.preventDefault();
@@ -88,9 +90,9 @@ function loginView(msg = '', creds = null) {
       <label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" name="terms" required style="margin-top:4px"><span>I agree to the <a href="/site/terms.html" target="_blank" rel="noopener">terms</a> and <a href="/site/privacy.html" target="_blank" rel="noopener">privacy notice</a>.</span></label>`, 'Place my order');
     if (!v) return;
     try {
-      const r = await post('/api/v1/checkout', { name: v.name, email: v.email, password: v.password, acceptTerms: true, planCode: v.plan, quantity: +v.q || 1, methodId: v.m });
+      const r = await post('/api/v1/checkout', { name: v.name, email: v.email, password: v.password, acceptTerms: true, planCode: v.plan, quantity: +v.q || 1, methodId: v.m, source: (() => { try { return JSON.parse(sessionStorage.getItem('viro_src') || 'null') || undefined; } catch { return undefined; } })() });
       await dialog('Pay to start your plan', `<p>Pay <b>${esc(r.currency)} ${esc(r.amount)}</b> by <b>${esc(r.pay.method)}</b>.</p><p>${esc(r.pay.instructions)}</p>${Object.keys(r.pay.details || {}).length ? '<div class="kv">' + Object.entries(r.pay.details).map(([k, x]) => `<div><span class="mute">${esc(k)}</span> <b>${esc(x)}</b></div>`).join('') + '</div>' : ''}
-        <p style="font-size:18px;margin:12px 0"><span class="mute" style="font-size:13px">Your reference</span><br><b>${esc(r.reference)}</b></p><p class="mute">We emailed you a link: open it to confirm your email, then sign in here and choose <b>Plan and payments</b> and <b>I have paid</b>. The same details are in that email.</p>`, 'Done');
+        <p style="font-size:18px;margin:12px 0"><span class="mute" style="font-size:13px">Your reference</span><br><b>${esc(r.reference)}</b></p><p class="mute">We emailed you a link: open it to confirm your email, then sign in here and choose <b>Plan and payments</b> and <b>I have paid</b>. The same details are in that email.</p><p><a class="btn" href="${esc(waLink('Hello Viro, I have placed order ' + r.reference + ' and will pay by ' + r.pay.method + '.'))}" target="_blank" rel="noopener">Send your proof of payment on WhatsApp</a></p>`, 'Done');
       loginView();
     } catch (x) { loginView(x.message); }
   });

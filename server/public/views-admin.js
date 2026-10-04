@@ -142,7 +142,7 @@ VIEWS.billing = async main => {
 
   const payBox = (o) => `<p>Pay <b>${esc(o.currency)} ${Number(o.amount).toLocaleString('en-US')}</b> by <b>${esc(o.pay.method)}</b>.</p><p>${esc(o.pay.instructions)}</p>
     ${Object.keys(o.pay.details ?? {}).length ? `<div class="kv">${Object.entries(o.pay.details).map(([k, val]) => `<div><span class="mute">${esc(k)}</span> <b>${esc(val)}</b></div>`).join('')}</div>` : ''}
-    <p style="font-size:18px;letter-spacing:1px;margin:12px 0"><span class="mute" style="font-size:13px">Your reference</span><br><b>${esc(o.pay.useReference)}</b></p><p class="mute">Quote this reference when you pay, then choose "I have paid" and give us the transaction number. Your plan starts when Viro confirms the money.</p>`;
+    <p style="font-size:18px;letter-spacing:1px;margin:12px 0"><span class="mute" style="font-size:13px">Your reference</span><br><b>${esc(o.pay.useReference)}</b></p><p class="mute">Quote this reference when you pay, then choose "I have paid" and give us the transaction number. Your plan starts when Viro confirms the money.</p><p><a class="btn" href="${esc(waLink('Hello Viro, I paid order ' + o.pay.useReference + '. Transaction ID: '))}" target="_blank" rel="noopener">Send your proof of payment on WhatsApp</a></p>`;
 
   $$('[data-buy]').forEach(b => b.onclick = async () => {
     const p = v.plans.find(x => x.code === b.dataset.buy);

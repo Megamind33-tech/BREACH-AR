@@ -23,7 +23,7 @@ export function nextPeriodEnd(period: 'month' | 'year' | 'once', currentEnd: Dat
 
 export type PlaceResult = { ok: true; body: Record<string, unknown> } | { ok: false; code: number; error: string };
 /** Places an order for a plan: the amount is worked out here from the plan's price, never taken from the customer. Used by the first purchase and by later orders. */
-export async function placeOrder(db: JobCtx['db'], audit: JobCtx['audit'], o: { orgId: string; userId: string; planCode: string; quantity: number; methodId: string }): Promise<PlaceResult> {
+export async function placeOrder(db: JobCtx['db'], audit: JobCtx['audit'], o: { orgId: string; userId: string; planCode: string; quantity: number; methodId: string; source?: Record<string, string> | null }): Promise<PlaceResult> {
   const plan = (await db.query(`SELECT code, name, price, currency, period, per FROM billing_plans WHERE code=$1 AND active`, [o.planCode])).rows[0];
   if (!plan) return { ok: false, code: 404, error: 'that plan is not available' };
   const method = (await db.query(`SELECT id, kind, label, instructions, details, currency FROM payment_methods WHERE id=$1 AND active`, [o.methodId])).rows[0];
@@ -33,8 +33,8 @@ export async function placeOrder(db: JobCtx['db'], audit: JobCtx['audit'], o: { 
   const amount = Math.round(Number(plan.price) * quantity * 100) / 100;
   let ref = newReference();
   for (let i = 0; i < 5; i++) { if (!(await db.query('SELECT 1 FROM billing_orders WHERE reference=$1', [ref])).rowCount) break; ref = newReference(); }
-  const r = await db.query(`INSERT INTO billing_orders(org_id,created_by,plan_code,quantity,amount,currency,method_id,method_kind,reference) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`,
-    [o.orgId, o.userId, plan.code, quantity, amount, plan.currency, method.id, method.kind, ref]);
+  const r = await db.query(`INSERT INTO billing_orders(org_id,created_by,plan_code,quantity,amount,currency,method_id,method_kind,reference,source) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id`,
+    [o.orgId, o.userId, plan.code, quantity, amount, plan.currency, method.id, method.kind, ref, o.source && Object.keys(o.source).length ? JSON.stringify(o.source) : null]);
   await audit({ orgId: o.orgId, actorType: 'user', actorId: o.userId, action: 'billing.order', targetType: 'billing_order', targetId: r.rows[0].id, next: { plan: plan.code, quantity, amount, method: method.kind, reference: ref } });
   return { ok: true, body: {
     id: r.rows[0].id, reference: ref, status: 'pending', plan: plan.name, quantity, amount, currency: plan.currency,
@@ -100,7 +100,7 @@ export function registerBillingRoutes(app: FastifyInstance, c: JobCtx) {
   app.get('/api/v1/platform/billing', { preHandler: guard }, async req => {
     const q = z.object({ status: z.enum(['pending', 'submitted', 'paid', 'cancelled', 'rejected']).optional() }).parse(req.query);
     const orders = (await db.query(
-      `SELECT o.id, o.org_id, g.name AS organization, o.plan_code, o.quantity, o.amount, o.currency, o.method_kind, o.reference, o.status, o.payer_name, o.payer_phone, o.payer_txn, o.note, o.created_at, o.submitted_at, o.paid_at, o.reject_reason
+      `SELECT o.id, o.org_id, g.name AS organization, o.plan_code, o.quantity, o.amount, o.currency, o.method_kind, o.reference, o.status, o.payer_name, o.payer_phone, o.payer_txn, o.note, o.source, o.created_at, o.submitted_at, o.paid_at, o.reject_reason
          FROM billing_orders o JOIN organizations g ON g.id=o.org_id WHERE ($1::text IS NULL OR o.status=$1) ORDER BY (o.status='submitted') DESC, o.created_at DESC LIMIT 200`, [q.status ?? null])).rows.map(o => ({ ...o, amount: Number(o.amount) }));
     const plans = (await db.query(`SELECT * FROM billing_plans ORDER BY sort, price`)).rows.map(p => ({ ...p, price: Number(p.price) }));
     const methods = (await db.query(`SELECT * FROM payment_methods ORDER BY sort, label`)).rows;

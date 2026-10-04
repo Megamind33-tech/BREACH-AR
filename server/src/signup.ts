@@ -42,7 +42,10 @@ export function registerSignupRoutes(app: FastifyInstance, c: JobCtx, deps: { ma
   app.post('/api/v1/checkout', { config: { rateLimit: { max: limit, timeWindow: '1 minute' } } }, async (req, reply) => {
     if (!mailer) return reply.code(503).send({ error: 'Buying is not open yet.' });
     const b = z.object({ name: z.string().trim().min(2).max(80), email: z.string().email().max(200), password: z.string().min(10).max(200), acceptTerms: z.literal(true),
-      planCode: z.string().min(2).max(40), quantity: z.number().int().min(1).max(50).default(1), methodId: z.string().uuid() }).strict().parse(req.body);
+      planCode: z.string().min(2).max(40), quantity: z.number().int().min(1).max(50).default(1), methodId: z.string().uuid(),
+      // which campaign link or website brought this buyer: short plain text only, never anything personal
+      source: z.object({ source: z.string().max(60), medium: z.string().max(60), campaign: z.string().max(80), content: z.string().max(80), ref: z.string().max(80) }).partial().strict().optional() }).strict().parse(req.body);
+    const source: Record<string, string> = {}; for (const [k, v] of Object.entries(b.source ?? {})) { const t = String(v ?? '').replace(/[^\w .:@/+-]/g, '').trim().slice(0, 80); if (t) source[k] = t; }
     const plan = (await db.query(`SELECT 1 FROM billing_plans WHERE code=$1 AND active AND audience IN ('person','shop')`, [b.planCode])).rowCount;
     const method = (await db.query(`SELECT 1 FROM payment_methods WHERE id=$1 AND active`, [b.methodId])).rowCount;
     if (!plan || !method) return reply.code(404).send({ error: 'That plan or way of paying is not available.' });
@@ -55,7 +58,7 @@ export function registerSignupRoutes(app: FastifyInstance, c: JobCtx, deps: { ma
       await client.query('COMMIT');
     } catch (e: any) { await client.query('ROLLBACK'); if (e.code === '23505') return reply.code(409).send({ error: 'There is already an account for this email. Sign in, then choose Plan and payments to buy.' }); throw e; }
     finally { client.release(); }
-    const placed = await placeOrder(db, c.audit, { orgId, userId, planCode: b.planCode, quantity: b.quantity, methodId: b.methodId });
+    const placed = await placeOrder(db, c.audit, { orgId, userId, planCode: b.planCode, quantity: b.quantity, methodId: b.methodId, source });
     if (!placed.ok) { await db.query('DELETE FROM organizations WHERE id=$1', [orgId]); return reply.code(placed.code).send({ error: placed.error }); }
     await ensureAutopilot(db, orgId, { id: userId }).catch(() => { });
     await c.audit({ orgId, actorType: 'user', actorId: userId, action: 'checkout', targetType: 'organization', targetId: orgId, ip: req.ip } as any);
