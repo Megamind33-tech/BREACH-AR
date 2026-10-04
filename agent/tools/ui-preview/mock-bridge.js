@@ -99,6 +99,17 @@
 
   const listeners = [];
   if (SCENARIO === 'plus') { data['account.status'] = { ...data['account.status'], signedIn: true, email: 'chanda@example.com', plan: 'care-year', planName: 'Viro Care', active: true, validUntil: '2027-10-04T00:00:00Z', features: [...data['account.status'].free, 'diagnose.cause', 'repair.programs', 'fix.verified', 'help.technician'] }; data['help.list'] = { ok: true, requests: [{ subject: 'Laptop very slow', status: 'answered', created_at: '2026-10-02T09:00:00Z', reply: 'Please run Fix my PC and tell me what changes.' }] }; data['help.request'] = { ok: true, message: 'Thank you. A technician will reply by email, usually within one working day.' }; }
+  if (SCENARIO === 'plus') data['pc.report'] = { ok: true, report: {
+    machine: { manufacturer: 'HP', model: 'ProBook 430 G7' }, summary: { watch: 3, urgent: 1, parts: 10 },
+    health: { parts: [
+      { kind: 'Battery', label: 'Primary', risk: 'WATCH', why: ['The battery holds 86% of its design capacity (39 Wh of 45 Wh).', '418 charge cycles recorded.'], action: null },
+      { kind: 'Cooling (fans, vents, thermal paste)', label: 'Cooling system', risk: 'HIGH', why: ['The computer is about 6.7 years old. After 3 years or so the fans are clogged with dust and the thermal paste has dried out.'], action: 'Open the computer, clean the fans and vents, and replace the thermal paste.' },
+      { kind: 'Memory (RAM)', label: '8 GB DDR4 SODIMM', risk: 'WATCH', why: ['Memory use reached 97% on this computer, so programs are competing for space.'], action: 'Replace the memory with 16 GB' },
+      { kind: 'NVMe SSD', label: 'WD PC SN740 512 GB', risk: 'WATCH', why: ['471 unsafe shutdowns recorded.'], action: null },
+      { kind: 'Graphics', label: 'Intel UHD Graphics', risk: 'LOW', why: ['Nothing points at a graphics problem.'], action: null } ] },
+    advice: { age: { ageYears: 6.7 }, lifeStage: { stage: 'Past its typical life' }, windows: { supportNote: null }, priceNote: 'Viro typical prices (an estimate, not a quote)',
+      cost: { priced: true, currency: 'USD', decision: 'REPAIR', repairTotal: 125, residualValue: 63, replacementCost: 700, lines: [ { title: 'Replace the memory with 16 GB', total: 65, priced: true }, { title: 'Cooling service', total: 60, priced: true } ], reasoning: ['The repairs cost 18% of a new computer; the rule is to repair when that is 35% or less.'] } },
+    history: { facts: [ { label: 'Windows versions upgraded through', value: '2', basis: 'measured' }, { label: 'Memory changes seen', value: '0', basis: 'observed' }, { label: 'NVMe drive: time powered on', value: '2,148 hours (about 0.2 years)', basis: 'measured' } ], limits: ['A clean reinstall erases Windows own upgrade records, so the reinstall count is a minimum, never an exact count.'] } } };
   if (SCENARIO === 'free') data['slow.analyze'] = { locked: true, feature: 'diagnose.cause', title: 'Why it is slow or crashing: the actual cause' };
   window.chrome = { webview: {
     addEventListener: (t, f) => { if (t === 'message') listeners.push(f); },

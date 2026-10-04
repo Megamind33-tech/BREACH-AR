@@ -30,6 +30,15 @@ public sealed class LocalBridge(LocalActions act, Func<bool>? isAdmin = null, Ac
             case "account.signin": { var r = await account.SignInAsync(Str(args, "email"), Str(args, "password"), args.TryGetProperty("code", out var cd) && cd.ValueKind == JsonValueKind.String ? cd.GetString() : null, ct); return new { ok = r.Ok, message = r.Message, needsCode = r.NeedsCode, state = Shape(account.State(await ManagedAsync(ct))) }; }
             case "account.signup": { var r = await account.SignUpAsync(Str(args, "name"), Str(args, "email"), Str(args, "password"), ct); return new { ok = r.Ok, message = r.Message }; }
             case "account.signout": account.SignOut(); return Shape(account.State(await ManagedAsync(ct)));
+            case "pc.report":      // read this PC in full, have Viro work out what it means, and show it; nothing is stored on the server
+            {
+                var reading = await Task.Run(() => Anatomy.Collect(new SystemProcessRunner(), ct), ct);
+                string? cost = args.TryGetProperty("purchaseCost", out var pc) && pc.ValueKind == JsonValueKind.Number ? pc.GetDecimal().ToString(System.Globalization.CultureInfo.InvariantCulture) : null;
+                var payload = cost is null ? (object)new { anatomy = reading } : new { anatomy = reading, purchaseCost = decimal.Parse(cost, System.Globalization.CultureInfo.InvariantCulture) };
+                var (status, body) = await account.SendAsync(HttpMethod.Post, "/api/v1/my-pc/report", payload, ct);
+                var ok = status is >= 200 and < 300;
+                return new { ok, report = ok ? (object)body.Clone() : null, message = ok ? null : body.TryGetProperty("error", out var e) ? e.GetString() : "Could not read your PC report.", signedOut = status == 401 };
+            }
             case "help.request":
             {
                 object? details = null;

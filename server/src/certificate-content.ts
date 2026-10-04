@@ -105,3 +105,12 @@ function checklist(a: Obj, report: ReturnType<typeof buildReport>, rating: Ratin
 }
 
 export const VALID = VALID_DAYS;
+
+/** Removes every identifier the machine reported (serial numbers, MAC addresses, UUIDs) from any structure that is about to leave the server. */
+export function scrubIdentifiers<T>(value: T, a: Obj): T {
+  const secrets = [a.system?.serial, a.system?.uuid, a.board?.serial, a.battery?.serial, ...(a.memory?.modules ?? []).map((m: Obj) => m.serial), ...(a.network ?? []).map((n: Obj) => n.mac), ...(a.monitors ?? []).map((m: Obj) => m.serial), ...(a.diagnostics?.storage?.disks ?? []).map((d: Obj) => d.serial)]
+    .map(real).filter((x): x is string => !!x);
+  let text = JSON.stringify(value);
+  for (const s of secrets) text = text.split(s).join('****');
+  return JSON.parse(text) as T;
+}
