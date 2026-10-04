@@ -128,3 +128,33 @@ VIEWS.settings = async main => {
   });
   $('#accept')?.addEventListener('click', async () => { try { await post('/api/v1/compute/consent', {}); toast('Consent recorded.'); reroute(); } catch (x) { fail(x); } });
 };
+
+/* ---------- plan and payments ---------- */
+VIEWS.billing = async main => {
+  const v = await api('/api/v1/billing');
+  const sub = v.subscription;
+  const price = p => `${esc(p.currency)} ${Number(p.price).toLocaleString('en-US')}${p.period === 'once' ? '' : ' / ' + (p.period === 'year' ? 'year' : 'month')}${p.per === 'pc' ? ' per computer' : p.per === 'certificate' ? ' per certificate' : ''}`;
+  const STATUS = { pending: ['unknown', 'Waiting for your payment'], submitted: ['attention', 'Waiting for Viro to confirm'], paid: ['healthy', 'Paid'], cancelled: ['unknown', 'Cancelled'], rejected: ['critical', 'Not accepted'] };
+  main.innerHTML = `<div class="page-head"><h1>Plan and payments</h1></div>
+    <div class="card"><h2>Your plan</h2>${sub ? `<p style="margin:0"><b>${esc(sub.name)}</b> for ${esc(sub.quantity)} computer${sub.quantity === 1 ? '' : 's'}. ${sub.validUntil ? (sub.active ? 'Paid until ' + esc(new Date(sub.validUntil).toLocaleDateString([], { dateStyle: 'medium' })) + '.' : '<span class="pill attention">Expired</span> Renew below to keep it.') : 'Paid once.'}</p>` : '<p style="margin:0">You are on the free plan. Everything in it keeps working.</p>'}</div>
+    ${v.plans.length ? `<div class="card"><h2>Choose a plan</h2>${v.plans.map(p => `<div class="issue"><span class="pts">${price(p)}</span><b>${esc(p.name)}</b>${p.description ? `<small>${esc(p.description)}</small>` : ''}${(p.features ?? []).length ? `<small>${p.features.map(esc).join(' · ')}</small>` : ''}${can('admin') ? `<span class="pts"><button class="sm" data-buy="${esc(p.code)}">Buy</button></span>` : ''}</div>`).join('')}</div>` : `<div class="card"><p class="mute" style="margin:0">${esc(v.note ?? '')}</p></div>`}
+    ${v.orders.length ? `<div class="card"><h2>Your orders</h2><div class="table-wrap"><table><thead><tr><th>Reference</th><th>Plan</th><th>Amount</th><th>Status</th><th></th></tr></thead><tbody>${v.orders.map(o => { const [k, t] = STATUS[o.status] ?? ['unknown', o.status]; return `<tr><td><b>${esc(o.reference)}</b><br><small class="mute">${esc(new Date(o.created_at).toLocaleDateString([], { dateStyle: 'medium' }))}</small></td><td>${esc(o.plan_code)} × ${esc(o.quantity)}</td><td>${esc(o.currency)} ${Number(o.amount).toLocaleString('en-US')}</td><td><span class="pill ${k}">${esc(t)}</span>${o.reject_reason ? `<br><small class="mute">${esc(o.reject_reason)}</small>` : ''}</td><td>${can('admin') && ['pending', 'submitted'].includes(o.status) ? `<button class="ghost sm" data-paid="${esc(o.id)}">I have paid</button> ${o.status === 'pending' ? `<button class="ghost sm" data-cancel="${esc(o.id)}">Cancel</button>` : ''}` : ''}</td></tr>`; }).join('')}</tbody></table></div></div>` : ''}`;
+
+  const payBox = (o) => `<p>Pay <b>${esc(o.currency)} ${Number(o.amount).toLocaleString('en-US')}</b> by <b>${esc(o.pay.method)}</b>.</p><p>${esc(o.pay.instructions)}</p>
+    ${Object.keys(o.pay.details ?? {}).length ? `<div class="kv">${Object.entries(o.pay.details).map(([k, val]) => `<div><span class="mute">${esc(k)}</span> <b>${esc(val)}</b></div>`).join('')}</div>` : ''}
+    <p style="font-size:18px;letter-spacing:1px;margin:12px 0"><span class="mute" style="font-size:13px">Your reference</span><br><b>${esc(o.pay.useReference)}</b></p><p class="mute">Quote this reference when you pay, then choose "I have paid" and give us the transaction number. Your plan starts when Viro confirms the money.</p>`;
+
+  $$('[data-buy]').forEach(b => b.onclick = async () => {
+    const p = v.plans.find(x => x.code === b.dataset.buy);
+    const r = await dialog('Buy ' + p.name, `<label>${p.per === 'pc' ? 'How many computers?' : p.per === 'certificate' ? 'How many certificates?' : 'Quantity'}</label><input name="q" type="number" min="1" max="5000" value="1" ${p.per === 'account' ? 'disabled' : ''}>
+      <label>How will you pay?</label><select name="m">${v.methods.filter(m => !m.currency || m.currency === p.currency).map(m => `<option value="${esc(m.id)}">${esc(m.label)}</option>`).join('')}</select><p class="mute">${esc(price(p).replace(/&amp;/g, '&'))}. You will see the exact amount and how to pay on the next screen.</p>`, 'Continue');
+    if (!r) return;
+    try { const o = await post('/api/v1/billing/orders', { planCode: p.code, quantity: +r.q || 1, methodId: r.m }); await dialog('Pay to start your plan', payBox(o), 'Done'); reroute(); } catch (e) { fail(e); }
+  });
+  $$('[data-paid]').forEach(b => b.onclick = async () => {
+    const r = await dialog('Tell us you have paid', '<label>Your name (as on the payment)</label><input name="payerName" required><label>Phone number</label><input name="payerPhone"><label>Transaction number, bank reference or cash receipt number</label><input name="transactionId" required>', 'Send');
+    if (!r) return;
+    try { const x = await post(`/api/v1/billing/orders/${b.dataset.paid}/paid`, { payerName: r.payerName, payerPhone: r.payerPhone || undefined, transactionId: r.transactionId }); toast(x.message); reroute(); } catch (e) { fail(e); }
+  });
+  $$('[data-cancel]').forEach(b => b.onclick = async () => { if (!(await confirmBox('Cancel this order?', 'Nothing has been paid, so nothing is lost.', 'Cancel order', true))) return; try { await post(`/api/v1/billing/orders/${b.dataset.cancel}/cancel`); reroute(); } catch (e) { fail(e); } });
+};

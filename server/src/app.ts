@@ -42,6 +42,7 @@ import { registerPatchingRoutes, refreshSoftwareAlerts, afterUpdateInstall } fro
 import { registerJobRoutes, jobsForHeartbeat, type JobSigner } from './jobs.js';
 import { registerPlatformRoutes } from './platform.js';
 import { registerPlatformOps } from './platform-ops.js';
+import { registerBillingRoutes } from './billing.js';
 import { registerTwinRoutes } from './twin.js';
 import { ensureAnatomy, computeWanted } from './autoprovision.js';
 import { registerWakeRoutes, AdapterSchema } from './wake.js';
@@ -472,6 +473,7 @@ export async function buildApp(cfg: AppConfig) {
   });
   (app as any).platformKeyOk = (k: string) => !!cfg.platformKey && safeEq(k, cfg.platformKey);
   registerTwinRoutes(app, jobCtx, { healthOf, hardwareRawOf, onlineWindowSeconds: onlineWindow });
+  registerBillingRoutes(app, jobCtx);
   registerPlatformOps(app, { db, jwtSecret: cfg.jwtSecret, onlineWindowSeconds: onlineWindow, audit });
   registerAccountRoutes(app, { ...jobCtx, jwtSecret: cfg.jwtSecret, invalidateUser: id => userCache.delete(id) });
   registerJobRoutes(app, jobCtx);

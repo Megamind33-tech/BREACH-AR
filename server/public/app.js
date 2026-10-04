@@ -88,6 +88,7 @@ const can = role => ({ viewer: 1, technician: 2, admin: 3, owner: 4 }[ME.role] >
 
 // Line icons (24px grid). Every screen uses these through icon(name) so the whole console shares one visual language.
 const ICON_PATHS = {
+  billing: '<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18M7 15h4"/>',
   overview: '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/>',
   computers: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>',
   alerts: '<path d="M6 16v-5a6 6 0 0112 0v5l1.5 2h-15z"/><path d="M10 21h4"/>',
@@ -127,10 +128,10 @@ const NAV_GROUPS = [
   ['Hardware', ['anatomy', 'upgrades', 'lifecycle']],
   ['Compute', ['compute']],
   ['Maintenance', ['jobs', 'policies', 'updates', 'software', 'drivers', 'support']],
-  ['Administration', ['reports', 'team', 'webhooks', 'settings', 'audit', 'about']],
+  ['Administration', ['reports', 'team', 'billing', 'webhooks', 'settings', 'audit', 'about']],
 ];
 const NAV_LABEL = { overview: 'Overview', computers: 'Computers', alerts: 'Alerts', jobs: 'Jobs', policies: 'Policies', security: 'Security', software: 'Software', drivers: 'Drivers', updates: 'Updates', sites: 'Sites', reports: 'Reports', audit: 'Audit log', about: 'About',
-  protection: 'Protection', threats: 'Threats', care: 'Care', anatomy: 'Hardware', upgrades: 'Upgrades', lifecycle: 'Lifecycle', fleet: 'Shared problems', autopilot: 'Autopilot', compute: 'Compute', support: 'Remote support', webhooks: 'Integrations', team: 'Team', settings: 'Settings' };
+  protection: 'Protection', threats: 'Threats', care: 'Care', anatomy: 'Hardware', upgrades: 'Upgrades', lifecycle: 'Lifecycle', fleet: 'Shared problems', autopilot: 'Autopilot', compute: 'Compute', support: 'Remote support', webhooks: 'Integrations', team: 'Team', billing: 'Plan and payments', settings: 'Settings' };
 // Compute sponsorship is parked: its page is offered only to organizations that are actually on that plan, so nobody else sees a feature they cannot use.
 const PLAN_ONLY = { compute: 'compute_sponsored' };
 function navGroups() {
