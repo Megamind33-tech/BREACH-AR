@@ -1,0 +1,79 @@
+{
+ "seconds": 42.8,
+ "events": [
+  {
+   "t": 3.3,
+   "type": "step",
+   "label": "Open Viro."
+  },
+  {
+   "t": 6.5,
+   "type": "step",
+   "label": "Press Fix my PC."
+  },
+  {
+   "t": 7.4,
+   "type": "click",
+   "label": "fixall"
+  },
+  {
+   "t": 10.95,
+   "type": "click",
+   "label": "confirm"
+  },
+  {
+   "t": 12,
+   "type": "step",
+   "label": "Every fix is measured and checked."
+  },
+  {
+   "t": 12,
+   "type": "result",
+   "label": "fixed"
+  },
+  {
+   "t": 16.2,
+   "type": "step",
+   "label": "See what takes space."
+  },
+  {
+   "t": 17.1,
+   "type": "click",
+   "label": "page"
+  },
+  {
+   "t": 22.15,
+   "type": "step",
+   "label": "Read every part of the PC."
+  },
+  {
+   "t": 23.05,
+   "type": "click",
+   "label": "page"
+  },
+  {
+   "t": 29.1,
+   "type": "step",
+   "label": "Changing PC? Back up first."
+  },
+  {
+   "t": 30,
+   "type": "click",
+   "label": "page"
+  },
+  {
+   "t": 34.45,
+   "type": "step",
+   "label": "Set weekly care."
+  },
+  {
+   "t": 35.35,
+   "type": "click",
+   "label": "page"
+  },
+  {
+   "t": 42.8,
+   "type": "end"
+  }
+ ]
+}

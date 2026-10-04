@@ -192,3 +192,9 @@ footer { border-top:1px solid var(--line); padding:64px 0 36px; background:#f4f8
   .compare td.hl { background:color-mix(in srgb, var(--accent) 9%, #fff); }
 }
 .plan li { position:relative; padding-left:17px; } .plan li::before { position:absolute; left:0; top:.62em; margin:0; }
+
+/* ---- the usage demo video: the whole recording, no frame around it ---- */
+.usage { max-width:1100px; margin:0 auto; } .usage video { display:block; width:100%; height:auto; aspect-ratio:16/9; border-radius:16px; background:#07120e; box-shadow:0 30px 80px rgba(7,18,14,.28); }
+.usage-steps { list-style:none; counter-reset:u; display:flex; flex-wrap:wrap; justify-content:center; gap:10px 22px; max-width:1100px; margin:28px auto 0; padding:0; color:var(--mute); font-size:15px; }
+.usage-steps li { counter-increment:u; display:flex; align-items:center; gap:8px; } .usage-steps li::before { content:counter(u); width:24px; height:24px; border-radius:50%; background:var(--accent); color:#fff; font-size:13px; font-weight:700; display:grid; place-items:center; flex:none; }
+@media (max-width:560px) { .usage video { border-radius:10px; } .usage-steps { flex-direction:column; align-items:flex-start; } }

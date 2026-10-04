@@ -104,6 +104,12 @@ pages['index.html'] = head('Viro WorkCare: your PC, looked after and proved', 'V
   <li><b>Made in Zambia</b><span>By ${CO.name}, with local payment and local support.</span></li>
 </ul></div></section>
 
+<section id="see-it"><div class="wrap">
+  <div class="sec-head center"><p class="eyebrow">See it in use</p><h2>Watch Viro fix a PC, in 40 seconds.</h2><p>This is the real Windows app, not a mock-up: open it, press Fix my PC, read the report, and get ready for a new PC. The numbers shown are sample data.</p></div>
+  <div class="usage"><video controls playsinline preload="none" poster="/media/viro-usage-poster.jpg" aria-label="A walk through the Viro WorkCare Windows app"><source src="/media/viro-usage-demo.mp4" type="video/mp4">Your browser cannot play this video. <a href="/media/viro-usage-demo.mp4">Download it</a>.</video></div>
+  <ol class="usage-steps"><li>Open Viro and see your PC at a glance</li><li>Press Fix my PC</li><li>Every fix is measured, with undo</li><li>See what takes space</li><li>Read every part of the PC</li><li>Back up for a new PC</li><li>Set weekly care</li></ol>
+</div></section>
+
 <section class="dark" id="proof"><div class="wrap">
   <div class="sec-head center"><p class="eyebrow">The difference</p><h2>Fix it, then prove it.</h2><p>One click clears temporary files, gives back idle memory and turns off start-up programs that only slow you down. Viro measures your PC before and after, so you see what actually changed, and every step has an Undo.</p></div>
   <div class="stage3">${shot('app-fix', 'Fix my PC: 11.8 GB freed, memory in use down from 71% to 52%, six start-up programs turned off, each fix checked, with an Undo.')}</div>

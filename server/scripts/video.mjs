@@ -11,14 +11,15 @@ const here = dirname(fileURLToPath(import.meta.url)), PUB = join(here, '..', 'pu
 mkdirSync(OUT, { recursive: true });
 const arg = (n, d) => { const i = process.argv.indexOf('--' + n); return i > 0 ? Number(process.argv[i + 1]) : d; };
 const FPS = arg('fps', 30), SECONDS = arg('seconds', 40);
+const LAND = process.argv.includes('--landscape'), W = LAND ? 1920 : 1080, H = LAND ? 1080 : 1920;     // landscape is the 16:9 version for the website
 const b64 = (p, mime) => `data:${mime};base64,${readFileSync(join(PUB, p)).toString('base64')}`;
 const FONT = b64('fonts/inter-latin-wght-normal.woff2', 'font/woff2'), LOGO = b64('logo.png', 'image/png');
 const tick = '<svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="#5fe0a8" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.500"/></svg>';
 const lap = c => `<div class="lap ${c}"><div class="scr"><i></i><i></i><i></i></div><div class="base"></div></div>`;
 
 const css = `@font-face{font-family:Inter;src:url(${FONT}) format('woff2');font-weight:100 900}
-*{box-sizing:border-box;margin:0;padding:0}html,body{width:1080px;height:1920px;background:#07120e;overflow:hidden;font-family:Inter,sans-serif;color:#fff}
-#stage{position:relative;width:1080px;height:1920px;overflow:hidden;background:radial-gradient(70% 45% at 80% 108%,rgba(37,170,115,.40) 0,transparent 70%),radial-gradient(60% 35% at 0% 0%,rgba(95,224,168,.12) 0,transparent 65%),#07120e}
+*{box-sizing:border-box;margin:0;padding:0}html,body{width:${W}px;height:${H}px;background:#07120e;overflow:hidden;font-family:Inter,sans-serif;color:#fff}
+#stage{position:relative;width:${W}px;height:${H}px;overflow:hidden;background:radial-gradient(70% 45% at 80% 108%,rgba(37,170,115,.40) 0,transparent 70%),radial-gradient(60% 35% at 0% 0%,rgba(95,224,168,.12) 0,transparent 65%),#07120e}
 #stage::before{content:'';position:absolute;inset:34px;border:1px solid rgba(255,255,255,.09);border-radius:34px;z-index:5;pointer-events:none}
 .logo{position:absolute;left:84px;top:96px;display:flex;align-items:center;gap:16px;font-size:30px;font-weight:600;z-index:6}.logo img{width:50px;height:50px;border-radius:13px}.logo b{font-weight:800}
 /* the small corner logo steps aside when the big one arrives in the closing scene, so there is never more than one */
@@ -81,6 +82,21 @@ h1{font-weight:600;letter-spacing:-.045em;line-height:1.03;font-size:112px}h1 sp
 .btn{display:inline-block;margin-top:70px;padding:40px 80px;border-radius:999px;background:#5fe0a8;color:#04231a;font-size:56px;font-weight:700;letter-spacing:-.01em;box-shadow:0 0 90px rgba(95,224,168,.45)}
 .url{margin-top:56px;font-size:60px;font-weight:600;letter-spacing:-.02em}.small{margin-top:30px;font-size:30px;line-height:1.5;color:rgba(255,255,255,.62)}`;
 
+const landCss = `
+/* ---- landscape 1920x1080: headline left, visual right ---- */
+${LAND ? `
+.logo{left:120px;top:84px}.prog{left:120px;right:120px;bottom:60px}
+.s1 h1{left:120px;top:330px;font-size:170px}.s1 .cap{left:120px;top:800px;font-size:50px}
+.s2 h1{left:120px;top:300px;font-size:116px;width:800px}.scan{left:1000px;right:120px;top:250px}.scan .row{padding:24px 0;font-size:38px}.sweep{left:1000px;right:120px;top:215px;animation-name:sweepl}
+@keyframes sweepl{0%{opacity:0;transform:translateY(0)}10%{opacity:1}90%{opacity:1}100%{opacity:0;transform:translateY(640px)}}
+.s3 h1,.s4 h1,.s5 h1,.s6 h1{font-size:104px;left:120px;top:300px;width:820px}
+.s3 .card{left:1000px;right:120px;top:150px;padding:44px 52px}.big b{font-size:220px}.s3 .r{margin-top:34px}.s3 .r em{font-size:52px}.undo{left:120px;top:760px;font-size:44px}
+.s4 .card{left:1000px;right:120px;top:120px;padding:44px 52px}.v{font-size:150px}.s4 li{padding:18px 0;font-size:34px}
+.paper{left:1000px;right:120px;top:100px;padding:46px 52px}.paper h3{font-size:58px}.paper li{padding:16px 0;font-size:30px}.pv{font-size:52px}.seal{width:130px;height:130px}
+.s6 h1{width:1500px}.pair{left:120px;right:120px;top:580px}.lap .scr{width:340px;height:230px}.lap .base{width:410px}.chips em{font-size:44px}.lbl{left:120px;right:120px;top:880px;font-size:34px}.s6 .cap{left:120px;top:960px;font-size:44px}
+.s7 .big7{left:0;right:0;top:0;bottom:0}.s7 .logo7{position:absolute;left:120px;top:160px;margin:0}.seal b{font-size:17px}.s7 h1{position:absolute;left:120px;top:330px;font-size:132px;width:900px}
+.s7 .btn{position:absolute;left:1100px;top:400px;margin:0}.s7 .url{position:absolute;left:1100px;top:600px;margin:0}.s7 .small{position:absolute;left:1100px;top:700px;width:700px;margin:0;font-size:32px}
+` : ''}`;
 const body = `
 <div id="stage">
   <div class="logo"><img src="${LOGO}" alt=""><span>Viro <b>WorkCare</b></span></div>
@@ -167,7 +183,7 @@ const body = `
   <div class="prog"><i></i></div>
 </div>`;
 
-const html = `<!doctype html><meta charset="utf-8"><style>${css}</style><body>${body}<script>
+const html = `<!doctype html><meta charset="utf-8"><style>${css}${landCss}</style><body>${body}<script>
 window.seek = t => { document.getAnimations().forEach(a => { a.pause(); a.currentTime = t * 1000; });
   const ease = x => 1 - Math.pow(1 - x, 3); const g = document.getElementById('gb'); const p = Math.min(1, Math.max(0, (t - 10.9) / 1.6)); g.textContent = (11.8 * ease(p)).toFixed(1); };
 </script></body>`;
@@ -179,23 +195,23 @@ const sleep = ms => new Promise(r => setTimeout(r, ms)); await sleep(2500);
 const list = await (await fetch(`http://127.0.0.1:${PORT}/json/list`)).json(); const ws = new WebSocket(list.find(t => t.type === 'page').webSocketDebuggerUrl); await new Promise(r => ws.on('open', r));
 let id = 1; const w = new Map(); ws.on('message', m => { const d = JSON.parse(m); if (d.id && w.has(d.id)) { w.get(d.id)(d.result); w.delete(d.id); } });
 const send = (m, p = {}) => new Promise(r => { const i = id++; w.set(i, r); ws.send(JSON.stringify({ id: i, method: m, params: p })); });
-await send('Page.enable'); await send('Emulation.setDeviceMetricsOverride', { width: 1080, height: 1920, deviceScaleFactor: 1, mobile: false });
+await send('Page.enable'); await send('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: 1, mobile: false });
 await send('Page.navigate', { url: 'file:///' + page.replace(/\\/g, '/') }); await sleep(1500);
 
 const frames = join(dir, 'frames'); mkdirSync(frames);
 const total = FPS * SECONDS;
 for (let f = 0; f < total; f++) {
   await send('Runtime.evaluate', { expression: `seek(${(f / FPS).toFixed(4)})` });
-  const s = await send('Page.captureScreenshot', { format: 'jpeg', quality: 94, clip: { x: 0, y: 0, width: 1080, height: 1920, scale: 1 } });
+  const s = await send('Page.captureScreenshot', { format: 'jpeg', quality: 94, clip: { x: 0, y: 0, width: W, height: H, scale: 1 } });
   writeFileSync(join(frames, String(f).padStart(5, '0') + '.jpg'), Buffer.from(s.data, 'base64'));
   if (f % 150 === 0) console.log(`frame ${f}/${total}`);
 }
 for (const [name, t] of [['poster-hook', 1.5], ['poster-proof', 14], ['poster-cta', 38.5]]) {
   await send('Runtime.evaluate', { expression: `seek(${t})` });
-  const s = await send('Page.captureScreenshot', { format: 'png', clip: { x: 0, y: 0, width: 1080, height: 1920, scale: 1 } });
-  writeFileSync(join(OUT, name + '.png'), Buffer.from(s.data, 'base64'));
+  const s = await send('Page.captureScreenshot', { format: 'png', clip: { x: 0, y: 0, width: W, height: H, scale: 1 } });
+  writeFileSync(join(OUT, (LAND ? 'land-' : '') + name + '.png'), Buffer.from(s.data, 'base64'));
 }
 chrome.kill();
-execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-framerate', String(FPS), '-i', join(frames, '%05d.jpg'), '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '17', '-preset', 'slow', '-movflags', '+faststart', join(OUT, 'viro-demo-40s.mp4')]);
+execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-framerate', String(FPS), '-i', join(frames, '%05d.jpg'), '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '17', '-preset', 'slow', '-movflags', '+faststart', join(OUT, LAND ? 'viro-demo-landscape-40s.mp4' : 'viro-demo-40s.mp4')]);
 try { rmSync(dir, { recursive: true, force: true }); } catch { /* temp */ }
 console.log('done', join(OUT, 'viro-demo-40s.mp4')); process.exit(0);
