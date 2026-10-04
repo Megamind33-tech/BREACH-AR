@@ -78,7 +78,7 @@ if (args.Length > 0)
             var ui = new Thread(() =>
             {
                 System.Windows.Forms.Application.EnableVisualStyles(); System.Windows.Forms.Application.SetHighDpiMode(System.Windows.Forms.HighDpiMode.PerMonitorV2);
-                var web = new Viro.Agent.Care.LocalWebForm(new Viro.Agent.Care.LocalBridge(localActions, null, Viro.Agent.Care.LocalWebForm.Relaunch), page);
+                var web = new Viro.Agent.Care.LocalWebForm(new Viro.Agent.Care.LocalBridge(localActions, null, Viro.Agent.Care.LocalWebForm.Relaunch, null, null, url => { if (Uri.TryCreate(url, UriKind.Absolute, out var u) && u.Scheme == Uri.UriSchemeHttps) System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(u.AbsoluteUri) { UseShellExecute = true }); }), page);
                 web.Shown += async (_, _) => { if (!await web.InitializeAsync()) { web.NeedsPlainWindow = true; web.Close(); } };
                 System.Windows.Forms.Application.Run(web);
                 if (web.NeedsPlainWindow) System.Windows.Forms.Application.Run(new Viro.Agent.Care.LocalAppForm(localActions) { StartPage = page, FallbackReason = Viro.Agent.Care.LocalWebForm.LastFailure ?? "the full interface could not start" });      // no web view runtime: the plain window still works

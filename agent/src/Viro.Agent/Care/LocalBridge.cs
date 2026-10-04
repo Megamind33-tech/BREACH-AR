@@ -6,17 +6,32 @@ namespace Viro.Agent.Care;
 
 /// <summary>
 /// The only things the window's interface can ask for. Every command maps onto <see cref="LocalActions"/>, which uses the same engines and safety rules as the
-/// service; there is no command that runs arbitrary code, reads files, or reaches the network. Results are plain JSON for the interface to draw.
+/// service; there is no command that runs arbitrary code or reads files. The only network traffic is to the Viro account service (sign-in and plan) and, for program updates, winget. Results are plain JSON for the interface to draw.
 /// </summary>
-public sealed class LocalBridge(LocalActions act, Func<bool>? isAdmin = null, Action? relaunchElevated = null, WorkspaceActions? workspace = null)
+public sealed class LocalBridge(LocalActions act, Func<bool>? isAdmin = null, Action? relaunchElevated = null, WorkspaceActions? workspace = null, AccountService? accounts = null, Action<string>? openUrl = null, Func<Task<bool>>? isManaged = null)
 {
     static readonly JsonSerializerOptions Web = new(JsonSerializerDefaults.Web);
+    static object Shape(AccountState a) => new { signedIn = a.SignedIn, email = a.Email, plan = a.Plan, planName = a.PlanName, active = a.Active, validUntil = a.ValidUntil, features = a.Features, managed = a.Managed, stale = a.Stale, checkedAt = a.CheckedAt, free = AccountService.FreeFeatures, titles = FeatureGate.Titles };
     readonly Func<bool> admin = isAdmin ?? (() => new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator));
+
+    readonly AccountService account = accounts ?? new AccountService(new DpapiAccountStore());
+
+    /// <summary>True when an organization manages this PC through the Viro service: its administrators set what is included, so the window does not lock anything.</summary>
+    async Task<bool> ManagedAsync(CancellationToken ct) { if (isManaged is not null) return await isManaged(); try { return await act.SelfAsync(ct) is not null; } catch (Exception) { return false; } }
 
     public async Task<object?> HandleAsync(string cmd, JsonElement args, CancellationToken ct)
     {
+        if (FeatureGate.Required(cmd, args) is { } need && !account.Has(need, await ManagedAsync(ct)))
+            return new { locked = true, feature = need, title = FeatureGate.Titles.GetValueOrDefault(need, need) };
         switch (cmd)
         {
+            case "account.status": { var m = await ManagedAsync(ct); return Shape(account.State(m)); }
+            case "account.refresh": { await account.RefreshAsync(ct); return Shape(account.State(await ManagedAsync(ct))); }
+            case "account.signin": { var r = await account.SignInAsync(Str(args, "email"), Str(args, "password"), args.TryGetProperty("code", out var cd) && cd.ValueKind == JsonValueKind.String ? cd.GetString() : null, ct); return new { ok = r.Ok, message = r.Message, needsCode = r.NeedsCode, state = Shape(account.State(await ManagedAsync(ct))) }; }
+            case "account.signup": { var r = await account.SignUpAsync(Str(args, "name"), Str(args, "email"), Str(args, "password"), ct); return new { ok = r.Ok, message = r.Message }; }
+            case "account.signout": account.SignOut(); return Shape(account.State(await ManagedAsync(ct)));
+            case "account.manage": openUrl?.Invoke(account.ManageUrl); return new { opened = openUrl is not null, url = account.ManageUrl };
+
             case "env": return new { admin = admin(), user = Environment.UserName, machine = Environment.MachineName, version = Collectors.AgentVersion };
             case "sys":      // the facts for the line under every page title; the first reading of CPU use is taken here so the live figures are ready by the time they are asked for
             {

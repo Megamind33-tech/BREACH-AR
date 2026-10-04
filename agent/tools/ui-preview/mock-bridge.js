@@ -81,6 +81,11 @@
       { id: 'Microsoft.MicrosoftSolitaireCollection', hive: '', name: 'Microsoft Solitaire Collection', version: '4.20', publisher: 'Microsoft Corporation', kind: 'appx', sizeBytes: null, hidden: false },
     ] },
     'apps.uninstall': { verified: true, applied: true, needed: true, summary: 'Repaired and verified', rebootRequired: false, needsAdmin: false, canForce: false, undoable: false },
+    'account.status': { signedIn: false, email: null, plan: null, planName: null, active: false, validUntil: null, features: ['scan.full', 'clean.space', 'startup.manage', 'memory.trim', 'apps.list', 'updates.view'], managed: false, stale: false,
+      free: ['scan.full', 'clean.space', 'startup.manage', 'memory.trim', 'apps.list', 'updates.view'],
+      titles: { 'scan.full': 'Full scan: what is wrong with this PC', 'clean.space': 'Free up space', 'startup.manage': 'Start-up programs', 'memory.trim': 'Memory', 'apps.list': 'Installed programs with sizes, normal uninstall', 'updates.view': 'Windows and program updates',
+        'diagnose.cause': 'Why it is slow or crashing: the actual cause', 'repair.programs': 'Repair broken programs, printers and Windows pieces', 'uninstall.forced': 'Remove stubborn and hidden programs, with undo', 'fix.verified': 'Fixes that are re-checked, with before and after and undo', 'health.warnings': 'Early warning for failing drives and batteries', 'advice.replace': 'Repair, upgrade or replace advice with a price', 'backup.check': 'Backup check', 'maintenance.scheduled': 'Scheduled fixes and a weekly report', 'history.machine': 'Machine history', 'move.cloud': 'Viro Move: your apps, files and settings on your next PC', 'help.technician': 'Ask a technician' } },
+    'account.manage': { opened: true },
     'apps.list': { apps, crashes: [{ exe: 'WINWORD.EXE', crashes: 2, hangs: 1, at: ago(600), app: 'Microsoft Office 365' }] },
     'slow.analyze': { readable: true, boots: [{ seconds: 48 }, { seconds: 62 }, { seconds: 55 }], shutdowns: [{ seconds: 14 }, { seconds: 9 }], raised: [{ name: 'WaitToKillServiceTimeout', why: 'Waits longer than normal for services', current: 20000, normal: 5000 }], startupCulprits: [{ name: 'OneDrive', seconds: 11, times: 4 }, { name: 'Teams', seconds: 9, times: 3 }], slowServices: [{ name: 'Windows Search', seconds: 6, times: 2 }], shutdownCulprits: [{ name: 'Adobe Updater', seconds: 5, times: 2 }], pageFileWipe: false },
     'stability.analyze': { blueScreens: 0, lastBlueScreen: null, restarts: 1, freezes: 3, shellCrashes: 0, causes: [{ title: 'Microsoft Word keeps stopping', detail: 'Windows recorded 2 crashes and 1 freeze of WINWORD.EXE this week. A damaged add-in or program file is the usual cause.', confidence: 'medium', recipe: 'office.quick-repair', recipeLabel: 'Repair Office' }], codes: [], hung: [] },
@@ -89,6 +94,7 @@
   };
 
   const listeners = [];
+  if (SCENARIO === 'free') data['slow.analyze'] = { locked: true, feature: 'diagnose.cause', title: 'Why it is slow or crashing: the actual cause' };
   window.chrome = { webview: {
     addEventListener: (t, f) => { if (t === 'message') listeners.push(f); },
     postMessage: raw => {

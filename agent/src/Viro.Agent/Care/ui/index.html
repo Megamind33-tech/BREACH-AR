@@ -185,7 +185,7 @@ const upText = s => s == null ? '' : s >= 86400 ? `${Math.floor(s / 86400)} d ${
 
 /* ---------- bridge to the program ---------- */
 const pending = new Map(); let seq = 0;
-if (window.chrome?.webview) chrome.webview.addEventListener('message', e => { try { const m = JSON.parse(e.data); const p = pending.get(String(m.id)); if (p) { pending.delete(String(m.id)); m.ok ? p.res(m.data) : p.rej(new Error(m.error)); } } catch { } });
+if (window.chrome?.webview) chrome.webview.addEventListener('message', e => { try { const m = JSON.parse(e.data); const p = pending.get(String(m.id)); if (p) { pending.delete(String(m.id)); m.ok ? (m.data && m.data.locked ? p.rej(Object.assign(new Error('locked'), { locked: true, feature: m.data.feature, title: m.data.title })) : p.res(m.data)) : p.rej(new Error(m.error)); } } catch { } });
 const call = (cmd, args = {}) => new Promise((res, rej) => { if (!window.chrome?.webview) return rej(new Error('This page needs the Viro program.')); const id = String(++seq); pending.set(id, { res, rej }); chrome.webview.postMessage(JSON.stringify({ id, cmd, args })); setTimeout(() => { if (pending.delete(id)) rej(new Error('That took too long.')); }, 15 * 60 * 1000); });
 
 /* ---------- feedback ---------- */
@@ -203,7 +203,18 @@ function modal(title, body, ok = 'Continue', danger = false) {
 }
 async function busy(btn, label, fn) {
   const old = btn.innerHTML; btn.disabled = true; btn.innerHTML = `<span class="spin"></span>${esc(label)}`;
-  try { return await fn(); } catch (e) { toast(e.message, 'bad'); } finally { btn.disabled = false; btn.innerHTML = old; }
+  try { return await fn(); } catch (e) { if (e.locked) upgradeModal(e); else toast(e.message, 'bad'); } finally { btn.disabled = false; btn.innerHTML = old; }
+}
+
+/* ---------- what is free and what a plan adds ---------- */
+const upgradeCard = e => `<div class="page"><div class="panel"><div class="body"><div class="empty" style="padding:44px 20px">${ic('lock', 30)}<b style="font-size:19px">${esc(e.title || 'This is part of Viro Care')}</b>
+  <div class="sub" style="max-width:480px;margin:6px auto 18px">Cleaning, start-up, memory and the full scan are free. This one is part of a paid plan, because it goes beyond what free tools do: it finds the real cause, fixes it, checks the fix and lets you undo it.</div>
+  <div class="row" style="justify-content:center"><button class="btn primary" data-plans>See plans</button><button class="btn ghost" data-signin>I already have a plan: sign in</button></div></div></div></div></div>`;
+function wireUpgrade(root = document) { $('[data-plans]', root)?.addEventListener('click', () => call('account.manage')); $('[data-signin]', root)?.addEventListener('click', () => { $('.scrim')?.remove(); go('account'); }); }
+async function upgradeModal(e) {
+  const s = document.createElement('div'); s.className = 'scrim';
+  s.innerHTML = `<div class="modal" role="dialog" aria-modal="true"><h2>Part of Viro Care</h2><p><b>${esc(e.title || '')}</b><br>This goes beyond what the free tools do, so it is part of a paid plan. Everything free keeps working.</p><div class="row"><button class="btn ghost" data-n>Not now</button><button class="btn ghost" data-signin>Sign in</button><button class="btn primary" data-plans>See plans</button></div></div>`;
+  document.body.appendChild(s); $('[data-n]', s).onclick = () => s.remove(); s.onclick = ev => { if (ev.target === s) s.remove(); }; wireUpgrade(s);
 }
 
 /* ---------- state and pages ---------- */
@@ -211,14 +222,14 @@ const S = { env: null, view: undefined, page: null, sys: null, timer: null };
 const PAGES = [
   ['Protect', [['overview', 'Overview', 'home'], ['security', 'Security', 'shield'], ['updates', 'Updates and drivers', 'update'], ['swupdates', 'Program updates', 'refresh'], ['stability', 'Crashes and freezes', 'alert']]],
   ['Optimize', [['performance', 'Performance', 'gauge'], ['slow', 'Start-up and shut-down', 'power'], ['apps', 'Repair programs', 'wrench'], ['installed', 'Installed programs', 'trash'], ['space', 'Free space', 'broom'], ['startup', 'Start-up programs', 'rocket'], ['memory', 'Memory', 'chip']]],
-  ['This PC', [['workspace', 'Workspace', 'link']]],
+  ['This PC', [['workspace', 'Workspace', 'link'], ['account', 'Viro account', 'lock']]],
   ['History', [['activity', 'What Viro did', 'clock'], ['undo', 'Undo changes', 'undo']]],
 ];
 const TITLES = {
   overview: ["Overview", "Your PC at a glance"], security: ["Security", "Windows protection"], updates: ["Updates and drivers", "Waiting Windows updates"],
   performance: ["Performance", "Heat, battery, start-up"], space: ["Free space", "Remove temporary files"], startup: ["Start-up programs", "What starts with Windows"], memory: ["Memory", "What is using memory"],
   swupdates: ["Program updates", "Newer versions available"], stability: ["Crashes and freezes", "What Windows recorded"], slow: ["Start-up and shut-down", "What slows this PC"],
-  installed: ["Installed programs", "Sizes, and removal"], apps: ["Repair programs", "Fix programs that misbehave"], workspace: ["Workspace", "Your organization"], activity: ["What Viro did", "Verified changes"], undo: ["Undo changes", "Put things back"],
+  installed: ["Installed programs", "Sizes, and removal"], apps: ["Repair programs", "Fix programs that misbehave"], workspace: ["Workspace", "Your organization"], account: ["Viro account", "Your plan and what it includes"], activity: ["What Viro did", "Verified changes"], undo: ["Undo changes", "Put things back"],
 };
 const NOSERVICE = 'The Viro background service is not reachable, so health details are unavailable. Free space, start-up programs and memory still work.';
 const note = t => `<div class="note">${ic('info')}<div>${t}</div></div>`;
@@ -249,14 +260,15 @@ function drawNav() {
 function drawStrip() {
   const s = S.sys, v = S.view, w = v?.workspace;
   const parts = [`<b>${esc(v?.hostname || S.env?.machine || 'This PC')}</b>`, s?.cpu && esc(s.cpu.replace(/\s+\d+-Core Processor|\(R\)|\(TM\)/g, '').replace(/\s{2,}/g, ' ').trim()), s?.ramGb && `${Math.round(s.ramGb)} GB memory`, s?.os && esc(s.os), s?.uptimeSeconds != null && `Up ${upText(s.uptimeSeconds)}`].filter(Boolean);
-  $('#strip').innerHTML = `<span class="dot ${v ? 'ok' : ''}" style="margin:0"></span><span class="t">${parts.join('<i> · </i>')}</span><span class="sp"></span><span class="conn">${v ? `Managed by ${esc(w?.organization || 'your organization')}` : 'Standalone, not connected to an organization'}</span>`;
+  $('#strip').innerHTML = `<span class="dot ${v ? 'ok' : ''}" style="margin:0"></span><span class="t">${parts.join('<i> · </i>')}</span><span class="sp"></span><span class="conn">${v ? `Managed by ${esc(w?.organization || 'your organization')}` : S.acct?.signedIn ? `${esc(S.acct.planName || 'Free plan')} · ${esc(S.acct.email)}` : 'Free plan · <a href="#" id="conn-acct" style="color:var(--green)">Sign in</a>'}</span>`;
+  $('#conn-acct')?.addEventListener('click', e => { e.preventDefault(); go('account'); });
 }
 function head(extra = '') { const [t, s] = TITLES[S.page]; $('#top').innerHTML = `<div><h1>${t}</h1><p>${s}</p></div><div class="actions">${extra}</div>`; }
 const skeleton = () => `<div class="grid hero"><div class="skel" style="height:190px"></div><div class="skel" style="height:190px"></div></div><div class="skel" style="height:64px;margin-top:12px"></div><div class="skel" style="height:64px;margin-top:8px"></div>`;
 async function go(page) {
   if (S.timer) { clearInterval(S.timer); S.timer = null; }
   S.page = page; location.hash = page; drawNav(); head(); $('#view').scrollTop = 0; $('#view').innerHTML = skeleton();
-  try { await RENDER[page](); } catch (e) { $('#view').innerHTML = `<div class="empty">${ic('alert')}<b>Something went wrong</b>${esc(e.message)}</div>`; }
+  try { await RENDER[page](); } catch (e) { if (e.locked) { $('#view').innerHTML = upgradeCard(e); wireUpgrade(); return; } $('#view').innerHTML = `<div class="empty">${ic('alert')}<b>Something went wrong</b>${esc(e.message)}</div>`; }
 }
 
 
@@ -623,9 +635,44 @@ RENDER.undo = async () => {
   $$('[data-u]').forEach(b => b.onclick = async () => { if (!(await modal('Undo this change?', 'Viro will put things back exactly as they were.', 'Undo'))) return; await busy(b, 'Undoing', async () => { const r = await call('undo', { id: b.dataset.u }); toast(r.rolledBack ? 'Undone.' : r.summary, r.rolledBack ? 'ok' : 'bad'); RENDER.undo(); }); });
 };
 
+/* ---------- Viro account ---------- */
+RENDER.account = async () => {
+  head(); const a = S.acct = await call('account.status');
+  const rows = (keys, on) => keys.map(k => `<div class="ctl"><span class="check ${on ? 'on' : ''}">${ic(on ? 'check' : 'lock', 12)}</span><div class="grow"><b>${esc(a.titles[k] || k)}</b></div></div>`).join('');
+  const paid = Object.keys(a.titles).filter(k => !a.free.includes(k));
+  const has = k => a.features.includes('*') || a.features.includes(k);
+  if (a.managed) { $('#view').innerHTML = `<div class="page">${note('This PC is managed by your organization, so everything is included. Your administrator decides what runs here.')}${panel('What is included', '', '', rows(paid, true))}</div>`; return; }
+  if (a.signedIn) {
+    $('#view').innerHTML = `<div class="page">${sum([{ k: 'Signed in as', v: esc(a.email) }, { k: 'Plan', v: esc(a.planName || 'Free'), tone: a.planName && a.active ? '' : '' }, { k: a.validUntil ? 'Paid until' : 'Status', v: a.validUntil ? new Date(a.validUntil).toLocaleDateString([], { dateStyle: 'medium' }) : 'Free plan', sub: a.stale ? 'Not checked recently: connect to the internet' : '' }])}
+      ${panel('What your plan includes', 'Free features always work.', '<button class="btn ghost sm" id="rf">' + ic('refresh') + 'Check again</button><button class="btn primary sm" id="mp">Manage plan</button>', rows(paid.filter(has), true) + rows(paid.filter(k => !has(k)), false))}
+      <div class="tight row"><button class="btn ghost" id="so">Sign out</button></div></div>`;
+    $('#rf').onclick = e => busy(e.currentTarget, 'Checking', async () => { S.acct = await call('account.refresh'); toast('Plan checked.'); RENDER.account(); });
+    $('#mp').onclick = () => call('account.manage'); $('#so').onclick = async () => { S.acct = await call('account.signout'); drawStrip(); RENDER.account(); };
+    return;
+  }
+  $('#view').innerHTML = `<div class="page"><div class="grid">
+    <div class="card page"><h2>Sign in</h2><div class="sub">Use your Viro account to unlock the plan you paid for on this PC.</div>
+      <input id="em" type="email" placeholder="Email" autocomplete="username" style="margin-top:12px;width:100%;height:40px;border-radius:8px;border:0;background:var(--bg);color:#fff;padding:0 12px;font:inherit"><input id="pw" type="password" placeholder="Password" autocomplete="current-password" style="margin-top:8px;width:100%;height:40px;border-radius:8px;border:0;background:var(--bg);color:#fff;padding:0 12px;font:inherit">
+      <input id="cd" placeholder="6-digit code (only if you use one)" style="display:none;margin-top:8px;width:100%;height:40px;border-radius:8px;border:0;background:var(--bg);color:#fff;padding:0 12px;font:inherit">
+      <div class="tight row"><button class="btn primary" id="go">Sign in</button><button class="btn ghost" id="mk">Create an account</button><span class="muted" id="msg"></span></div></div>
+    <div class="card page"><h2>Free</h2><div class="sub">${a.free.map(k => esc(a.titles[k] || k)).join(' · ')}</div><h2 style="margin-top:16px">Viro Care adds</h2><div class="sub">${paid.map(k => esc(a.titles[k])).join('<br>')}</div></div></div></div>`;
+  $('#go').onclick = e => busy(e.currentTarget, 'Signing in', async () => {
+    const r = await call('account.signin', { email: $('#em').value, password: $('#pw').value, code: $('#cd').value });
+    $('#msg').textContent = r.ok ? '' : r.message; if (r.needsCode) $('#cd').style.display = '';
+    if (r.ok) { S.acct = r.state; toast(r.message); drawStrip(); RENDER.account(); }
+  });
+  $('#mk').onclick = async () => {
+    const body = `<p>For your own PC. We will email you a link to confirm your address.</p><input id="mn" placeholder="Your name" style="width:100%;height:38px;margin-top:6px;border-radius:8px;border:0;background:var(--bg);color:#fff;padding:0 10px;font:inherit"><input id="me" type="email" placeholder="Email" style="width:100%;height:38px;margin-top:6px;border-radius:8px;border:0;background:var(--bg);color:#fff;padding:0 10px;font:inherit"><input id="mp2" type="password" placeholder="Password (10 or more characters)" style="width:100%;height:38px;margin-top:6px;border-radius:8px;border:0;background:var(--bg);color:#fff;padding:0 10px;font:inherit">`;
+    if (!(await modal('Create a Viro account', body, 'Create account'))) return;
+    const r = await call('account.signup', { name: $('#mn')?.value || '', email: $('#me')?.value || '', password: $('#mp2')?.value || '' }).catch(x => ({ ok: false, message: x.message }));
+    toast(r.message, r.ok ? 'ok' : 'bad');
+  };
+};
+
 /* ---------- start ---------- */
 (async () => {
   S.env = await call('env').catch(() => ({ admin: false, machine: '' }));
+  call('account.status').then(a => { S.acct = a; drawStrip(); }).catch(() => { });
   call('sys').then(s => { S.sys = s; drawStrip(); }).catch(() => { /* the strip simply shows less */ });
   const start = (window.__start && RENDER[window.__start]) ? window.__start : 'overview'; drawNav();
   await go(start);
