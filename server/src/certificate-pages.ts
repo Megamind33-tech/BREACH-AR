@@ -24,26 +24,26 @@ export function certificateEmail(s: Obj, code: string, link: string): string {
 
 export function certificateEmailHtml(s: Obj, code: string, link: string, baseUrl: string): string {
   const m = s.machine ?? {}, c = s.costs, v = VERDICT[s.verdict?.rating] ?? VERDICT.FAIR!;
-  const colour = { ok: '#1f9d5c', warn: '#b7791f', bad: '#c0392b' }[v.cls]!;
-  const fig = (k: string, val: string) => `<td style="padding:10px 14px;border:1px solid #dfe8e2;border-radius:8px;vertical-align:top"><div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#52645a">${esc(k)}</div><div style="font-size:18px;font-weight:700;margin-top:3px">${val}</div></td>`;
-  const work = (c?.workSoon ?? []).slice(0, 5).map((w: Obj) => `<tr><td style="padding:6px 0;border-top:1px solid #e6eee9">${esc(w.title)}</td><td style="padding:6px 0;border-top:1px solid #e6eee9;text-align:right;white-space:nowrap">${w.priced ? money(c.currency, w.total) : 'not priced'}</td></tr>`).join('');
-  return `<!doctype html><html><body style="margin:0;background:#f3f7f4"><div style="font-family:Segoe UI,Arial,sans-serif;max-width:620px;margin:0 auto;padding:22px 14px;color:#14201a">
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><img src="${esc(baseUrl)}/logo.png" width="34" height="34" alt="" style="border-radius:8px;vertical-align:middle"> <b style="font-size:17px;vertical-align:middle">&nbsp;Viro WorkCare</b></div>
-  <div style="background:#fff;border:1px solid #dfe8e2;border-radius:14px;overflow:hidden">
-    <div style="background:${colour};color:#fff;padding:16px 22px"><div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.9">Certificate of inspection</div><div style="font-size:24px;font-weight:700;margin-top:2px">${esc(v.head)}</div><div style="opacity:.95">${esc(s.verdict?.label ?? '')}</div></div>
-    <div style="padding:20px 22px">
-      <div style="font-size:20px;font-weight:700">${esc([m.manufacturer, m.model].filter(Boolean).join(' ') || 'Computer')}</div>
-      <div style="color:#52645a;margin:2px 0 14px">${esc(m.cpu ?? '')}${m.ramGb ? ` · ${esc(m.ramGb)} GB memory` : ''}${m.serialLast4 ? ` · serial ends ${esc(m.serialLast4)}` : ''}</div>
-      <ul style="margin:0 0 16px;padding-left:18px">${(s.verdict?.reasons ?? []).map((r: string) => `<li style="margin:3px 0">${esc(r)}</li>`).join('')}</ul>
-      <table role="presentation" cellspacing="6" style="width:100%;border-collapse:separate"><tr>
-        ${fig('Age (estimated)', s.age?.years != null ? `about ${esc(s.age.years)} yrs` : 'unknown')}${fig('Dependable life left', s.life?.remainingYears ? `${esc(s.life.remainingYears[0])}–${esc(s.life.remainingYears[1])} yrs` : 'unknown')}</tr><tr>
-        ${c ? fig('Worth today (estimate)', c.fairPriceRange ? `${esc(c.currency)} ${num(c.fairPriceRange[0])}–${num(c.fairPriceRange[1])}` : 'n/a') + fig('Work to expect', money(c.currency, c.workSoonTotal ?? 0)) : ''}</tr></table>
-      ${work ? `<div style="margin-top:14px;font-weight:600">Work to expect</div><table role="presentation" style="width:100%;border-collapse:collapse;font-size:14px">${work}</table>` : ''}
-      <div style="margin:20px 0 8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#52645a">Your certificate code</div>
-      <div style="font-size:22px;letter-spacing:2px;font-weight:700;background:#eef7f1;padding:12px 16px;border-radius:8px">${esc(code)}</div>
-      <p style="margin:18px 0"><a href="${esc(link)}" style="background:#1f9d5c;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:600;display:inline-block">Open the full certificate</a></p>
-      <p style="color:#52645a;font-size:13px;margin:0">Valid until ${esc(day(s.expiresAt))}. On the day, enter the computer's serial number on the certificate page; it must match. The seller was not sent this code and cannot change what it says. ${c ? `Costs are estimates from ${esc(c.priceSource)}.` : ''}</p>
-    </div></div></div></body></html>`;
+  const colour = { ok: '#14794d', warn: '#a86a0a', bad: '#b3302a' }[v.cls]!;
+  const serif = "Georgia,'Times New Roman',serif";
+  const row = (k: string, val: string) => `<tr><td style="padding:9px 0;border-top:1px solid #e1e8e4;color:#5a6a62;width:46%">${esc(k)}</td><td style="padding:9px 0;border-top:1px solid #e1e8e4"><b>${val}</b></td></tr>`;
+  const work = (c?.workSoon ?? []).slice(0, 5).map((w: Obj) => `<tr><td style="padding:7px 0;border-top:1px solid #e1e8e4">${esc(w.title)}</td><td style="padding:7px 0;border-top:1px solid #e1e8e4;text-align:right;white-space:nowrap">${w.priced ? money(c.currency, w.total) : 'not priced'}</td></tr>`).join('');
+  return `<!doctype html><html><body style="margin:0;background:#e7ebe8"><div style="font-family:Segoe UI,Arial,sans-serif;max-width:640px;margin:0 auto;padding:22px 12px;color:#14201a">
+  <div style="background:#fff;border:2px solid #0b5d3f;outline:1px solid #8fb9a5;outline-offset:-7px;padding:34px 36px">
+    <table role="presentation" style="width:100%;border-collapse:collapse"><tr><td style="width:46px"><img src="${esc(baseUrl)}/logo.png" width="40" height="40" alt="" style="border-radius:9px;display:block"></td><td style="padding-left:12px"><b style="font-size:16px">Viro WorkCare</b><br><span style="font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:#5a6a62">Orange Mobility Solutions</span></td><td style="text-align:right;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#5a6a62">Certificate of Inspection</td></tr></table>
+    <div style="border-top:1px solid #d5ddd8;margin:16px 0 20px"></div>
+    <div style="font:italic 15px/1.5 ${serif};color:#5a6a62;text-align:center">You have been sent a certificate for a used computer.</div>
+    <div style="font:400 26px/1.2 ${serif};text-align:center;margin:12px 0 2px">${esc([m.manufacturer, m.model].filter(Boolean).join(' ') || 'Computer')}</div>
+    <div style="text-align:center;color:#5a6a62;font-size:13.5px">${esc(m.cpu ?? '')}${m.ramGb ? ' · ' + esc(m.ramGb) + ' GB memory' : ''}${m.serialLast4 ? ' · serial ends ' + esc(m.serialLast4) : ''}</div>
+    <div style="margin:22px 0;padding:16px 18px;border:1px solid #d5ddd8;background:#fafcfb;text-align:center"><div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#5a6a62">Overall assessment</div><div style="font:400 30px/1.15 ${serif};color:${colour};margin:4px 0">${esc(v.head)}</div><div style="font-size:13.5px;color:#5a6a62">${esc(s.verdict?.label ?? '')}</div></div>
+    <ul style="margin:0 0 18px;padding-left:18px">${(s.verdict?.reasons ?? []).map((r: string) => `<li style="margin:4px 0">${esc(r)}</li>`).join('')}</ul>
+    <table role="presentation" style="width:100%;border-collapse:collapse;font-size:14px">${row('Age (estimated)', s.age?.years != null ? 'about ' + esc(s.age.years) + ' years' : 'unknown')}${row('Dependable life left', s.life?.remainingYears ? esc(s.life.remainingYears[0]) + ' to ' + esc(s.life.remainingYears[1]) + ' years' : 'not estimated')}${c ? row('Value today (estimate)', c.fairPriceRange ? esc(c.currency) + ' ' + num(c.fairPriceRange[0]) + ' to ' + num(c.fairPriceRange[1]) : 'n/a') + row('Work to expect', money(c.currency, c.workSoonTotal ?? 0)) : ''}</table>
+    ${work ? `<div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#0b5d3f;margin:22px 0 4px">Repairs and what they may cost</div><table role="presentation" style="width:100%;border-collapse:collapse;font-size:14px">${work}</table>` : ''}
+    <div style="margin:26px 0 8px;padding:16px;border:1px solid #d5ddd8;background:#fafcfb;text-align:center"><div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#5a6a62">Your certificate code</div><div style="font:600 21px/1.4 Consolas,'Cascadia Mono',monospace;letter-spacing:.06em;margin-top:4px">${esc(code)}</div></div>
+    <p style="text-align:center;margin:18px 0"><a href="${esc(link)}" style="background:#0b5d3f;color:#fff;padding:13px 26px;border-radius:6px;text-decoration:none;font-weight:600;display:inline-block">Open the full certificate</a></p>
+    <p style="color:#5a6a62;font-size:12.5px;margin:0;text-align:center">Valid until ${esc(day(s.expiresAt))}. On the day, enter the computer's serial number on the certificate page: it must match. This email came from Viro; the seller was not sent this code and cannot change what the certificate says.</p>
+  </div>
+  <p style="text-align:center;color:#78867f;font-size:11px;margin:14px 0 0">Orange Mobility Solutions · Ndola, Zambia · info@viro3.online</p></div></body></html>`;
 }
 
 export function verifyPage(v: Obj | null, rawCode: string): string {

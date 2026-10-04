@@ -6,7 +6,8 @@ import type { FastifyInstance } from 'fastify';
 import type { JobCtx } from './jobs.js';
 import { emailHash, maskEmail, type Mailer } from './mailer.js';
 import { buildStatement, serialKey } from './certificate-content.js';
-import { certificateEmail, certificateEmailHtml, verifyPage } from './certificate-pages.js';
+import { certificateEmail, certificateEmailHtml } from './certificate-pages.js';
+import { certificateDocument } from './certificate-document.js';
 import { anatomyHelpers } from './anatomy.js';
 import { REFERENCE_PRICE_BOOK } from './anatomy-engine.js';
 import { lacks } from './entitlements.js';
@@ -156,8 +157,8 @@ export function registerCertificateRoutes(app: FastifyInstance, c: JobCtx, deps:
   app.get('/verify/:code', async (req, reply) => {
     if (limited(req.ip)) return reply.code(429).type('text/plain').send('Too many checks. Try again in a minute.');
     const v = await lookup(String((req.params as any).code));
-    return reply.type('text/html; charset=utf-8').header('cache-control', 'no-store').header('referrer-policy', 'no-referrer').send(verifyPage(v, String((req.params as any).code)));
+    return reply.type('text/html; charset=utf-8').header('cache-control', 'no-store').header('referrer-policy', 'no-referrer').send(await certificateDocument(v, String((req.params as any).code), baseUrl));
   });
-  app.get('/verify', async (_req, reply) => reply.type('text/html; charset=utf-8').send(verifyPage(null, '')));
+  app.get('/verify', async (_req, reply) => reply.type('text/html; charset=utf-8').send(await certificateDocument(null, '', baseUrl)));
 }
 

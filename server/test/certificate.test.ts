@@ -79,7 +79,7 @@ test('the certificate goes only to the buyer, only after a fresh inspection, and
   assert.equal((await get('/api/v1/verify/VIRO-AAAA-BBBB-CCCC')).statusCode, 404);
   assert.equal((await post(`/api/v1/verify/${code}/check-serial`, { serial: 'abc-1234 xyz' })).json().match, true);
   assert.equal((await post(`/api/v1/verify/${code}/check-serial`, { serial: 'WRONG0000' })).json().match, false);
-  const page = await get(`/verify/${code}`); assert.equal(page.statusCode, 200); assert.match(page.body, /Genuine Viro certificate/); assert.match(page.body, /measured/);
+  const page = await get(`/verify/${code}`); assert.equal(page.statusCode, 200); assert.match(page.body, /Certificate of Inspection/); assert.match(page.body, /VERIFIED/); assert.match(page.body, /<svg[^>]*viewBox/); assert.match(page.body, /measured/);
 
   // editing the stored statement (what a forger would have to do) breaks the signature
   await h.db.query(`UPDATE resale_certificates SET statement = replace(statement, '"ramGb":8', '"ramGb":64')`);

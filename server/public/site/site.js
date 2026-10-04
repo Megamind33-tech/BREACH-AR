@@ -9,12 +9,14 @@
   }
   // "Sign in" goes to the console. On the console's own address (or a local copy) that is this same site's root; on the company domain it is the console address in the link.
   if (/^(control\.|localhost$|127\.)/.test(location.hostname)) document.querySelectorAll('[data-signin]').forEach(a => a.setAttribute('href', '/'));
-  // The price of Viro Care comes from the live plan list, so the page never shows a price nobody chose. With no plan on sale it keeps its default words.
-  const price = document.querySelector('[data-price]');
-  if (price && window.fetch) fetch('https://control.viro3.online/api/v1/public/plans').then(r => r.ok ? r.json() : null).then(d => {
-    const p = d && (d.plans || []).find(x => x.audience === 'person'); if (!p) return;
-    const per = p.per === 'pc' ? ' per computer' : ''; const when = p.period === 'year' ? ' a year' : p.period === 'month' ? ' a month' : '';
-    price.textContent = p.currency + ' ' + Number(p.price).toLocaleString('en-US') + when + per;
-  }).catch(() => { /* the default words stay */ });
+  // Prices on this page are the starting prices. When the owner has set plans on sale, the live price replaces the printed one, so the page never shows a price nobody chose.
+  const cards = document.querySelectorAll('[data-plan-code]');
+  if (cards.length && window.fetch) fetch('https://control.viro3.online/api/v1/public/plans').then(r => r.ok ? r.json() : null).then(d => {
+    if (!d) return;
+    cards.forEach(card => {
+      const p = (d.plans || []).find(x => x.code === card.dataset.planCode); const amt = card.querySelector('[data-amt]'); if (!p || !amt) return;
+      amt.textContent = (p.currency === 'ZMW' ? 'K\u00a0' : p.currency + '\u00a0') + Number(p.price).toLocaleString('en-US');
+    });
+  }).catch(() => { /* the printed prices stay */ });
   document.querySelectorAll('[data-year]').forEach(el => { el.textContent = String(new Date().getFullYear()); });
 })();

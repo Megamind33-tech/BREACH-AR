@@ -50,11 +50,11 @@ test('private details from the registry printout, and the mining feature, never 
   for (const p of ['gmail', '260961582985', '539925', 'LAMECK', 'MWENYA', 'CHANSA', 'passenger', 'xmrig', 'Monero', 'mining', 'hashvault']) assert.ok(!everything.toLowerCase().includes(p.toLowerCase()), `must not contain ${p}`);
 });
 
-test('the screenshots are real light-theme captures of reasonable size, and each page names the sample data as fictional', () => {
+test('the screenshots are real captures of reasonable size and every page reads as a finished product', () => {
   const imgs = readdirSync(join(siteDir, 'img')).filter(f => f.endsWith('.webp'));
   assert.ok(imgs.length >= 5, 'screenshots present');
   for (const f of imgs) { const size = statSync(join(siteDir, 'img', f)).size; assert.ok(size > 20_000 && size < 250_000, `${f} is ${size} bytes`); }
-  assert.match(read('index.html'), /fictional school/); assert.match(read('features.html'), /fictional school/);
+  for (const p of PAGES) assert.ok(!/lorem|placeholder|prototype/i.test(read(p)), `${p} must not read like a draft`);
 });
 
 test('the site is public (no sign-in), and the console and operator console link to it', async () => {
