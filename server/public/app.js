@@ -373,7 +373,7 @@ function outcomesHtml(o) {
     : '<p class="mute" style="margin:0">Nothing to report yet. Repairs appear here only after Viro has verified that they worked.</p>'}</div>`;
 }
 VIEWS.overview = async main => {
-  const [d, ov, sr, ap, oc] = await Promise.all([api('/api/v1/devices'), api('/api/v1/overview'), api('/api/v1/storage/recovery'), api('/api/v1/autopilot').catch(() => null), api('/api/v1/outcomes').catch(() => null)]);
+  const [d, ov, sr, ap, oc, bg] = await Promise.all([api('/api/v1/devices'), api('/api/v1/overview'), api('/api/v1/storage/recovery'), api('/api/v1/autopilot').catch(() => null), api('/api/v1/outcomes').catch(() => null), api('/api/v1/anatomy/budget').catch(() => null)]);
   const hour = new Date().getHours();
   const greet = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
   const answer = !ov.computers ? 'No computers are enrolled yet.' : ov.critical ? `${plural(ov.critical, 'computer')} ${ov.critical === 1 ? 'needs' : 'need'} urgent attention.` : ov.attention ? `${plural(ov.attention, 'computer')} ${ov.attention === 1 ? 'needs' : 'need'} attention.` : ov.unassessed === ov.computers ? 'Waiting for first health reports.' : 'Your organization is healthy.';
@@ -397,6 +397,7 @@ VIEWS.overview = async main => {
       ${stat('#/alerts', nAlerts, 'Open alerts', ov.alerts.critical ? 'bad' : nUnack ? 'warn' : '', 'alerts')}
       ${stat('#/security', ov.security.needAttention, 'Security flags', ov.security.needAttention ? 'warn' : '', 'security')}
     </div>
+    ${ov.computers && bg && window.budgetCardHtml ? window.budgetCardHtml(bg, true) : ''}
     <div class="dash">
       <div class="card"><h2>Health</h2><div class="gauges">
         <div class="gauge-wrap"><div class="gauge ${gStatus}" style="--p:${avg}"><div><strong>${ov.averageHealth ?? '—'}</strong><small>/ 100</small></div></div><span>average of ${assessed} assessed</span></div>

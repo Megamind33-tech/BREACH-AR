@@ -101,6 +101,36 @@ export function registerAnatomyRoutes(app: FastifyInstance, c: JobCtx) {
     return { saved: true };
   });
 
+  // ---- replace and budget: what the fleet will cost to keep going, from each computer's own age, wear and the organization's prices ----------------------------------
+  // "Replace now" is the report's own decision; "plan for it" is a computer that is not a replacement today but is near the end of its typical life (about a year or less left).
+  app.get('/api/v1/anatomy/budget', { preHandler: c.requireRole('viewer') }, async req => {
+    const rows = (await db.query(`SELECT d.id, d.hostname, a.data FROM device_anatomy a JOIN devices d ON d.id=a.device_id WHERE a.org_id=$1 AND d.revoked_at IS NULL AND d.uninstalled_at IS NULL ORDER BY d.hostname`, [req.user.org])).rows;
+    const total = Number((await db.query('SELECT count(*)::int n FROM devices WHERE org_id=$1 AND revoked_at IS NULL AND uninstalled_at IS NULL', [req.user.org])).rows[0].n);
+    const book = await priceBookOf(req.user.org);
+    const out: any[] = []; const bands = [['Under 2 years', 0, 2], ['2 to 4 years', 2, 4], ['4 to 6 years', 4, 6], ['Over 6 years', 6, 999]] as const;
+    const ageBands: { label: string; count: number }[] = [...bands.map(([label]) => ({ label: label as string, count: 0 })), { label: 'Age unknown', count: 0 }];
+    let fleetValue = 0, valued = 0, win11 = 0, priced = false;
+    for (const r of rows) {
+      const rep = buildReport(r.data, await contextFor(req.user.org, r.id, r.data), book); const cost: any = rep.cost;
+      const age: number | null = rep.age.ageYears ?? null;
+      const bi = age == null ? bands.length : bands.findIndex(([, lo, hi]) => age >= lo && age < hi); ageBands[bi >= 0 ? bi : bands.length]!.count++;
+      if (rep.windows.windows11Ready === false) win11++;
+      if (!cost.priced) { out.push({ id: r.id, hostname: r.hostname, model: [rep.identity.manufacturer, rep.identity.model].filter(Boolean).join(' '), ageYears: age, bucket: 'unpriced', decision: null, cost: null, repairTotal: null, residualValue: null, reason: rep.headline[0] ? `${rep.headline[0].part}: ${rep.headline[0].why}` : '' }); continue; }
+      priced = true; if (cost.residualValue != null) { fleetValue += cost.residualValue; valued++; }
+      const unit = cost.replacementCost != null ? cost.replacementCost + (cost.migrationCost ?? 0) : null;
+      const rem = rep.lifeStage.remainingYears; const soon = cost.decision !== 'REPLACE' && rep.lifeStage.stage === 'Past its typical life' || (cost.decision !== 'REPLACE' && rem != null && rem[1] <= 1.5 && age != null && age >= 3);
+      const bucket = cost.decision === 'REPLACE' ? 'replace' : soon ? 'plan' : cost.decision === 'REPAIR' ? 'repair' : 'keep';
+      const win = rep.windows.windows11Ready === false && rep.windows.runningWindows10;
+      const reason = bucket === 'replace' ? (win ? 'Cannot run Windows 11, and Windows 10 no longer gets regular security updates.' : rep.headline[0] ? `${rep.headline[0].part}: ${rep.headline[0].why}` : (cost.reasoning?.[0] ?? '')) : bucket === 'plan' ? (rep.lifeStage.stage === 'Past its typical life' ? `${age} years old, past its typical life.` : `${age} years old, with about a year of typical life left.`) : bucket === 'repair' ? `Repairs of about ${cost.repairTotal} are worth doing.` : '';
+      out.push({ id: r.id, hostname: r.hostname, model: [rep.identity.manufacturer, rep.identity.model].filter(Boolean).join(' '), ageYears: age, bucket, decision: cost.decision, cost: bucket === 'replace' || bucket === 'plan' ? unit : bucket === 'repair' ? cost.repairTotal : 0, repairTotal: cost.repairTotal, residualValue: cost.residualValue, reason });
+    }
+    const sum = (b: string) => ({ count: out.filter(x => x.bucket === b).length, cost: Math.round(out.filter(x => x.bucket === b).reduce((n, x) => n + (x.cost ?? 0), 0)) });
+    const order: Record<string, number> = { replace: 0, plan: 1, repair: 2, keep: 3, unpriced: 4 };
+    out.sort((a, b) => (order[a.bucket]! - order[b.bucket]!) || ((b.ageYears ?? 0) - (a.ageYears ?? 0)) || a.hostname.localeCompare(b.hostname));
+    return { currency: book?.currency ?? null, priceSource: book?.source ?? null, priced, assessed: rows.length, unread: Math.max(0, total - rows.length),
+      replaceNow: sum('replace'), plan: sum('plan'), repair: sum('repair'), keep: sum('keep').count, fleetValue: valued ? Math.round(fleetValue) : null, windows11Blocked: win11, ageBands, computers: out };
+  });
+
   // ---- the whole fleet in one table ---------------------------------------------------------------------------------------------------------
   app.get('/api/v1/anatomy/fleet', { preHandler: c.requireRole('viewer') }, async req => {
     const rows = (await db.query(`SELECT d.id, d.hostname, a.data FROM device_anatomy a JOIN devices d ON d.id=a.device_id WHERE a.org_id=$1 AND d.revoked_at IS NULL ORDER BY d.hostname`, [req.user.org])).rows;

@@ -164,3 +164,25 @@ test('the agent reports its anatomy; the report, its history and the price book 
   const fleet = (await get('/api/v1/anatomy/fleet', a.auth)).json(); assert.equal(fleet.computers.length, 1); assert.equal(fleet.computers[0].hostname, 'WORK-LAPTOP');
   assert.equal((await post('/agent/v1/anatomy', { nonsense: true }, pc.auth)).statusCode, 400);
 });
+
+test('replace and budget: the fleet is sorted into replace, plan, repair and keep, with costs from the organization\'s own prices, and nobody else sees it', async () => {
+  const a = await org('Budget Co', 'owner@budget.test'), b = await org('Other Budget', 'owner@other-budget.test');
+  assert.deepEqual((await get('/api/v1/anatomy/budget', a.auth)).json().computers, [], 'no readings yet');
+  const old = await enroll(a, 'OLD-LAPTOP'), young = await enroll(a, 'NEW-LAPTOP'), silent = await enroll(a, 'QUIET-PC');
+  await put('/api/v1/price-book', { currency: 'ZMW', labourPerHour: 150, items: { ram_ddr4: 650, ssd_512gb: 1400, battery_laptop: 1500, thermal_service: 400, os_reinstall: 250 }, newPc: { laptop: 17500, desktop: 13500, unknown: 17500 } }, a.auth);
+  await h.app.inject({ method: 'PATCH', url: `/api/v1/devices/${old.id}/purchase`, payload: { purchaseDate: '2016-03-01', purchaseCost: 9000 } as any, headers: a.auth });
+  await h.app.inject({ method: 'PATCH', url: `/api/v1/devices/${young.id}/purchase`, payload: { purchaseDate: new Date(Date.now() - 400 * 864e5).toISOString().slice(0, 10), purchaseCost: 16000 } as any, headers: a.auth });
+  await post('/agent/v1/anatomy', laptop(), old.auth);
+  await post('/agent/v1/anatomy', laptop({ battery: { ...laptop().battery, fullChargeMWh: 59000, wearPercent: 2, cycleCount: 30 }, diagnostics: { storage: { disks: [{ ...laptop().diagnostics.storage.disks[0], mediaType: 'SSD', model: 'WD SSD 512', reliability: { powerOnHours: 500 } }] } } }), young.auth);
+  const r = (await get('/api/v1/anatomy/budget', a.auth)).json();
+  assert.equal(r.currency, 'ZMW'); assert.equal(r.priceSource, 'entered'); assert.equal(r.priced, true);
+  assert.equal(r.assessed, 2); assert.equal(r.unread, 1, 'a computer that has not sent a reading is counted as unread, not guessed');
+  const o = r.computers.find((c: any) => c.hostname === 'OLD-LAPTOP'), y = r.computers.find((c: any) => c.hostname === 'NEW-LAPTOP');
+  assert.ok(['replace', 'plan'].includes(o.bucket), 'a ten-year-old laptop is to be replaced or planned for: ' + o.bucket);
+  assert.equal(o.cost, 17500 + 300, 'the cost of a new laptop plus two hours of labour to move files');
+  assert.ok(['keep', 'repair'].includes(y.bucket) && y.cost < 3000, 'a year-old laptop needs at most a small repair: ' + y.bucket + ' ' + y.cost);
+  assert.equal(r.replaceNow.cost + r.plan.cost, 17800); assert.ok(r.fleetValue > 0);
+  assert.equal(r.ageBands.reduce((n: number, x: any) => n + x.count, 0), 2);
+  assert.equal(r.computers[0].hostname, 'OLD-LAPTOP', 'the most urgent comes first');
+  assert.deepEqual((await get('/api/v1/anatomy/budget', b.auth)).json().computers, [], 'another organization sees nothing');
+});
