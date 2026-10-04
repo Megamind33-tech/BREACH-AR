@@ -21,6 +21,8 @@ const css = `@font-face{font-family:Inter;src:url(${FONT}) format('woff2');font-
 #stage{position:relative;width:1080px;height:1920px;overflow:hidden;background:radial-gradient(70% 45% at 80% 108%,rgba(37,170,115,.40) 0,transparent 70%),radial-gradient(60% 35% at 0% 0%,rgba(95,224,168,.12) 0,transparent 65%),#07120e}
 #stage::before{content:'';position:absolute;inset:34px;border:1px solid rgba(255,255,255,.09);border-radius:34px;z-index:5;pointer-events:none}
 .logo{position:absolute;left:84px;top:96px;display:flex;align-items:center;gap:16px;font-size:30px;font-weight:600;z-index:6}.logo img{width:50px;height:50px;border-radius:13px}.logo b{font-weight:800}
+/* the small corner logo steps aside when the big one arrives in the closing scene, so there is never more than one */
+.logo{animation:logoout .4s linear 34.6s both}@keyframes logoout{to{opacity:0}}
 .prog{position:absolute;left:84px;right:84px;bottom:70px;height:4px;border-radius:2px;background:rgba(255,255,255,.1);z-index:6}.prog i{display:block;height:100%;width:100%;transform-origin:left;background:linear-gradient(90deg,#2bb67f,#7fe3b5);animation:prog ${SECONDS}s linear 0s both}
 @keyframes prog{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 .sc{position:absolute;inset:0;padding:0 84px;opacity:0;animation:scene var(--d) linear var(--s) both;--ease:cubic-bezier(.2,.8,.2,1)}
