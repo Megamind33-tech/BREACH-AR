@@ -66,3 +66,15 @@
   tr.row > td.posture { display:flex; align-items:center; gap:10px; } tr.row > td.posture .bar { width:90px; margin:0; flex:none; } tr.row > td.posture > * { margin:0; }
   tr.row > td:nth-child(7) { justify-self:start; font-size:12.5px; }
 }
+
+/* Row tables that are not the computers list (Hardware, Lifecycle, Upgrades, Security, Shared problems): the same card, but the cells simply stack, one per line */
+@media (max-width:700px) {
+  tr.row:not(:has(> td.host)) { display:block; grid-template-areas:none; padding:12px 14px; }
+  tr.row:not(:has(> td.host)) > td { display:block; grid-area:auto !important; justify-self:auto !important; padding:2px 0; white-space:normal !important; min-width:0 !important; width:auto !important; max-width:100%; font-size:14px; }
+  tr.row:not(:has(> td.host)) > td:first-child { font-weight:600; font-size:15px; padding-bottom:4px; }
+  tr.row:not(:has(> td.host)) > td.hide-sm { display:none; }
+  /* wide data tables that are not row cards keep scrolling inside their own box, with the edge visible */
+  .table-wrap { -webkit-overflow-scrolling:touch; } .table-wrap > table { min-width:620px; }
+  .table-wrap:has(tr.row) > table { min-width:0; }
+}
+@media (max-width:700px) { .grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; } .card.stat { padding:12px 14px; } }

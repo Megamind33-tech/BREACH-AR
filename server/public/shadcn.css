@@ -174,3 +174,7 @@ td { font-size:14px; } tr.row td:nth-child(5) { white-space:nowrap; }
 .switch { width:40px; height:22px; min-height:0; border-radius:999px; background:var(--ov-4); border:0; box-shadow:none; }
 .switch::after { top:2px; left:2px; width:18px; height:18px; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.35); }
 .switch:checked { background:var(--accent); border:0; } .switch:checked::after { transform:translateX(18px); background:#fff; }
+/* a labelled switch: one quiet bordered row, text on the left, the switch on the right */
+.switch-field { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:12px 14px; margin:10px 0; background:transparent; border:1px solid var(--line); border-radius:10px; box-shadow:none; color:var(--ink); font-size:14px; }
+.switch-field > span { display:grid; gap:2px; min-width:0; } .switch-field b { font-weight:600; } .switch-field small { color:var(--mute); font-size:13px; }
+td.hname { font-weight:600; white-space:nowrap; }

@@ -1,0 +1,58 @@
+/* Operator panel in the same shadcn/ui language as the organization console (see shadcn.css): flat surfaces, hairline borders, sentence-case labels, calm badges. Loaded after the page's own styles. */
+:root { --r:10px; --bg:#0b0f0d; --bg2:#0d1210; --panel:#111714; --panel2:#171e1a; --line:rgba(255,255,255,.09); --hair:1px solid rgba(255,255,255,.09); --accent:#1f9d6b; --accent2:#3ddc97; --emerald:#34c98b; --glow:rgba(52,201,139,.14); --ring:0 0 0 3px rgba(52,201,139,.28); }
+:root[data-theme="light"] { --bg:#f7f8f7; --bg2:#fbfcfb; --panel:#fff; --panel2:#f3f5f4; --ink:#0f1a15; --mute:#5d6b64; --line:rgba(15,26,21,.12); --hair:1px solid rgba(15,26,21,.12); --accent:#0e7a52; --accent2:#0e7a52; --emerald:#0e7a52; --glow:rgba(14,122,82,.10); --ring:0 0 0 3px rgba(14,122,82,.22); }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) { --bg:#f7f8f7; --bg2:#fbfcfb; --panel:#fff; --panel2:#f3f5f4; --ink:#0f1a15; --mute:#5d6b64; --line:rgba(15,26,21,.12); --hair:1px solid rgba(15,26,21,.12); --accent:#0e7a52; --accent2:#0e7a52; --emerald:#0e7a52; --glow:rgba(14,122,82,.10); --ring:0 0 0 3px rgba(14,122,82,.22); } }
+body { background:var(--bg) !important; letter-spacing:0; }
+/* labels: sentence case, no monospace capitals, no corner brackets, no pulsing lights */
+th, .gh, h3, .tile span:not(.ico), .pill, .eyebrow, .mono.label, .kv span, .back, .jump a, .card > h2:first-child, .hero .chip, h1[data-eyebrow]::before, #statusbar, #statusbar *, .badge-n { font-family:var(--font, "Inter Variable", "Segoe UI", system-ui, sans-serif) !important; text-transform:none !important; letter-spacing:0 !important; }
+.tile b, .big, .score { font-family:var(--font, "Inter Variable", "Segoe UI", system-ui, sans-serif) !important; letter-spacing:-.02em !important; }
+h1[data-eyebrow]::before { display:none !important; }
+.tile::before, .tile::after, .page-head::after, .card::after { display:none !important; }
+.led { animation:none !important; box-shadow:none !important; }
+#statusbar { font-size:12.5px !important; font-weight:500; padding:10px 32px; background:color-mix(in srgb,var(--bg) 88%, transparent); border-bottom:1px solid var(--line); }
+/* sidebar */
+.side { background:var(--bg2); border-right:1px solid var(--line); }
+.gh { font-size:12px; font-weight:500; color:var(--mute); }
+.nav { border-radius:8px; color:var(--mute); font-weight:500; opacity:1; } .nav:hover { background:var(--ov-1); color:var(--ink); }
+.nav.on { background:var(--panel2) !important; color:var(--ink) !important; box-shadow:none !important; font-weight:600; } .nav.on svg.i { color:var(--emerald) !important; }
+.brand .mark { box-shadow:none; border:1px solid var(--line); background:transparent; }
+.brand small { font-weight:500; color:var(--mute); }
+/* surfaces */
+.card, .tile, .modal, table, .table-wrap { background:var(--panel); border:1px solid var(--line); border-radius:12px; box-shadow:0 1px 2px rgba(0,0,0,.3); }
+.card > h2:first-child { font-size:15px; font-weight:600; color:var(--ink); border-bottom:0; padding-bottom:0; margin-bottom:12px; }
+.tile { display:flex; flex-direction:column-reverse; gap:6px; padding:18px 20px; } .tile b { font-size:30px; font-weight:600; } .tile span:not(.ico) { font-size:13.5px; color:var(--mute); }
+.tile .ico { background:transparent; color:var(--mute); border-radius:0; width:auto; height:auto; }
+.hero { border-radius:12px; border:1px solid var(--line); background:linear-gradient(115deg,#0a1a14 0%,#0e2a20 100%); box-shadow:0 1px 2px rgba(0,0,0,.3); min-height:0; }
+.hero h1 { font-weight:600; } .hero .eyebrow { font-size:12.5px; font-weight:500; color:#5fe0a8; }
+.hero .chip { border-radius:999px; font-size:12.5px; font-weight:500; background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.14); }
+/* controls */
+.btn.primary, button.primary { background:var(--accent); color:#fff; border:0; border-radius:8px; box-shadow:none; }
+.btn { border-radius:8px; border:1px solid var(--line); background:transparent; font-weight:500; } .btn:hover { background:var(--ov-1); }
+.btn.primary { font-weight:600; }
+input, select, textarea { background:transparent; border:1px solid var(--line); border-radius:8px; box-shadow:none; }
+input:focus, select:focus, textarea:focus { border-color:var(--emerald); box-shadow:var(--ring); outline:0; }
+/* tables and badges */
+table { overflow:hidden; } th { background:transparent; font-size:13px; font-weight:500; color:var(--mute); padding:12px 16px; border-bottom:1px solid var(--line); }
+td { padding:14px 16px; border-top:1px solid var(--line); } thead + tbody tr:first-child td { border-top:0; } tr.row:hover td { background:var(--ov-1); }
+.pill { border-radius:999px; padding:2px 10px; font-size:12px; font-weight:500; box-shadow:none; border:1px solid transparent; } .pill::before { display:none; }
+.pill.ok { background:color-mix(in srgb,var(--ok) 14%, transparent); color:var(--ok); border-color:color-mix(in srgb,var(--ok) 30%, transparent); }
+.pill.warn { background:color-mix(in srgb,var(--warn) 14%, transparent); color:var(--warn); border-color:color-mix(in srgb,var(--warn) 32%, transparent); }
+.pill.bad { background:color-mix(in srgb,var(--bad) 14%, transparent); color:var(--bad); border-color:color-mix(in srgb,var(--bad) 32%, transparent); }
+.pill.na { background:var(--ov-1); color:var(--mute); border-color:var(--line); }
+.bar { height:6px; border-radius:999px; } .bar i { border-radius:999px; }
+main > *, .main > * { animation:none !important; }
+/* phone: lists become cards that fit the screen */
+@media (max-width:700px) {
+  #statusbar { display:none; } .top { gap:10px; } .top > input, .top > select, .top > .btn:not(.menu-btn) { flex:1 1 100%; width:100% !important; }
+  .tiles { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; } .tile { padding:14px 16px; } .tile b { font-size:26px; }
+  .card:has(tr.row) { overflow:visible; padding:0; background:transparent; border:0; box-shadow:none; }
+  table:has(tr.row), table:has(tr.row) tbody { display:block; width:100%; min-width:0 !important; border:0; background:transparent; box-shadow:none; } table:has(tr.row) thead { display:none; }
+  tr.row { display:block; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:10px; }
+  tr.row > td { display:block; padding:2px 0; border:0 !important; background:none !important; overflow-wrap:anywhere; white-space:normal !important; } tr.row > td:first-child { font-size:16px; padding-bottom:4px; }
+  .card { overflow-x:auto; } .card > table { min-width:560px; }
+}
+.h1-ico { display:none !important; } .page-head::after, .top::after { display:none !important; }
+.card table { border:0; box-shadow:none; border-radius:0; background:transparent; }
+.card, .tile, .hero, table { box-shadow:var(--shadow-sm, 0 1px 2px rgba(0,0,0,.06)) !important; }
+:root[data-theme="light"] .card, :root[data-theme="light"] .tile, :root[data-theme="light"] table { box-shadow:0 1px 2px rgba(15,26,21,.06) !important; }
+.tile .ico { position:absolute; right:14px; top:14px; } .tile { position:relative; padding-right:44px; }
