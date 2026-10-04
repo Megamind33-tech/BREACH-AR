@@ -104,8 +104,10 @@ button.ghost, .btn.ghost { background:transparent; border:1px solid var(--line);
 button.ghost:hover, .btn.ghost:hover { background:var(--ov-1); }
 button.danger { border-radius:8px; }
 .hero-card button, .hero-card .btn { background:rgba(255,255,255,.08) !important; border:1px solid rgba(255,255,255,.2) !important; }
-input, select, textarea { background:transparent; border:1px solid var(--line); border-radius:8px; box-shadow:none; }
-input:focus, select:focus, textarea:focus { border-color:var(--emerald); box-shadow:var(--ring); outline:0; }
+input:not([type=checkbox]):not([type=radio]):not([type=range]), select, textarea { background:transparent; border:1px solid var(--line); border-radius:8px; box-shadow:none; }
+input:not([type=checkbox]):not([type=radio]):not([type=range]):focus, select:focus, textarea:focus { border-color:var(--emerald); box-shadow:var(--ring); outline:0; }
+input[type=range] { min-height:0; padding:0; border:0; background:transparent; box-shadow:none; accent-color:var(--accent); height:20px; }
+input[type=checkbox]:not(.switch), input[type=radio] { accent-color:var(--accent); }
 select option { background:var(--panel); }
 .switch:checked { background:var(--accent); border-color:var(--accent); } .switch:checked::after { background:var(--accent-ink); }
 
@@ -132,7 +134,7 @@ main > * { animation:none; }
 
 /* ---------- sizing: 36 px controls, one-line health cells ---------- */
 input, select, textarea, button, .btn { font-size:14px; }
-input:not([type=checkbox]):not([type=radio]), select { min-height:36px; padding:6px 12px; }
+input:not([type=checkbox]):not([type=radio]):not([type=range]), select { min-height:36px; padding:6px 12px; }
 button, .btn { min-height:36px; padding:6px 14px; }
 .bar-tools { gap:8px; }
 td.posture { min-width:210px; white-space:nowrap; } td.posture > * { display:inline-block; vertical-align:middle; margin-top:0; margin-bottom:0; }
@@ -163,3 +165,12 @@ td { font-size:14px; } tr.row td:nth-child(5) { white-space:nowrap; }
 .launch button.tile:not(.hot):hover { background:var(--panel); border-color:var(--emerald); }
 .launch button.tile:not(.hot) svg { color:var(--emerald); } .launch button.tile:not(.hot) small { color:var(--mute); }
 .launch button.tile.hot { background:var(--accent); color:var(--accent-ink); } .launch button.tile.hot small, .launch button.tile.hot svg { color:var(--accent-ink); }
+
+.hero-card .eyebrow, :root[data-theme="light"] .hero-card .eyebrow { color:#5fe0a8; }
+.hero-card h1, .hero-card .lead { color:#fff; }
+/* the sidebar search keeps its own borderless field inside the bordered box */
+.navsearch input { border:0 !important; box-shadow:none !important; min-height:0 !important; padding:8px 0 !important; background:transparent !important; }
+/* switches: a grey track with a white knob, green when on, in both themes */
+.switch { width:40px; height:22px; min-height:0; border-radius:999px; background:var(--ov-4); border:0; box-shadow:none; }
+.switch::after { top:2px; left:2px; width:18px; height:18px; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.35); }
+.switch:checked { background:var(--accent); border:0; } .switch:checked::after { transform:translateX(18px); background:#fff; }
