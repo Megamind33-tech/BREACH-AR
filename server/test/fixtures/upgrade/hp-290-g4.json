@@ -1,0 +1,297 @@
+{
+ "version": 1,
+ "collectedAt": "2026-10-01T18:39:32.2306149Z",
+ "system": {
+  "manufacturer": "HP",
+  "model": "HP 290 G4 Microtower PC",
+  "formFactor": "desktop",
+  "chassis": [
+   "Desktop"
+  ],
+  "totalPhysicalMemoryBytes": 8408989696
+ },
+ "bios": {
+  "vendor": null,
+  "version": "F.31",
+  "releaseDate": "2021-08-07",
+  "mode": "UEFI",
+  "secureBoot": null,
+  "tpm": null
+ },
+ "board": {
+  "manufacturer": "HP",
+  "product": "8948",
+  "serial": null
+ },
+ "cpu": {
+  "name": "Intel(R) Core(TM) i5-10500 CPU @ 3.10GHz",
+  "cores": 6,
+  "logical": 12,
+  "maxMhz": 3096
+ },
+ "memory": {
+  "slotsTotal": 4,
+  "slotsUsed": 2,
+  "maxCapacityBytes": 68719476736,
+  "ecc": false,
+  "modules": [
+   {
+    "slot": "DIMM2",
+    "capacityBytes": 4294967296,
+    "speedMhz": 2667,
+    "configuredMhz": 2667,
+    "manufacturer": "Transcend",
+    "partNumber": "TS2666HLH-4G",
+    "serial": null,
+    "type": "DDR4",
+    "formFactor": "DIMM",
+    "voltageMv": null
+   },
+   {
+    "slot": "DIMM1",
+    "capacityBytes": 4294967296,
+    "speedMhz": 2667,
+    "configuredMhz": 2667,
+    "manufacturer": "Transcend",
+    "partNumber": "TS2666HLH-4G",
+    "serial": null,
+    "type": "DDR4",
+    "formFactor": "DIMM",
+    "voltageMv": null
+   }
+  ]
+ },
+ "gpus": [
+  {
+   "name": "Intel(R) UHD Graphics 630",
+   "driverVersion": "31.0.101.1999"
+  }
+ ],
+ "os": {
+  "caption": "Microsoft Windows 11 Pro",
+  "build": "26100"
+ },
+ "diagnostics": {
+  "storage": {
+   "disks": [
+    {
+     "nvme": null,
+     "index": 0,
+     "model": "WDC WD10EZEX-60WN4A2",
+     "health": "Healthy",
+     "busType": "RAID",
+     "mediaType": "HDD",
+     "nvmeError": null,
+     "sizeBytes": 1000204886016,
+     "reliability": null
+    }
+   ],
+   "ataSmart": [
+    {
+     "instance": null,
+     "attributes": [
+      {
+       "id": 1,
+       "raw": 0,
+       "value": 200,
+       "worst": 200
+      },
+      {
+       "id": 3,
+       "raw": 2325,
+       "value": 173,
+       "worst": 170
+      },
+      {
+       "id": 4,
+       "raw": 793,
+       "value": 100,
+       "worst": 100
+      },
+      {
+       "id": 5,
+       "raw": 0,
+       "value": 200,
+       "worst": 200
+      },
+      {
+       "id": 7,
+       "raw": 0,
+       "value": 200,
+       "worst": 200
+      },
+      {
+       "id": 9,
+       "raw": 20752,
+       "value": 72,
+       "worst": 72
+      },
+      {
+       "id": 10,
+       "raw": 0,
+       "value": 100,
+       "worst": 100
+      },
+      {
+       "id": 11,
+       "raw": 0,
+       "value": 100,
+       "worst": 100
+      },
+      {
+       "id": 12,
+       "raw": 635,
+       "value": 100,
+       "worst": 100
+      },
+      {
+       "id": 183,
+       "raw": 0,
+       "value": 100,
+       "worst": 100
+      },
+      {
+       "id": 184,
+       "raw": 0,
+       "value": 100,
+       "worst": 100
+      },
+      {
+       "id": 187,
+       "raw": 1,
+       "value": 100,
+       "worst": 99
+      },
+      {
+       "id": 188,
+       "raw": 0,
+       "value": 100,
+       "worst": 100
+      },
+      {
+       "id": 190,
+       "raw": 555155487,
+       "value": 69,
+       "worst": 56
+      },
+      {
+       "id": 192,
+       "raw": 212,
+       "value": 200,
+       "worst": 200
+      },
+      {
+       "id": 193,
+       "raw": 690,
+       "value": 200,
+       "worst": 200
+      },
+      {
+       "id": 194,
+       "raw": 31,
+       "value": 112,
+       "worst": 99
+      },
+      {
+       "id": 196,
+       "raw": 0,
+       "value": 200,
+       "worst": 200
+      },
+      {
+       "id": 197,
+       "raw": 0,
+       "value": 200,
+       "worst": 200
+      },
+      {
+       "id": 198,
+       "raw": 0,
+       "value": 200,
+       "worst": 200
+      },
+      {
+       "id": 199,
+       "raw": 0,
+       "value": 200,
+       "worst": 200
+      },
+      {
+       "id": 200,
+       "raw": 0,
+       "value": 200,
+       "worst": 200
+      }
+     ],
+     "predictFailure": false
+    }
+   ],
+   "ioErrors": {
+    "days": 30,
+    "disk": {},
+    "ntfsCorruption": 0
+   }
+  },
+  "whea": {
+   "byId": {
+    "17": 1
+   },
+   "samples": [
+    {
+     "at": "2026-09-09T20:38:11.7474866Z",
+     "id": 17,
+     "message": "A corrected hardware error has occurred."
+    }
+   ],
+   "events30d": 1
+  },
+  "cpu": {
+   "name": "Intel(R) Core(TM) i5-10500 CPU @ 3.10GHz",
+   "cores": 6,
+   "maxMhz": 3096,
+   "logical": 12,
+   "currentMhz": 3096,
+   "thermalThrottleEvents7d": 0
+  },
+  "thermal": {
+   "note": "Point-in-time readings from firmware thermal zones; zone names are vendor-defined.",
+   "zones": [
+    {
+     "name": "\\_TZ.TZ00",
+     "tempC": 27.9
+    },
+    {
+     "name": "\\_TZ.HPTZ",
+     "tempC": 30.1
+    }
+   ]
+  },
+  "memory": {
+   "modules": [
+    {
+     "slot": "DIMM2",
+     "speedMhz": 2667,
+     "partNumber": "TS2666HLH-4G",
+     "manufacturer": "Transcend",
+     "capacityBytes": 4294967296,
+     "configuredMhz": 2667
+    },
+    {
+     "slot": "DIMM1",
+     "speedMhz": 2667,
+     "partNumber": "TS2666HLH-4G",
+     "manufacturer": "Transcend",
+     "capacityBytes": 4294967296,
+     "configuredMhz": 2667
+    }
+   ],
+   "diagnosticResults": []
+  }
+ },
+ "unavailable": [],
+ "_fixture": {
+  "name": "HP 290 G4 Microtower (real reading, ZAMCOPS-GM)",
+  "verified": true,
+  "note": "Real inventory and diagnostics from a production PC; serials removed. System-drive used space 814 GB of 931 GB."
+ }
+}

@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Viro Platform</title>
+<script type="text/javascript">try{var t=localStorage.getItem("vp_theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
+<style>
+@font-face{font-family:"Inter Variable";font-style:normal;font-weight:100 900;font-display:swap;src:url("fonts/inter-latin-wght-normal.woff2") format("woff2-variations")}
+/* Same visual language as the organization console (charcoal surfaces, deep green accent, flat cards), self-contained on purpose: this page shares no files with it. */
+:root{--ov-1:rgba(255,255,255,.05);--ov-2:rgba(255,255,255,.1);--ov-3:rgba(255,255,255,.18);--ov-4:rgba(255,255,255,.35);--bg:#141617;--bg2:#181a1c;--panel:#1e2022;--panel2:#25282b;--ink:#fff;--mute:#b3bac1;--dim:#8a929a;--line:#33383d;--hair:1px solid var(--ov-1);--accent:#0b4d36;--accent2:#7fd9b8;--ok:#6fd8ae;--warn:#f2b552;--bad:#ff8479;--r:8px;--side:248px;color-scheme:dark}
+:root[data-theme="light"]{--bg:#f3f5f4;--bg2:#ebeeed;--panel:#fff;--panel2:#f1f4f3;--ink:#14201b;--mute:#55616b;--dim:#6b7780;--line:#d3dad7;--hair:1px solid rgba(0,0,0,.12);--accent:#0b6b49;--accent2:#0b6b49;--ok:#0f7a52;--warn:#9a5b00;--bad:#b3261e;--ov-1:rgba(0,0,0,.045);--ov-2:rgba(0,0,0,.07);--ov-3:rgba(0,0,0,.13);--ov-4:rgba(0,0,0,.4);color-scheme:light}
+@media(prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f3f5f4;--bg2:#ebeeed;--panel:#fff;--panel2:#f1f4f3;--ink:#14201b;--mute:#55616b;--dim:#6b7780;--line:#d3dad7;--hair:1px solid rgba(0,0,0,.12);--accent:#0b6b49;--accent2:#0b6b49;--ok:#0f7a52;--warn:#9a5b00;--bad:#b3261e;--ov-1:rgba(0,0,0,.045);--ov-2:rgba(0,0,0,.07);--ov-3:rgba(0,0,0,.13);--ov-4:rgba(0,0,0,.4);color-scheme:light}}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--ink);font:15px/1.55 "Inter Variable","Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;font-feature-settings:"tnum" 1,"cv11" 1;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--ov-1);border:1px solid var(--ov-3);border-bottom-color:var(--ov-4);border-radius:6px;padding:9px 12px;width:100%;outline:none}
+input:focus,select:focus,textarea:focus{border-bottom:2px solid var(--accent2)}
+select option{background:var(--panel)}
+label{display:block;color:var(--mute);font-size:13px;margin:14px 0 5px}
+a{color:var(--accent2);text-decoration:none}a:hover{text-decoration:underline}
+:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
+svg.i{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.app{display:grid;grid-template-columns:var(--side) minmax(0,1fr);min-height:100vh}
+.side{position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--bg2);border-right:1px solid var(--line);padding:16px 12px;display:flex;flex-direction:column;gap:2px}
+.brand{display:flex;align-items:center;gap:10px;padding:2px 8px 12px;font-size:16px}.brand .mark{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;background:var(--accent);border:1px solid rgba(127,217,184,.35)}.brand small{display:block;color:var(--accent2);font-size:10.5px;letter-spacing:.12em;font-weight:600;line-height:1}
+.gh{padding:14px 8px 6px;color:var(--mute);font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.nav{display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:6px;color:var(--ink);opacity:.92;width:100%;text-align:left;font-size:14.5px}
+.nav svg.i{color:var(--mute)}.nav:hover{background:var(--ov-1);opacity:1}.nav.on{color:#fff;background:var(--accent);font-weight:600;opacity:1}.nav.on svg.i{color:#fff}
+.spacer{flex:1}.who{margin-top:12px;padding:10px 12px;border-top:1px solid var(--line);font-size:13px;color:var(--mute)}.who b{display:block;color:var(--ink);word-break:break-all;font-weight:600}
+.btn.menu-btn{display:none}
+.main{min-width:0;max-width:1240px;width:100%;margin:0 auto;padding:28px 32px 80px}
+h1{font-size:24px;line-height:1.25}h2{font-size:16px;margin-bottom:10px}
+.top{display:flex;align-items:flex-end;gap:16px;margin-bottom:18px;flex-wrap:wrap}.top .grow{flex:1;min-width:200px}.sub{color:var(--mute);margin-top:2px;max-width:70ch}
+.card{background:var(--panel);border:var(--hair);border-radius:var(--r);padding:18px 20px;margin-bottom:16px;overflow-x:auto}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:16px;margin-bottom:16px}
+.tile{background:var(--panel);border:var(--hair);border-radius:var(--r);padding:16px 18px}.tile b{display:block;font-size:30px;font-weight:600;line-height:1.15;font-variant-numeric:tabular-nums}.tile span{color:var(--mute);font-size:13.5px}.tile.warn b{color:var(--warn)}.tile.bad b{color:var(--bad)}
+.btn{min-height:36px;padding:6px 16px;border-radius:6px;font-weight:600;font-size:14px;background:transparent;border:1px solid var(--ov-3);white-space:nowrap;display:inline-flex;align-items:center;gap:8px}.btn:hover{background:var(--ov-1);text-decoration:none}
+.btn.primary{color:#fff;background:var(--accent);border-color:rgba(127,217,184,.35)}.btn.primary:hover{background:#0e6046}.btn.sm{min-height:30px;padding:3px 12px;font-size:13px}.btn.danger{color:#fff;background:#8f2a20;border-color:#c4463a}.btn:disabled{opacity:.45;cursor:default}
+table{width:100%;border-collapse:collapse}th{font-size:12px;color:var(--mute);text-align:left;padding:0 12px 10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}td{padding:11px 12px;border-top:1px solid var(--ov-1);vertical-align:middle}
+tr.row{display:table-row;cursor:pointer}tr.row:hover td{background:var(--ov-1)}
+.pill{display:inline-block;padding:1px 8px;border-radius:4px;font-size:12.5px;font-weight:600;white-space:nowrap}
+.pill.ok{background:rgba(111,216,174,.16);color:var(--ok)}.pill.bad{background:rgba(255,132,121,.18);color:var(--bad)}.pill.warn{background:rgba(242,181,82,.18);color:var(--warn)}.pill.na{background:var(--ov-1);color:var(--mute)}
+.bar{height:8px;border-radius:3px;background:var(--ov-1);overflow:hidden;min-width:80px}.bar i{display:block;height:100%;background:var(--accent2)}
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.72);display:grid;place-items:center;z-index:50;padding:20px}
+.modal{width:min(560px,100%);max-height:90vh;overflow:auto;background:var(--panel);border:var(--hair);border-radius:var(--r);padding:24px;box-shadow:0 24px 64px rgba(0,0,0,.65)}.modal h2{font-size:18px}
+.row{display:flex;align-items:center;gap:10px}.between{justify-content:space-between}.end{justify-content:flex-end;margin-top:20px}.muted{color:var(--mute)}.mono{font-family:Consolas,monospace;font-size:12.5px}
+.tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}.tools input,.tools select{width:auto;min-width:160px}
+.toast{color:#fff;position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--accent);border:1px solid rgba(127,217,184,.4);border-radius:6px;padding:11px 20px;z-index:60;max-width:90vw}
+.login{min-height:100vh;display:grid;place-items:center;padding:20px}.login .card{width:min(400px,100%);padding:28px}
+.err{color:var(--bad);margin-top:10px;min-height:20px}
+.empty{text-align:center;color:var(--mute);padding:28px 10px}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px 20px}.kv span{display:block;color:var(--mute);font-size:13px}
+details>summary{cursor:pointer;color:var(--accent2)}
+@media(max-width:900px){.app{display:block}.side{position:fixed;z-index:40;left:0;top:0;bottom:0;width:min(86vw,300px);transform:translateX(-102%);transition:transform .18s}body.open .side{transform:none}body.open::after{content:"";position:fixed;inset:0;background:#000a;z-index:30}.btn.menu-btn{display:inline-flex}.main{padding:18px 14px 70px}}
+
+/* Brand layer (same identity as the organization console) */
+:root{--emerald:#2fd885;--emerald2:#0f8f5c;--glow:rgba(47,216,133,.22);--hi:rgba(255,255,255,.06);--rl:14px}
+:root[data-theme="light"]{--emerald:#0b7a52;--emerald2:#0b6b49;--glow:rgba(11,122,82,.14);--hi:rgba(255,255,255,.9)}
+@media(prefers-color-scheme:light){:root:not([data-theme="dark"]){--emerald:#0b7a52;--emerald2:#0b6b49;--glow:rgba(11,122,82,.14);--hi:rgba(255,255,255,.9)}}
+:root{--accent2:var(--emerald)}
+body{background:radial-gradient(900px 520px at 6% -8%,var(--glow),transparent 62%),radial-gradient(800px 500px at 104% 4%,rgba(120,90,220,.09),transparent 60%),var(--bg);background-attachment:fixed;letter-spacing:-.005em}
+h1{font-size:28px;font-weight:700;letter-spacing:-.02em}
+.side{background:linear-gradient(180deg,color-mix(in srgb,var(--bg2) 92%,var(--emerald) 8%),var(--bg2) 38%)}
+.brand{gap:12px;padding:4px 8px 12px}.brand .mark{width:42px;height:42px;padding:0;overflow:hidden;border-radius:12px;background:#000;border:1px solid color-mix(in srgb,var(--emerald) 45%,transparent);box-shadow:0 0 0 3px var(--glow),0 8px 22px rgba(0,0,0,.45)}.brand .mark img{width:100%;height:100%;display:block;object-fit:cover}
+.brand b{font-size:19px;font-weight:750;letter-spacing:-.02em;display:block}.brand small{margin-top:3px;font-size:10.5px;font-weight:700;letter-spacing:.2em;color:#b9a6ff}
+.badge-op{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:99px;background:rgba(150,120,255,.2);color:#cdbdff;font-size:10px;letter-spacing:.12em;font-weight:700;vertical-align:middle}
+:root[data-theme="light"] .brand small,:root[data-theme="light"] .badge-op{color:#5a3fd0}
+.nav{border-radius:9px;padding:9px 12px;transition:background .15s}.nav:hover{background:var(--ov-2)}
+.nav.on{background:linear-gradient(90deg,color-mix(in srgb,var(--emerald) 24%,transparent),color-mix(in srgb,var(--emerald) 4%,transparent));box-shadow:inset 3px 0 0 var(--emerald);color:var(--ink)}.nav.on svg.i{color:var(--emerald)}
+.gh{letter-spacing:.09em;font-size:11.5px}
+.top{padding-bottom:12px;border-bottom:1px solid var(--ov-2);position:relative;margin-bottom:18px}.top::after{content:"";position:absolute;left:0;bottom:-1px;width:64px;height:2px;background:linear-gradient(90deg,var(--emerald),transparent)}
+.card,.tile{border-radius:var(--rl);background:linear-gradient(180deg,color-mix(in srgb,var(--panel) 100%,#fff 3%),var(--panel));border:1px solid var(--ov-2);box-shadow:inset 0 1px 0 var(--hi),0 1px 2px rgba(0,0,0,.4)}
+.tile{position:relative;overflow:hidden;padding:18px 20px 16px}.tile::before{content:"";position:absolute;left:0;top:0;right:0;height:3px;background:linear-gradient(90deg,var(--emerald),transparent 70%)}
+.tile .ico{position:absolute;right:14px;top:14px;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--glow);color:var(--emerald)}.tile .ico svg.i{width:18px;height:18px}
+.tile b{font-size:34px;letter-spacing:-.03em;white-space:nowrap}
+.tile.warn::before{background:linear-gradient(90deg,var(--warn),transparent 70%)}.tile.warn .ico{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
+.tile.bad::before{background:linear-gradient(90deg,var(--bad),transparent 70%)}.tile.bad .ico{background:color-mix(in srgb,var(--bad) 18%,transparent);color:var(--bad)}
+.btn.primary{background:linear-gradient(180deg,color-mix(in srgb,var(--emerald2) 100%,#fff 8%),var(--emerald2));border:1px solid color-mix(in srgb,var(--emerald) 55%,transparent);box-shadow:0 6px 16px var(--glow),inset 0 1px 0 rgba(255,255,255,.22);color:#fff}
+.btn{border-radius:9px}
+th{background:var(--ov-1);font-size:11.5px;letter-spacing:.08em;padding-top:12px;padding-bottom:12px}td{padding-top:13px;padding-bottom:13px}
+tbody tr:hover td{background:color-mix(in srgb,var(--emerald) 7%,transparent)}
+.pill{border-radius:99px;padding:2px 11px 2px 10px;display:inline-flex;align-items:center;gap:6px}.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.hero{position:relative;overflow:hidden;border-radius:18px;padding:30px 34px;margin-bottom:16px;min-height:170px;display:flex;flex-direction:column;justify-content:center;gap:8px;color:#fff;background:linear-gradient(115deg,#120a2a 0%,#0a4a34 52%,#0c2a20 100%);border:1px solid color-mix(in srgb,var(--emerald) 38%,transparent);box-shadow:0 18px 50px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.12)}
+.hero::before { content:""; position:absolute; top:0; right:0; bottom:0; width:min(74%, 820px); background:url(hero-art.svg) right center/cover no-repeat; pointer-events:none; -webkit-mask-image:linear-gradient(90deg, transparent 0, #000 34%); mask-image:linear-gradient(90deg, transparent 0, #000 34%); }
+.hero::after{content:"";position:absolute;inset:0;background:radial-gradient(600px 260px at 12% 0%,rgba(47,216,133,.22),transparent 70%)}
+.hero>*{position:relative;z-index:1}.hero h1{font-size:32px;color:#fff;margin:0}.hero p{color:rgba(255,255,255,.82);max-width:46ch;font-size:16px}
+.hero .chips{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}.hero .chip{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:99px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);font-weight:600;font-size:13.5px;color:#fff}.hero .chip i{width:8px;height:8px;border-radius:50%;background:#2fd885;box-shadow:0 0 8px #2fd885}.hero .chip.warn i{background:var(--warn);box-shadow:0 0 8px var(--warn)}.hero .chip.bad i{background:var(--bad);box-shadow:0 0 8px var(--bad)}
+@media(max-width:700px){.hero{padding:22px 20px}.hero::before{top:auto;width:100%;height:48%;opacity:.5;background-size:cover;background-position:right bottom;-webkit-mask-image:linear-gradient(0deg,#000 40%,transparent);mask-image:linear-gradient(0deg,#000 40%,transparent)}.hero h1{font-size:26px}}
+.signin{min-height:100vh;display:grid;grid-template-columns:1.1fr 1fr}
+.signin .art{position:relative;overflow:hidden;padding:56px;display:flex;flex-direction:column;justify-content:space-between;color:#fff;background:radial-gradient(700px 420px at 20% 10%,rgba(150,120,255,.26),transparent 62%),linear-gradient(135deg,#0d0820 0%,#0a3d2b 58%,#06241a 100%)}
+.signin .art::before { content:""; position:absolute; left:0; right:0; bottom:0; height:62%; background:url(hero-art.svg) no-repeat; background-size:auto 100%; background-position:right -150px bottom 0; pointer-events:none; -webkit-mask-image:linear-gradient(0deg,#000 45%,transparent); mask-image:linear-gradient(0deg,#000 45%,transparent); }
+.signin .art>*{position:relative;z-index:1}.signin .art .brand{padding:0}.signin .art .brand b{color:#fff;font-size:22px}
+.signin .art h2{font-size:40px;line-height:1.1;font-weight:750;letter-spacing:-.03em;max-width:14ch;margin-bottom:14px;color:#fff}.signin .art p{color:rgba(255,255,255,.78);font-size:17px;max-width:38ch}
+.signin .formside{display:grid;place-items:center;padding:32px}.signin form.card{width:min(380px,100%);background:transparent;border:0;box-shadow:none;padding:0}.signin form.card .brand{display:none}
+@media(max-width:900px){.signin{grid-template-columns:1fr}.signin .art{padding:28px 24px;min-height:200px}.signin .art h2{font-size:28px}}
+.h1-ico{display:inline-grid;place-items:center;width:38px;height:38px;margin-right:12px;vertical-align:-9px;border-radius:11px;background:var(--glow);color:var(--emerald);border:1px solid color-mix(in srgb,var(--emerald) 30%,transparent)}.h1-ico svg.i{width:20px;height:20px}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}.main>*{animation:rise .28s ease both}@media(prefers-reduced-motion:reduce){.main>*{animation:none}}
+
+/* Operations layer */
+:root{--mono:"JetBrains Mono","Cascadia Mono","SF Mono",ui-monospace,Consolas,monospace;--grid-dot:rgba(255,255,255,.045)}
+:root[data-theme="light"]{--grid-dot:rgba(0,0,0,.07)}@media(prefers-color-scheme:light){:root:not([data-theme="dark"]){--grid-dot:rgba(0,0,0,.07)}}
+body{background:radial-gradient(var(--grid-dot) 1px,transparent 1.2px) 0 0/24px 24px,radial-gradient(900px 520px at 6% -8%,var(--glow),transparent 62%),radial-gradient(800px 500px at 104% 4%,rgba(120,90,220,.09),transparent 60%),var(--bg);background-attachment:fixed}
+th,.gh,.tile span:not(.ico),.pill,.kv span,.brand small,.badge-op{font-family:var(--mono);text-transform:uppercase;letter-spacing:.07em;font-size:11px;font-weight:600}
+.tile b,.big{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.pill{border-radius:4px;font-size:10.5px;letter-spacing:.1em}.pill::before{border-radius:1px}
+.tile span:not(.ico){display:block;margin-top:4px;color:var(--mute)}
+.tile::after{content:"";position:absolute;right:8px;bottom:8px;width:12px;height:12px;border-right:2px solid color-mix(in srgb,var(--emerald) 55%,transparent);border-bottom:2px solid color-mix(in srgb,var(--emerald) 55%,transparent)}
+h1[data-eyebrow]::before{content:attr(data-eyebrow);display:block;margin-bottom:6px;font:600 11px var(--mono);letter-spacing:.18em;color:var(--emerald)}
+.card h2,.modal h2{font-family:var(--mono)}
+.card h2{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);padding-bottom:12px;margin-bottom:14px;border-bottom:1px solid var(--ov-2)}
+.card .row.between h2{border:0;padding:0;margin:0}
+.hero h1{font-size:36px}.hero .eyebrow{font:600 11px var(--mono);letter-spacing:.2em;color:#2fd885;text-transform:uppercase}
+.hero .chip{font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;font-size:11px;border-radius:6px}
+#statusbar{position:sticky;top:0;z-index:15;display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin:-28px -32px 22px;padding:9px 32px;font:600 11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--mute);background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--ov-2)}
+#statusbar b{color:var(--ink)}#statusbar .sep{width:1px;height:12px;background:var(--ov-3)}#statusbar .state{display:inline-flex;align-items:center;gap:8px;color:var(--emerald)}#statusbar .state.warn{color:var(--warn)}#statusbar .state.bad{color:var(--bad)}
+#statusbar .led{width:8px;height:8px;border-radius:50%;background:currentColor;box-shadow:0 0 9px currentColor;animation:pulse 2.4s ease-in-out infinite}#statusbar .state.bad .led{animation-duration:.9s}#statusbar .clock{margin-left:auto}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.top{flex-wrap:wrap}.top .grow{flex:1 1 300px}.top .btn.menu-btn{align-self:flex-start;margin-top:6px}td{min-width:84px}table{min-width:640px}
+@media(max-width:900px){#statusbar{margin:-18px -14px 16px;padding:8px 14px}#statusbar .clock{display:none}}
+
+/* Banner video (hero-video.js). Black in the clip adds nothing under "screen" blending, so only the plant and the water show over the green. */
+.hero-video { position:absolute; top:0; right:0; height:100%; width:auto; aspect-ratio:16/9; max-width:74%; object-fit:cover; mix-blend-mode:screen; opacity:.96; pointer-events:none; z-index:0;
+  -webkit-mask-image:linear-gradient(90deg, transparent 0, #000 36%); mask-image:linear-gradient(90deg, transparent 0, #000 36%); }
+.hero-card > .hero-video, .hero > .hero-video { position:absolute; z-index:0; }
+.hero-card:has(> .hero-video)::before, .hero:has(> .hero-video)::before { display:none; }      /* the vector art is the fallback when there is no video */
+@media (max-width:700px) { .hero-video { top:auto; bottom:0; height:46%; width:100%; max-width:none; aspect-ratio:auto; opacity:.6;
+  -webkit-mask-image:linear-gradient(0deg, #000 35%, transparent); mask-image:linear-gradient(0deg, #000 35%, transparent); } }
+.signin .art > .hero-video { position:absolute; z-index:0; top:0; bottom:auto; right:-4%; left:auto; width:74%; height:100%; max-width:none; aspect-ratio:auto; object-fit:cover; object-position:center; -webkit-mask-image:linear-gradient(90deg, transparent 0, #000 40%); mask-image:linear-gradient(90deg, transparent 0, #000 40%); }
+.signin .art:has(> .hero-video)::before { display:none; }
+@media print { .hero-video { display:none; } }
+
+/* Banner scrim: a soft dark fade on the text side, over the video, so the headline stays crisp at any width (the plant stays whole). */
+.hero-card:has(> .hero-video)::after, .hero:has(> .hero-video)::after { background:linear-gradient(90deg, rgba(5,30,22,.82) 0%, rgba(5,30,22,.55) 42%, transparent 70%), radial-gradient(600px 260px at 12% 0%, rgba(47,216,133,.2), transparent 70%); }
+@media (max-width:700px) { .hero-card:has(> .hero-video)::after, .hero:has(> .hero-video)::after { background:radial-gradient(600px 260px at 12% 0%, rgba(47,216,133,.2), transparent 70%); } }
+</style>
+<link rel="icon" type="image/png" href="logo.png">
+<meta name="theme-color" content="#0a3d2b">
+</head>
+<body>
+<div id="root"></div>
+<script>
+'use strict';
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+let token = null; try { token = sessionStorage.getItem('vp') } catch { }
+const ago = d => { if (!d) return 'never'; const s = (Date.now() - new Date(d)) / 1000; return s < 90 ? 'just now' : s < 5400 ? Math.round(s / 60) + ' min ago' : s < 129600 ? Math.round(s / 3600) + ' h ago' : Math.round(s / 86400) + ' d ago'; };
+const num = n => n == null ? '—' : Number(n).toLocaleString();
+const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+const ICON = {
+  overview: '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/>', orgs: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h2M14 7h2M8 11h2M14 11h2M10 21v-4h4v4"/>',
+  devices: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>', commercial: '<path d="M4 7h16v10H4z"/><circle cx="12" cy="12" r="2.5"/><path d="M7 10v4M17 10v4"/>',
+  releases: '<path d="M12 4v11M7 11l5 5 5-5"/><path d="M5 20h14"/>', compute: '<path d="M13 3L5 13h6l-1 8 8-10h-6z"/>',
+  support: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="M5.6 5.6l3.9 3.9M14.5 14.5l3.9 3.9M18.4 5.6l-3.9 3.9M9.5 14.5l-3.9 3.9"/>',
+  admins: '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17.5" cy="9" r="2.4"/><path d="M17 14.2c2.4.2 4.2 2.2 4.2 4.8"/>',
+  installer: '<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5L12 12l8-4.5M12 12v9"/>', audit: '<path d="M7 3h8l4 4v14H7z"/><path d="M15 3v4h4M10 12h6M10 16h6"/>',
+  system: '<path d="M4 18V6M4 18h16"/><path d="M8 14l3-4 3 3 4-6"/>', account: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 5-5"/>',
+  menu: '<path d="M4 7h16M4 12h16M4 17h16"/>', out: '<path d="M10 4H5v16h5M15 8l4 4-4 4M19 12H9"/>',
+};
+const icon = n => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICON[n] ?? ''}</svg>`;
+
+async function api(method, url, body) {
+  const r = await fetch(url, { method, headers: { 'content-type': 'application/json', ...(token ? { authorization: 'Bearer ' + token } : {}) }, body: body === undefined ? undefined : JSON.stringify(body) });
+  const t = await r.text(); let j; try { j = t ? JSON.parse(t) : {}; } catch { j = { error: t }; }
+  if (r.status === 401 && token && j.error !== 'mfa_required') { signOut(); throw new Error('Your session ended. Sign in again.'); }
+  if (!r.ok) throw new Error(j.error || j.message || ('Request failed (' + r.status + ')')); return j;
+}
+async function download(url, name) {
+  const r = await fetch(url, { headers: { authorization: 'Bearer ' + token } }); if (!r.ok) throw new Error('Export failed (' + r.status + ')');
+  const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(await r.blob()), download: name }); a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+function toast(m) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = m; document.body.appendChild(t); setTimeout(() => t.remove(), 4500); }
+function dialog(title, body, ok = 'Save', danger = false) {
+  return new Promise(res => {
+    const s = document.createElement('div'); s.className = 'scrim';
+    s.innerHTML = `<form class="modal"><h2>${esc(title)}</h2>${body}<div class="row end"><button type="button" class="btn" data-n>Cancel</button>${ok ? `<button class="btn ${danger ? 'danger' : 'primary'}">${esc(ok)}</button>` : ''}</div></form>`;
+    const done = v => { s.remove(); res(v); };
+    $('[data-n]', s).onclick = () => done(null); s.onclick = e => { if (e.target === s) done(null); };
+    $('form', s).onsubmit = e => { e.preventDefault(); done(Object.fromEntries(new FormData(e.target))); };
+    document.body.appendChild(s); const f = $('input,select,textarea', s); if (f) f.focus();
+  });
+}
+const fail = e => toast(e.message || String(e));
+function cycleTheme() { const cur = document.documentElement.dataset.theme ?? 'auto', next = { auto: 'light', light: 'dark', dark: 'auto' }[cur]; next === 'auto' ? delete document.documentElement.dataset.theme : document.documentElement.dataset.theme = next; try { localStorage.setItem('vp_theme', next); } catch { } toast('Appearance: ' + next); }
+function signOut() { token = null; try { sessionStorage.removeItem('vp'); } catch { } renderLogin(); }
+
+function renderLogin(creds = null, msg = '') {
+  const second = !!creds;
+  $('#root').innerHTML = `<div class="signin"><div class="art">${window.heroVideoHtml ? window.heroVideoHtml() : ''}<div class="brand"><div class="mark"><img src="logo.png" alt="" width="42" height="42"></div><div><b>Viro</b><small>OPERATOR CONSOLE</small></div></div><div><h2>Run the platform.</h2><p>Organizations, releases, compute and support, in one place, with every action recorded.</p></div><span></span></div><div class="formside"><form class="card" id="f"><h1>Operator sign-in</h1>
+    ${second ? '<label>Code from your authenticator app, or a recovery code</label><input name="code" autocomplete="one-time-code" required>' : '<label>Email</label><input name="email" type="email" autocomplete="username" required><label>Password</label><input name="password" type="password" autocomplete="current-password" required>'}
+    <div class="err" id="e" role="alert">${esc(msg)}</div><button class="btn primary" style="width:100%;justify-content:center">${second ? 'Verify' : 'Sign in'}</button>${second ? '<button type="button" class="btn" id="back" style="width:100%;justify-content:center;margin-top:8px">Back</button>' : ''}
+    <p class="muted" style="margin-top:16px;font-size:13px">For the people who run Viro. Organization administrators sign in at the main address.</p></form></div></div>`;
+  if (second) $('#back').onclick = () => renderLogin();
+  $('#f').onsubmit = async e => {
+    e.preventDefault(); const f = Object.fromEntries(new FormData(e.target)), d = second ? { ...creds, code: f.code.trim() } : f;
+    try { const r = await api('POST', '/api/v1/platform/auth/login', d); token = r.token; try { sessionStorage.setItem('vp', token); } catch { } me = d.email; start(); }
+    catch (x) { x.message === 'mfa_required' ? renderLogin({ email: d.email, password: d.password }) : renderLogin(second ? creds : null, x.message === 'invalid credentials' ? 'That email and password do not match.' : x.message); }
+  };
+}
+
+let me = '', page = 'overview';
+const NAVS = [
+  ['Overview', [['overview', 'Overview']]],
+  ['Customers', [['orgs', 'Organizations'], ['devices', 'Devices'], ['commercial', 'Commercial']]],
+  ['Fleet', [['releases', 'Releases'], ['compute', 'Compute'], ['support', 'Support']]],
+  ['Platform', [['admins', 'Platform admins'], ['installer', 'Installer'], ['audit', 'Activity'], ['system', 'System health'], ['account', 'My sign-in']]],
+];
+function start() {
+  $('#root').innerHTML = `<div class="app"><aside class="side"><div class="brand"><div class="mark"><img src="logo.png" alt="" width="42" height="42"></div><div><b>Viro</b><small>OPERATOR</small></div></div>
+    ${NAVS.map(([g, items]) => `<div class="gh">${esc(g)}</div>${items.map(([id, n]) => `<button class="nav" data-p="${id}">${icon(id)}<span>${esc(n)}</span></button>`).join('')}`).join('')}
+    <div class="spacer"></div><div class="who">Signed in as<b>${esc(me || 'operator')}</b><div class="row" style="margin-top:8px;flex-wrap:wrap"><button class="btn sm" id="theme">Appearance</button><a class="btn sm" href="/site/about.html" target="_blank" rel="noopener">About</a><button class="btn sm" id="out">${icon('out')}Sign out</button></div></div></aside>
+    <main class="main"><div id="statusbar" role="status"><span class="state" id="sb-state"><i class="led"></i><span>Linking</span></span><span class="sep"></span><span>Organizations <b id="sb-o">—</b></span><span>Endpoints <b id="sb-e">—</b></span><span>Critical <b id="sb-c">—</b></span><span class="sep"></span><span>Last sweep <b id="sb-s">—</b></span><span class="clock" id="sb-clock"></span></div><div id="m"></div></main></div>`;
+  $$('[data-p]').forEach(b => b.onclick = () => { document.body.classList.remove('open'); go(b.dataset.p); }); $('#out').onclick = signOut; $('#theme').onclick = cycleTheme; go(page);
+}
+let lastSync = 0;
+async function refreshStatus() {
+  try {
+    const [o, f] = await Promise.all([api('GET', '/api/v1/platform/overview'), api('GET', '/api/v1/platform/fleet')]); lastSync = Date.now();
+    const st = $('#sb-state'); if (!st) return;
+    const [cls, text] = f.criticalAlerts ? ['bad', 'Attention required'] : f.releasesInRollout.length ? ['warn', 'Rollout in progress'] : ['', 'Platform nominal'];
+    st.className = 'state ' + cls; st.lastElementChild.textContent = text;
+    $('#sb-o').textContent = o.organizations.active; $('#sb-e').textContent = o.devices.online + ' / ' + o.devices.total; $('#sb-c').textContent = f.criticalAlerts;
+  } catch { }
+}
+if (!window.__sb) window.__sb = setInterval(() => { const c = $('#sb-clock'); if (!c) return; const n = new Date(); c.textContent = n.toLocaleTimeString([], { hour12: false }) + ' · ' + n.toLocaleDateString([], { day: '2-digit', month: 'short' }).toUpperCase(); const e = $('#sb-s'); if (e && lastSync) { const t = Math.round((Date.now() - lastSync) / 1000); e.textContent = t < 90 ? t + 's ago' : Math.round(t / 60) + 'm ago'; } }, 1000);
+async function go(p) { page = p; refreshStatus(); $$('[data-p]').forEach(b => b.classList.toggle('on', b.dataset.p === p)); $('#m').innerHTML = '<p class="muted">Loading…</p>'; try { await V[p](); const h = $('#m .top h1'); const g = NAVS.find(([, items]) => items.some(([i]) => i === p)); if (h && g && !h.dataset.eyebrow) h.dataset.eyebrow = (g[0] + ' / ' + NAVS.flatMap(([, i]) => i).find(([i]) => i === p)[1]).toUpperCase(); if (h && !h.querySelector('.h1-ico') && ICON[p]) h.insertAdjacentHTML('afterbegin', `<span class="h1-ico">${icon(p)}</span>`); } catch (e) { $('#m').innerHTML = `<p class="err">${esc(e.message)}</p>`; } }
+const head = (t, s, actions = '') => `<div class="top"><button class="btn sm menu-btn" id="burger" aria-label="Menu">${icon('menu')}</button><div class="grow"><h1>${t}</h1>${s ? `<p class="sub">${s}</p>` : ''}</div>${actions}</div>`;
+document.addEventListener('click', e => { if (e.target.closest('#burger')) document.body.classList.toggle('open'); });
+const tile = (n, l, tone = '', ic = (ICON[page] ? page : 'overview')) => `<div class="tile ${tone}"><span class="ico">${icon(ic)}</span><b>${esc(n)}</b><span>${esc(l)}</span></div>`;
+const table = (cols, rows, empty = 'Nothing to show.') => rows.length ? `<table><thead><tr>${cols.map(c => `<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table>` : `<div class="empty">${esc(empty)}</div>`;
+const statePill = on => on ? '<span class="pill ok">Online</span>' : '<span class="pill na">Offline</span>';
+
+const V = {};
+// ---------------------------------------------------------------- overview
+V.overview = async () => {
+  const [o, f] = await Promise.all([api('GET', '/api/v1/platform/overview'), api('GET', '/api/v1/platform/fleet')]);
+  const maxV = Math.max(1, ...f.versions.map(v => v.devices));
+  const chip = (t, x) => `<span class="chip ${t}"><i></i>${x}</span>`;
+  $('#m').innerHTML = `<div class="hero">${window.heroVideoHtml ? window.heroVideoHtml() : ''}<span class="eyebrow">Operator console</span><h1>${f.criticalAlerts ? 'Action required.' : f.releasesInRollout.length ? 'Rollout in flight.' : 'Platform nominal.'}</h1><p>${plural(o.organizations.active, 'organization')} and ${plural(o.devices.total, 'endpoint')} under watch. ${o.devices.online} reporting now.</p><div class="chips">${chip('', o.devices.online + ' online now')}${chip(f.criticalAlerts ? 'bad' : '', f.criticalAlerts ? plural(f.criticalAlerts, 'critical alert') : 'No critical alerts')}${chip(f.releasesInRollout.length ? 'warn' : '', f.releasesInRollout.length ? plural(f.releasesInRollout.length, 'release') + ' rolling out' : 'No rollout in progress')}</div></div><div class="tiles">
+    ${tile(o.organizations.active, o.organizations.suspended ? `Organizations (${o.organizations.suspended} suspended)` : 'Organizations', '', 'orgs')}${tile(`${o.devices.online} / ${o.devices.total}`, 'Endpoints online', '', 'devices')}
+    ${tile(f.criticalAlerts, 'Critical alerts open', f.criticalAlerts ? 'bad' : '', 'support')}${tile(f.computeHoursToday, 'Compute hours today', '', 'compute')}
+    ${tile(f.updates30d.successRate == null ? '—' : f.updates30d.successRate + '%', 'Agent update success, 30 days', '', 'releases')}${tile(o.newOrganizations30d, 'New organizations (30 days)', '', 'admins')}</div>
+    <div class="card"><h2>Agent versions</h2>${table(['Version', 'Endpoints', ''], f.versions.map(v => `<tr><td class="mono">${esc(v.version)}</td><td>${num(v.devices)}</td><td style="width:50%"><div class="bar"><i style="width:${Math.round(v.devices / maxV * 100)}%"></i></div></td></tr>`), 'No endpoints yet.')}</div>
+    <div class="card"><h2>Releases still rolling out</h2>${f.releasesInRollout.length ? table(['Version', 'Stage', 'Status'], f.releasesInRollout.map(r => `<tr><td class="mono">${esc(r.version)}</td><td>${esc(r.stage)}</td><td><span class="pill ${r.status === 'active' ? 'ok' : 'warn'}">${esc(r.status)}</span></td></tr>`)) : '<div class="empty">Every active release has reached everyone.</div>'}</div>`;
+};
+// ---------------------------------------------------------------- organizations
+V.orgs = async () => {
+  const { organizations: list } = await api('GET', '/api/v1/platform/organizations'); let q = '';
+  const draw = () => {
+    const rows = list.filter(o => !q || (o.name + ' ' + (o.owner_email || '')).toLowerCase().includes(q));
+    $('#m').innerHTML = head('Organizations', 'Each organization is its own workspace. Select one to manage it.', `<input id="q" placeholder="Search" aria-label="Search" value="${esc(q)}" style="width:220px"><button class="btn primary" id="new">New organization</button>`) +
+      `<div class="card">${table(['Organization', 'Owner', 'Endpoints', 'Admins', 'Last admin sign-in', 'Status'], rows.map(o => `<tr class="row" data-o="${esc(o.id)}"><td><b>${esc(o.name)}</b><div class="muted" style="font-size:13px">${esc(o.plan)}</div></td><td class="muted">${esc(o.owner_email || '—')}</td><td>${num(o.online)} / ${num(o.devices)}</td><td>${num(o.admins)}</td><td class="muted">${ago(o.last_admin_login)}</td><td>${o.suspended_at ? '<span class="pill bad">Suspended</span>' : '<span class="pill ok">Active</span>'}</td></tr>`), 'No organizations match.')}</div>`;
+    $('#q').oninput = e => { q = e.target.value.toLowerCase(); const p = e.target.selectionStart; draw(); const n = $('#q'); n.focus(); n.setSelectionRange(p, p); };
+    $('#new').onclick = createOrg; $$('[data-o]').forEach(r => r.onclick = () => openOrg(list.find(o => o.id === r.dataset.o)));
+  }; draw();
+};
+async function createOrg() {
+  const v = await dialog('New organization', `<p class="sub">Creates the workspace and its first owner. Pass the password on securely; they can change it after signing in.</p><label>Organization name</label><input name="name" required maxlength="120"><label>Owner email</label><input name="ownerEmail" type="email" required><label>Owner password (12+ characters)</label><input name="ownerPassword" type="password" minlength="12" required autocomplete="new-password"><label>Plan</label><select name="plan"><option value="standard">Standard</option><option value="compute_sponsored">Compute sponsored</option></select>`, 'Create');
+  if (!v) return;
+  try { await api('POST', '/api/v1/platform/organizations', v); toast('Organization created.'); go('orgs'); } catch (e) { fail(e); }
+}
+async function openOrg(o) {
+  let users, d; try { [users, d] = await Promise.all([api('GET', `/api/v1/platform/organizations/${o.id}/users`).then(r => r.users), api('GET', `/api/v1/platform/organizations/${o.id}/detail`)]); } catch (e) { return fail(e); }
+  const s = document.createElement('div'); s.className = 'scrim';
+  const draw = () => {
+    const pol = d.policy.length ? d.policy.map(p => `${esc(p.scope_type)}: ${p.enabled ? 'on' : 'off'}${p.fallback && p.fallback !== 'none' ? ', ' + esc(p.fallback) : ''}${p.max_cpu ? ', max ' + esc(p.max_cpu) + '% CPU' : ''}`).join(' · ') : 'No compute policy';
+    s.innerHTML = `<div class="modal" style="width:min(720px,100%)"><div class="row between"><div><h2>${esc(o.name)}</h2><p class="sub">${o.online} of ${o.devices} endpoints online · ${o.suspended_at ? 'Suspended: ' + esc(o.suspended_reason || '') : 'Active'} · country ${esc(d.organization.country_code)}</p></div><button class="btn sm" data-x>Close</button></div>
+    <div class="kv" style="margin-top:14px"><div><span>Plan</span>${esc(d.organization.plan)}</div><div><span>Compute</span>${pol}</div><div><span>Compute consent</span>${d.consent ? esc(d.consent.user_email) + ', ' + ago(d.consent.accepted_at) : 'Not recorded'}</div><div><span>Two-step sign-in</span>${d.users.mfa} of ${d.users.total} people${d.organization.require_mfa ? ' (required)' : ''}</div></div>
+    <h2 style="margin-top:20px">People</h2>${table(['Person', 'Role', ''], users.map(u => `<tr><td>${esc(u.email)}</td><td><span class="pill na">${esc(u.role)}</span></td><td style="text-align:right"><button class="btn sm" data-reset="${esc(u.id)}">Reset password</button></td></tr>`), 'No people.')}
+    <h2 style="margin-top:20px">Computers</h2>${d.devices.length ? table(['Endpoint', 'Version', 'Seen'], d.devices.slice(0, 8).map(x => `<tr><td>${esc(x.hostname)}</td><td class="mono">${esc(x.agent_version || '—')}</td><td>${statePill(x.online)} <span class="muted">${ago(x.last_seen_at)}</span></td></tr>`)) + (d.devices.length > 8 ? `<p class="muted" style="margin-top:6px">and ${d.devices.length - 8} more (see Devices).</p>` : '') : '<div class="empty">No endpoints.</div>'}
+    <h2 style="margin-top:20px">Recent activity</h2>${d.recentActivity.length ? table(['When', 'What'], d.recentActivity.map(a => `<tr><td class="muted">${ago(a.at)}</td><td class="mono">${esc(a.action)}${a.result && a.result !== 'ok' ? ' · ' + esc(a.result) : ''}</td></tr>`)) : '<div class="empty">Nothing yet.</div>'}
+    <div class="row" style="margin-top:18px"><button class="btn" data-add>Add a person</button><span class="spacer"></span>${o.suspended_at ? '<button class="btn primary" data-resume>Resume organization</button>' : '<button class="btn danger" data-susp>Suspend organization</button>'}</div></div>`;
+    $('[data-x]', s).onclick = () => s.remove();
+    $('[data-add]', s).onclick = async () => { const v = await dialog('Add a person', `<label>Email</label><input name="email" type="email" required><label>Password (12+ characters)</label><input name="password" type="password" minlength="12" required autocomplete="new-password"><label>Access</label><select name="role"><option value="admin">Admin</option><option value="owner">Owner</option><option value="technician">Technician</option><option value="viewer">Viewer</option></select>`, 'Add'); if (!v) return; try { await api('POST', `/api/v1/platform/organizations/${o.id}/users`, v); users = (await api('GET', `/api/v1/platform/organizations/${o.id}/users`)).users; toast('Added.'); draw(); } catch (e) { fail(e); } };
+    $$('[data-reset]', s).forEach(b => b.onclick = async () => { const v = await dialog('Reset password', '<p class="sub">Set a new password and pass it on securely. The old one stops working immediately.</p><label>New password (12+ characters)</label><input name="password" type="password" minlength="12" required autocomplete="new-password">', 'Reset'); if (!v) return; try { await api('POST', `/api/v1/platform/organizations/${o.id}/users/${b.dataset.reset}/reset-password`, v); toast('Password changed.'); } catch (e) { fail(e); } });
+    $('[data-susp]', s)?.addEventListener('click', async () => { const v = await dialog('Suspend ' + o.name + '?', '<p class="sub">Nobody in this organization can sign in and its endpoints are refused until you resume it. Nothing is deleted.</p><label>Reason (kept in the activity log)</label><input name="reason" required minlength="3" maxlength="300">', 'Suspend', true); if (!v) return; try { await api('POST', `/api/v1/platform/organizations/${o.id}/suspend`, v); s.remove(); toast('Suspended.'); go('orgs'); } catch (e) { fail(e); } });
+    $('[data-resume]', s)?.addEventListener('click', async () => { try { await api('POST', `/api/v1/platform/organizations/${o.id}/resume`); s.remove(); toast('Resumed.'); go('orgs'); } catch (e) { fail(e); } });
+  };
+  s.onclick = e => { if (e.target === s) s.remove(); }; draw(); document.body.appendChild(s);
+}
+// ---------------------------------------------------------------- devices
+V.devices = async () => {
+  let q = '', ver = '';
+  const draw = async () => {
+    const { devices } = await api('GET', `/api/v1/platform/devices?q=${encodeURIComponent(q)}&version=${encodeURIComponent(ver)}`);
+    const versions = (await api('GET', '/api/v1/platform/fleet')).versions;
+    $('#m').innerHTML = head('Devices', 'Every endpoint in every organization. Search by name, organization or worker ID.', `<input id="q" placeholder="Search" aria-label="Search" value="${esc(q)}" style="width:240px"><select id="ver" aria-label="Agent version"><option value="">All versions</option>${versions.map(v => `<option ${v.version === ver ? 'selected' : ''}>${esc(v.version)}</option>`).join('')}</select>`) +
+      `<div class="card">${table(['Endpoint', 'Organization', 'Version', 'Ring', 'Worker ID', 'Status'], devices.map(d => `<tr><td><b>${esc(d.hostname)}</b><div class="muted" style="font-size:13px">${esc(d.os_caption || '')}</div></td><td>${esc(d.org_name)}</td><td class="mono">${esc(d.agent_version || '—')}</td><td>${esc(d.update_ring)}</td><td class="mono">${esc(d.worker_id || '—')}</td><td>${statePill(d.online)} <span class="muted">${ago(d.last_seen_at)}</span></td></tr>`), 'No endpoints match.')}</div>`;
+    let t; $('#q').oninput = e => { q = e.target.value; clearTimeout(t); t = setTimeout(async () => { const p = $('#q').selectionStart; await draw(); const n = $('#q'); n.focus(); n.setSelectionRange(p, p); }, 300); };
+    $('#ver').onchange = e => { ver = e.target.value; draw(); };
+  }; await draw();
+};
+// ---------------------------------------------------------------- commercial
+V.commercial = async () => {
+  const { organizations: list, note } = await api('GET', '/api/v1/platform/commercial');
+  $('#m').innerHTML = head('Commercial', esc(note)) + `<div class="card">${table(['Organization', 'Plan', 'Endpoints', 'Consent', 'Sponsored since', 'Compute this month', ''], list.map(o => `<tr><td><b>${esc(o.name)}</b></td><td>${o.plan === 'compute_sponsored' ? '<span class="pill ok">Compute sponsored</span>' : '<span class="pill na">Standard</span>'}</td><td>${num(o.devices)}</td><td>${o.consent ? `<span class="pill ok">Accepted</span><div class="muted" style="font-size:13px">${esc(o.consent.user_email)}, ${ago(o.consent.accepted_at)}</div>` : (o.plan === 'compute_sponsored' ? '<span class="pill warn">Not recorded</span>' : '<span class="muted">—</span>')}</td><td class="muted">${o.sponsored_since ? ago(o.sponsored_since) : '—'}</td><td>${esc(o.compute_hours_month)} h</td><td style="text-align:right"><button class="btn sm" data-plan="${esc(o.id)}" data-cur="${esc(o.plan)}">Change plan</button></td></tr>`))}</div>`;
+  $$('[data-plan]').forEach(b => b.onclick = async () => {
+    const next = b.dataset.cur === 'standard' ? 'compute_sponsored' : 'standard';
+    const v = await dialog('Change plan', `<p class="sub">Move this organization to <b>${next === 'compute_sponsored' ? 'Compute sponsored' : 'Standard'}</b>. The change is recorded as a high-risk entry in the mining audit log.${next === 'compute_sponsored' ? ' Compute still cannot run until an owner accepts the consent terms and an administrator enables a policy.' : ''}</p>`, 'Change plan', next === 'compute_sponsored');
+    if (!v) return; try { await api('PATCH', `/api/v1/platform/organizations/${b.dataset.plan}/plan`, { plan: next }); toast('Plan changed.'); go('commercial'); } catch (e) { fail(e); }
+  });
+};
+// ---------------------------------------------------------------- releases
+const STAGE_ORDER = ['internal', 'pilot', '10', '50', '100'];
+V.releases = async () => {
+  const { releases } = await api('GET', '/api/v1/platform/releases');
+  $('#m').innerHTML = head('Releases', 'Agent versions and rollout stage. A rollout only moves forward. Halt to stop it.') + `<div class="card">${table(['Version', 'Stage', 'Status', 'Running', 'Updated', 'Failed', 'Created', ''], releases.map(r => {
+    const next = STAGE_ORDER[STAGE_ORDER.indexOf(r.stage) + 1];
+    return `<tr><td class="mono"><b>${esc(r.version)}</b>${r.notes ? `<div class="muted" style="font-size:13px;font-family:inherit">${esc(r.notes)}</div>` : ''}</td><td>${esc(r.stage)}${r.stage === '100' ? '' : r.stage.length < 4 && !isNaN(r.stage) ? '%' : ''}</td><td><span class="pill ${r.status === 'active' ? 'ok' : 'bad'}">${esc(r.status)}</span>${r.halt_reason ? `<div class="muted" style="font-size:13px">${esc(r.halt_reason)}</div>` : ''}</td><td>${num(r.running)}</td><td>${num(r.updated)}</td><td>${r.failed ? `<span class="pill bad">${num(r.failed)}</span>` : '0'}</td><td class="muted">${ago(r.created_at)}</td>
+      <td style="text-align:right;white-space:nowrap"><button class="btn sm" data-d="${esc(r.version)}">Details</button> ${next && r.status === 'active' ? `<button class="btn sm" data-next="${esc(r.version)}" data-to="${esc(next)}">Advance to ${esc(next)}${isNaN(next) ? '' : '%'}</button>` : ''} <button class="btn sm ${r.status === 'active' ? 'danger' : ''}" data-st="${esc(r.version)}" data-to="${r.status === 'active' ? 'halted' : 'active'}">${r.status === 'active' ? 'Halt' : 'Resume'}</button></td></tr>`;
+  }), 'No releases yet.')}<p class="muted" style="margin-top:12px">New releases are uploaded and signed by the release script; this page controls the rollout.</p></div>`;
+  $$('[data-next]').forEach(b => b.onclick = async () => { const v = await dialog('Advance rollout', `<p class="sub">Move ${esc(b.dataset.next)} to <b>${esc(b.dataset.to)}</b>. More endpoints will be offered it right away.</p>`, 'Advance'); if (v) try { await api('PATCH', `/api/v1/platform/releases/${b.dataset.next}`, { stage: b.dataset.to }); toast('Rollout advanced.'); go('releases'); } catch (e) { fail(e); } });
+  $$('[data-st]').forEach(b => b.onclick = async () => { const halt = b.dataset.to === 'halted'; const v = await dialog(halt ? 'Halt rollout' : 'Resume rollout', `<p class="sub">${halt ? 'Computers stop being offered ' + esc(b.dataset.st) + '. Ones that already have it keep it.' : 'Computers are offered ' + esc(b.dataset.st) + ' again.'}</p>`, halt ? 'Halt' : 'Resume', halt); if (v) try { await api('PATCH', `/api/v1/platform/releases/${b.dataset.st}`, { status: b.dataset.to }); toast(halt ? 'Rollout halted.' : 'Rollout resumed.'); go('releases'); } catch (e) { fail(e); } });
+  $$('[data-d]').forEach(b => b.onclick = async () => {
+    try {
+      const d = await api('GET', `/api/v1/platform/releases/${b.dataset.d}/detail`);
+      await dialog('Release ' + d.release.version, `<h2 style="margin-top:6px">Update events</h2>${table(['When', 'Endpoint', 'Result', 'Detail'], d.events.map(e => `<tr><td class="muted">${ago(e.at)}</td><td>${esc(e.hostname)}<div class="muted" style="font-size:13px">${esc(e.org_name)}</div></td><td><span class="pill ${e.status === 'ok' ? 'ok' : 'bad'}">${esc(e.status)}</span></td><td class="muted">${esc(e.detail || '')}</td></tr>`), 'No update events yet.')}
+        <h2 style="margin-top:18px">Running it (${d.running.length})</h2>${table(['Endpoint', 'Organization', 'Ring'], d.running.slice(0, 50).map(x => `<tr><td>${esc(x.hostname)}</td><td>${esc(x.org_name)}</td><td>${esc(x.update_ring)}</td></tr>`), 'No endpoint runs this version.')}`, '');
+    } catch (e) { fail(e); }
+  });
+};
+// ---------------------------------------------------------------- compute
+V.compute = async () => {
+  const c = await api('GET', '/api/v1/platform/compute');
+  const totalRun = c.orgs.reduce((n, o) => n + o.running, 0), totalHash = c.orgs.reduce((n, o) => n + o.hash_rate, 0);
+  $('#m').innerHTML = head('Compute', 'Sponsored organizations, signed engine builds and the workers behind them.', '<button class="btn" id="csv">Export CSV</button>') + `<div class="tiles">
+    ${tile(totalRun, 'Endpoints computing now')}${tile(num(Math.round(totalHash)) + ' H/s', 'Combined hash rate')}${tile(c.openSessions, 'Open sessions')}${tile(c.orgs.reduce((n, o) => n + o.eligible, 0), 'Eligible endpoints')}</div>
+    <div class="card"><h2>Organizations</h2>${table(['Organization', 'Eligible', 'Running', 'Hash rate', 'Sessions 24 h', 'Shares ok / rejected 24 h', 'Hours this month'], c.orgs.map(o => `<tr><td><b>${esc(o.name)}</b>${o.plan === 'compute_sponsored' ? '' : ' <span class="pill na">Standard</span>'}</td><td>${o.eligible}</td><td>${o.running}</td><td>${num(Math.round(o.hash_rate))} H/s</td><td>${o.sessions_24h}</td><td>${o.accepted_24h} / ${o.rejected_24h}</td><td>${esc(o.compute_hours_month)}</td></tr>`), 'No sponsored organizations yet.')}
+      <p class="muted" style="margin-top:10px">Pool reconciliation is not connected: these are Viro's own measurements, not what the pool credited. No earnings are shown.</p></div>
+    <div class="card"><div class="row between"><h2>Engine builds</h2><button class="btn sm" id="pub">Publish a build</button></div>${table(['Version', 'SHA-256', 'Size', 'Status', 'Published', ''], c.engines.map(e => `<tr><td class="mono">${esc(e.version)}</td><td class="mono" title="${esc(e.sha256)}">${esc(e.sha256.slice(0, 16))}…</td><td>${(e.size_bytes / 1048576).toFixed(1)} MB</td><td><span class="pill ${e.status === 'active' ? 'ok' : 'na'}">${esc(e.status)}</span></td><td class="muted">${ago(e.created_at)}</td><td style="text-align:right">${e.status === 'active' ? `<button class="btn sm danger" data-wd="${esc(e.version)}">Withdraw</button>` : ''}</td></tr>`), 'No engine build has been published.')}</div>
+    <div class="card"><h2>Worker registry</h2>${table(['Worker ID', 'Organization', 'Endpoint', 'State', 'Hash rate', 'Last report'], c.workers.map(w => `<tr><td class="mono">${esc(w.worker_id)}</td><td>${esc(w.org_name)}</td><td>${esc(w.hostname)}</td><td>${w.enabled ? esc(w.state || 'not reporting') : '<span class="muted">not enabled</span>'}</td><td>${w.hash_rate ? num(Math.round(w.hash_rate)) + ' H/s' : '—'}</td><td class="muted">${ago(w.last_seen_at)}</td></tr>`), 'No worker has been registered.')}</div>`;
+  $('#csv').onclick = () => download('/api/v1/platform/compute/export.csv', 'compute-fleet.csv').catch(fail);
+  $('#pub').onclick = async () => {
+    const v = await dialog('Publish an engine build', '<p class="sub">The file you choose is stored as-is and its SHA-256 is signed into each organization\'s policy. PCs refuse any build whose checksum differs. Builds cannot be changed after publishing.</p><label>Version name (letters, digits, dots, dashes)</label><input name="version" required pattern="[A-Za-z0-9._-]{1,40}"><label>Windows program (.exe)</label><input name="file" type="file" accept=".exe" required>', 'Publish');
+    if (!v) return; const f = v.file; if (!f || !f.size) return toast('Choose the .exe first.');
+    try { const r = await fetch('/api/v1/platform/compute-engine?version=' + encodeURIComponent(v.version), { method: 'PUT', headers: { authorization: 'Bearer ' + token, 'content-type': 'application/octet-stream' }, body: f }); const j = await r.json(); if (!r.ok) throw new Error(j.error || 'Upload failed'); toast('Published. SHA-256 ' + j.sha256.slice(0, 12) + '…'); go('compute'); } catch (e) { fail(e); }
+  };
+  $$('[data-wd]').forEach(b => b.onclick = async () => { const v = await dialog('Withdraw ' + b.dataset.wd + '?', '<p class="sub">PCs stop being offered this build. Running sessions are not interrupted by this.</p>', 'Withdraw', true); if (v) try { await api('POST', `/api/v1/platform/compute-engine/${b.dataset.wd}/withdraw`, {}); toast('Withdrawn.'); go('compute'); } catch (e) { fail(e); } });
+};
+// ---------------------------------------------------------------- support
+V.support = async () => {
+  const { sessions, organizationsWithSupport: o } = await api('GET', '/api/v1/platform/support');
+  $('#m').innerHTML = head('Support', 'Remote sessions opened by organization administrators on their own endpoints.') + `<div class="tiles">${tile(sessions.filter(s => s.status === 'active').length, 'Active now')}${tile(sessions.length, 'Recent sessions')}${tile(o.disabled, 'Organizations with support off')}</div>
+    <div class="card">${table(['Requested', 'Organization', 'Endpoint', 'Type', 'By', 'Reason', 'Status'], sessions.map(s => `<tr><td class="muted">${ago(s.requested_at)}</td><td>${esc(s.org_name)}</td><td>${esc(s.hostname)}</td><td>${esc(s.kind)}</td><td class="muted">${esc(s.admin_email || '—')}</td><td>${esc(s.reason)}</td><td><span class="pill ${s.status === 'active' ? 'warn' : 'na'}">${esc(s.status)}</span>${s.ended_reason ? `<div class="muted" style="font-size:13px">${esc(s.ended_reason)}</div>` : ''}</td></tr>`), 'No support sessions yet.')}</div>`;
+};
+// ---------------------------------------------------------------- platform admins and my sign-in
+V.admins = async () => {
+  const { admins } = await api('GET', '/api/v1/platform/admins');
+  $('#m').innerHTML = head('Platform admins', 'The people who run this platform. They are separate from every organization\'s administrators.', '<button class="btn primary" id="add">Add a platform admin</button>') +
+    `<div class="card">${table(['Email', 'Name', 'Two-step', 'Last sign-in', 'Status', ''], admins.map(a => `<tr><td>${esc(a.email)}</td><td class="muted">${esc(a.name)}</td><td>${a.mfa ? '<span class="pill ok">On</span>' : '<span class="pill na">Off</span>'}</td><td class="muted">${ago(a.last_login_at)}</td><td>${a.disabled_at ? '<span class="pill bad">Disabled</span>' : '<span class="pill ok">Active</span>'}</td><td style="text-align:right;white-space:nowrap">${a.mfa ? `<button class="btn sm" data-mr="${esc(a.id)}">Reset two-step</button> ` : ''}<button class="btn sm" data-t="${esc(a.id)}" data-on="${a.disabled_at ? '1' : '0'}">${a.disabled_at ? 'Enable' : 'Disable'}</button></td></tr>`))}</div>`;
+  $('#add').onclick = async () => { const v = await dialog('Add a platform admin', '<label>Email</label><input name="email" type="email" required><label>Name</label><input name="name" maxlength="120"><label>Password (12+ characters)</label><input name="password" type="password" minlength="12" required autocomplete="new-password">', 'Add'); if (!v) return; try { await api('POST', '/api/v1/platform/admins', v); toast('Added.'); go('admins'); } catch (e) { fail(e); } };
+  $$('[data-t]').forEach(b => b.onclick = async () => { try { await api('POST', `/api/v1/platform/admins/${b.dataset.t}/${b.dataset.on === '1' ? 'enable' : 'disable'}`); go('admins'); } catch (e) { fail(e); } });
+  $$('[data-mr]').forEach(b => b.onclick = async () => { const v = await dialog('Reset two-step sign-in?', '<p class="sub">They sign in with their password only until they set it up again.</p>', 'Reset', true); if (v) try { await api('POST', `/api/v1/platform/admins/${b.dataset.mr}/mfa-reset`, {}); toast('Reset.'); go('admins'); } catch (e) { fail(e); } });
+};
+V.account = async () => {
+  let a; try { a = await api('GET', '/api/v1/platform/account'); } catch (e) { $('#m').innerHTML = head('My sign-in', '') + `<div class="card empty">${esc(e.message)}</div>`; return; }
+  $('#m').innerHTML = head('My sign-in', esc(a.email)) + `<div class="card"><div class="row between"><div><b>Two-step sign-in</b><div class="muted">${a.mfa.enabled ? `On. ${a.mfa.recoveryCodesLeft} recovery codes left.` : 'A code from an authenticator app, as well as your password.'}</div></div>${a.mfa.enabled ? '<button class="btn" id="off">Turn off</button>' : '<button class="btn primary" id="on">Turn on</button>'}</div></div>`;
+  $('#on')?.addEventListener('click', async () => {
+    const p = await dialog('Turn on two-step sign-in', '<label>Your password</label><input name="password" type="password" required autocomplete="current-password">', 'Continue'); if (!p) return;
+    try {
+      const s = await api('POST', '/api/v1/platform/account/mfa/setup', p);
+      const c = await dialog('Add it to your authenticator app', `<p class="sub">Choose “enter a setup key” in the app, type this key, then enter the 6-digit code it shows.</p><input readonly value="${esc(s.secret.match(/.{1,4}/g).join(' '))}" onfocus="this.select()" class="mono"><p class="muted" style="margin-top:8px"><a href="${esc(s.uri)}">Open in an app on this device</a></p><label>6-digit code</label><input name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required autocomplete="one-time-code">`, 'Turn on'); if (!c) return;
+      const r = await api('POST', '/api/v1/platform/account/mfa/enable', { code: c.code.trim() });
+      await dialog('Save your recovery codes', `<p class="sub">Each works once if you lose your phone. They are shown only now.</p><textarea readonly rows="6" class="mono" onfocus="this.select()">${esc(r.recoveryCodes.join('\n'))}</textarea>`, 'I saved them'); toast('Two-step sign-in is on.'); go('account');
+    } catch (e) { fail(e); }
+  });
+  $('#off')?.addEventListener('click', async () => { const v = await dialog('Turn off two-step sign-in', '<label>Your password</label><input name="password" type="password" required autocomplete="current-password"><label>Code from your app (or a recovery code)</label><input name="code" required autocomplete="one-time-code">', 'Turn off', true); if (v) try { await api('POST', '/api/v1/platform/account/mfa/disable', v); toast('Turned off.'); go('account'); } catch (e) { fail(e); } });
+};
+// ---------------------------------------------------------------- installer, activity, system
+V.installer = async () => {
+  const m = await api('GET', '/api/v1/platform/installer');
+  $('#m').innerHTML = head('Installer', 'The Windows installer that organizations use to add endpoints.') + `<div class="card">${m.available ? `<p><span class="pill ok">Published</span> ${(m.size / 1048576).toFixed(1)} MB · updated ${ago(m.updatedAt)}</p><p class="muted mono" style="margin-top:10px;word-break:break-all">SHA-256 ${esc(m.sha256)}</p><p style="margin-top:10px">Download address: <span class="mono">${esc(location.origin)}/install/ViroAgent.msi</span></p>` : '<p><span class="pill bad">Not published</span> Organizations cannot create installers until one is published.</p>'}
+    <label>Publish a new installer (.msi)</label><input type="file" id="f" accept=".msi"><div class="row end" style="margin-top:12px"><button class="btn primary" id="up">Publish</button></div></div>`;
+  $('#up').onclick = async e => {
+    const f = $('#f').files[0]; if (!f) return toast('Choose the .msi file first.');
+    e.currentTarget.disabled = true; try { const r = await fetch('/api/v1/platform/installer', { method: 'PUT', headers: { authorization: 'Bearer ' + token, 'content-type': 'application/octet-stream' }, body: f }); const j = await r.json(); if (!r.ok) throw new Error(j.error || 'Upload failed'); toast('Published.'); go('installer'); } catch (x) { fail(x); go('installer'); }
+  };
+};
+V.audit = async () => {
+  let q = '', action = '';
+  const draw = async () => {
+    const { events } = await api('GET', `/api/v1/platform/activity?limit=300&q=${encodeURIComponent(q)}&action=${encodeURIComponent(action)}`);
+    $('#m').innerHTML = head('Activity', 'Everything the platform side has done, newest first.', `<input id="q" placeholder="Search who, what or organization" aria-label="Search" value="${esc(q)}" style="width:260px"><select id="act" aria-label="Kind of activity"><option value="">Everything</option>${[['platform.organization', 'Organizations'], ['platform.admin', 'Platform admins'], ['platform.auth', 'Sign-ins'], ['platform.mfa', 'Two-step'], ['release', 'Releases'], ['compute_engine', 'Engine builds'], ['organization.plan', 'Plan changes']].map(([v, n]) => `<option value="${v}" ${v === action ? 'selected' : ''}>${n}</option>`).join('')}</select><button class="btn" id="csv">Export CSV</button>`) +
+      `<div class="card">${table(['When', 'Who', 'What', 'Organization', 'Result'], events.map(e => `<tr><td class="muted" style="white-space:nowrap">${new Date(e.at).toLocaleString()}</td><td class="mono" title="${esc(e.actor_id || '')}">${esc((e.actor_id || e.actor_type || '').replace(/^platform:/, '').replace(/^([0-9a-f]{8})-[0-9a-f-]{27}$/, '$1…'))}</td><td class="mono">${esc(e.action)}</td><td>${esc(e.org_name || '—')}</td><td>${e.result && e.result !== 'ok' ? `<span class="pill bad">${esc(e.result)}</span>` : '<span class="muted">ok</span>'}</td></tr>`), 'Nothing matches.')}</div>`;
+    let t; $('#q').oninput = e => { q = e.target.value; clearTimeout(t); t = setTimeout(async () => { const p = $('#q').selectionStart; await draw(); const n = $('#q'); n.focus(); n.setSelectionRange(p, p); }, 300); };
+    $('#act').onchange = e => { action = e.target.value; draw(); };
+    $('#csv').onclick = () => download(`/api/v1/platform/activity/export.csv?q=${encodeURIComponent(q)}&action=${encodeURIComponent(action)}`, 'platform-activity.csv').catch(fail);
+  }; await draw();
+};
+V.system = async () => {
+  const s = await api('GET', '/api/v1/platform/system');
+  const up = s.uptimeSeconds, upTxt = up >= 86400 ? Math.floor(up / 86400) + 'd ' + Math.floor(up % 86400 / 3600) + 'h' : up >= 3600 ? Math.floor(up / 3600) + 'h ' + Math.floor(up % 3600 / 60) + 'm' : Math.floor(up / 60) + 'm';
+  $('#m').innerHTML = head('System health', 'The Control server itself. Anything not measured says so.') + `<div class="tiles">${tile(upTxt, 'Server uptime')}${tile(s.database.sizeMb + ' MB', 'Database size')}${tile(s.jobs.queued, 'Jobs waiting', s.jobs.queued > 100 ? 'warn' : '')}${tile(s.jobs.failed_24h, 'Jobs failed (24 h)', s.jobs.failed_24h ? 'warn' : '')}</div>
+    <div class="card"><div class="kv"><div><span>Server memory</span>${s.memoryMb} MB</div><div><span>CPU cores</span>${s.cpuCores}</div><div><span>Oldest waiting job</span>${s.jobs.queued ? Math.round(s.jobs.oldest_queued_s / 60) + ' min' : 'none waiting'}</div><div><span>Jobs running</span>${s.jobs.running}</div>
+      <div><span>Webhook deliveries pending / failed</span>${s.webhooks ? s.webhooks.pending + ' / ' + s.webhooks.failed : 'not measured'}</div><div><span>Database version</span>${esc(s.database.version)}</div><div><span>Migrations applied</span>${s.migrations ? s.migrations.n : '—'}</div><div><span>Node</span>${esc(s.node)}</div></div></div>
+    <div class="card"><div class="kv"><div><span>Error rate</span>Not measured</div><div><span>Backups</span>Not measured: confirm backups outside this console</div></div></div>`;
+};
+token ? (async () => { try { me = (await api('GET', '/api/v1/platform/me')).email || 'operator'; start(); } catch { renderLogin(); } })() : renderLogin();
+</script>
+<script src="hero-video.js"></script>
+</body>
+</html>

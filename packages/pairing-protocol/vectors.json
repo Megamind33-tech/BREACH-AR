@@ -1,0 +1,38 @@
+{
+  "protocol": "WCP1",
+  "note": "Fixed inputs and outputs for WCP1. Keys are P-256 scalars (hex). Frames: counter(8, big-endian) | ciphertext | tag(16).",
+  "inputs": {
+    "pcPrivateKey": "a3d69d983f2ef522bb25714c551cc2a3132001a1b257c782596098551a216bb0",
+    "phonePrivateKey": "3afe9cece944485a804a9f939e41c9e3523c52a4a97ccbac77567dcaf3fa13e0",
+    "sessionId": "b227a0159e78bd77af4c0a611cd81fcb",
+    "secret": "2a472fbc000ba7b5964da0b3efa98e6a",
+    "nonceP": "91edde8dd7072e850a63b974da36ef17",
+    "nonceC": "92c44a165286cbd57d718bbf751c4b16",
+    "expiresAt": 1790000600,
+    "hints": [
+      "lan:192.168.1.20:47821"
+    ]
+  },
+  "expected": {
+    "pcPublicKey": "046c47f7385976f1f8b54967d31beb5cfd13f44b8cf0bbf03b76cf8060605b9ce656d9d2df1e962ccc207534d5068c018f07ec51a57b426bdaac8a60a2dd29743f",
+    "phonePublicKey": "04d4515cfab8b6589f6fc1cb3599fc201e44a957a7ef785b27de669e7cc07bd65ade8ca9cbeb7ede59d5afa31f7e316ef7e966c0865287118e53d4d59a1b3b4fb8",
+    "offerUrl": "workcare://pair?v=1&s=siegFZ54vXevTAphHNgfyw&k=BGxH9zhZdvH4tUln0xvrXP0T9EuM8LvwO3bPgGBgW5zmVtnS3x6WLMwgdTTVBowBjwfsUaV7QmvarIpgot0pdD8&e=1790000600&q=KkcvvAALp7WWTaCz76mOag&h=lan%3A192.168.1.20%3A47821",
+    "helloProof": "819baf7bb55c0750e7cfb26ca8618517e44cb7afa0930530e24b6699f3194eba",
+    "acceptProof": "9c5e64ff59bbcae15f8ffb41019b44ae607444040535b5a99411c7b423dfe7ed",
+    "clientKey": "0362e6b82b8b9bf7ab55b85d8e4c2a42e80f82a107e4b1d4798bbea3282ba218",
+    "serverKey": "43e7bc444fc99c50c649d2a4311c4211f4b470fd2aa7ff651643955ac4852b7a",
+    "sas": "291338",
+    "frameClientToServerCounter0": {
+      "plaintextUtf8": "ping",
+      "frame": "000000000000000000816a4c54536a5a1c552385dee95292728dd51b"
+    },
+    "frameServerToClientCounter5": {
+      "plaintextUtf8": "{\"ok\":true}",
+      "frame": "00000000000000053636cf17d4e94bb7fb56579ac9267772bbad931ed9d1860103e614"
+    },
+    "secretFromCode": {
+      "code": "123-456-789",
+      "secret": "074060d8103f642a846873b661f88817"
+    }
+  }
+}

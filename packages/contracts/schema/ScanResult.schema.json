@@ -1,0 +1,320 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "number",
+      "const": 1
+    },
+    "deviceId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "desktop",
+        "quickcheck",
+        "mobile",
+        "server"
+      ]
+    },
+    "scanId": {
+      "type": "string",
+      "maxLength": 60
+    },
+    "device": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 120
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "passed": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "attention": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "critical": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "component": {
+            "type": "string",
+            "enum": [
+              "processor",
+              "memory",
+              "storage",
+              "battery",
+              "graphics",
+              "cooling",
+              "network",
+              "windows",
+              "security",
+              "display",
+              "system",
+              "apps",
+              "sensors"
+            ]
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "healthy",
+              "attention",
+              "critical"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "summary": {
+            "type": "string",
+            "maxLength": 400
+          },
+          "evidenceType": {
+            "type": "string",
+            "enum": [
+              "measured",
+              "tested",
+              "inferred"
+            ]
+          },
+          "evidence": {
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "maxLength": 60
+                },
+                "value": {
+                  "type": [
+                    "number",
+                    "string",
+                    "boolean"
+                  ]
+                },
+                "unit": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "maxLength": 12
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "name",
+                "value"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "recommendedAction": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 300
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "tier": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "essential",
+                  "deep"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "component",
+          "severity",
+          "title",
+          "summary",
+          "evidenceType",
+          "evidence"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "notMeasured": {
+      "maxItems": 40,
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "disclaimer": {
+      "type": "string",
+      "maxLength": 300
+    },
+    "facts": {
+      "anyOf": [
+        {
+          "maxItems": 60,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "group": {
+                "type": "string",
+                "maxLength": 30
+              },
+              "label": {
+                "type": "string",
+                "maxLength": 60
+              },
+              "value": {
+                "type": "string",
+                "maxLength": 160
+              },
+              "evidenceType": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "measured",
+                      "tested",
+                      "inferred"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "group",
+              "label",
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "depth": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "essential",
+            "deep"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "deepNotRun": {
+      "anyOf": [
+        {
+          "maxItems": 40,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "maxLength": 60
+              },
+              "title": {
+                "type": "string",
+                "maxLength": 120
+              },
+              "why": {
+                "type": "string",
+                "maxLength": 300
+              }
+            },
+            "required": [
+              "id",
+              "title",
+              "why"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "deviceId",
+    "timestamp",
+    "source",
+    "scanId",
+    "device",
+    "passed",
+    "attention",
+    "critical",
+    "findings",
+    "notMeasured",
+    "disclaimer"
+  ],
+  "additionalProperties": false
+}

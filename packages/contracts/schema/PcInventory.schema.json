@@ -1,0 +1,525 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "number",
+      "const": 1
+    },
+    "identity": {
+      "type": "object",
+      "properties": {
+        "hostname": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 80
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "manufacturer": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 80
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 120
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "serial": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 80
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "biosVersion": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 80
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "boardModel": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 80
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "biosDate": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 12
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "osInstalled": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 12
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "windows": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "caption": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "build": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 20
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "cpu": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "name": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "cores": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "maxClockMhz": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "gpu": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "peakTempC": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "throttled": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "usagePercent": {
+              "type": [
+                "number",
+                "null"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "memory": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "totalBytes": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "slotsTotal": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "slotsUsed": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 20
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "speedMhz": {
+              "type": [
+                "number",
+                "null"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "storage": {
+      "anyOf": [
+        {
+          "maxItems": 16,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "model": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 120
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "sizeBytes": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "freeBytes": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "mediaType": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 20
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "health": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 20
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "isSystem": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
+              "powerOnHours": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "nvme": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "percentageUsed": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      },
+                      "availableSparePercent": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      },
+                      "criticalWarning": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      },
+                      "mediaErrors": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      },
+                      "unsafeShutdowns": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      },
+                      "temperatureC": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "battery": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "designWh": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "fullChargeWh": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "cycleCount": {
+              "type": [
+                "number",
+                "null"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "gpu": {
+      "anyOf": [
+        {
+          "maxItems": 8,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 120
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "security": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "defenderEnabled": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "firewallEnabled": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "deep": {
+      "anyOf": [
+        {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "unavailable": {
+      "anyOf": [
+        {
+          "maxItems": 30,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "component": {
+                "type": "string",
+                "maxLength": 40
+              },
+              "reason": {
+                "type": "string",
+                "maxLength": 160
+              }
+            },
+            "required": [
+              "component",
+              "reason"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "identity"
+  ],
+  "additionalProperties": false
+}

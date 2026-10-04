@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWindowsForms>true</UseWindowsForms>
+    <AssemblyName>WorkCareQuickCheck</AssemblyName>
+    <RootNamespace>WorkCare.QuickCheck</RootNamespace>
+    <Version>0.1.0</Version>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    <ApplicationIcon>..\..\..\agent\src\Viro.Agent\Assets\viro.ico</ApplicationIcon>
+    <!-- Portable: one self-contained executable, no installer, no service, no startup entry. Nothing here references compute, mining or the agent service. -->
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>false</EnableCompressionInSingleFile>
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- The agent's read-only hardware collector is linked, not copied, so QuickCheck and WorkCare Desktop read the machine the same way. -->
+    <Compile Include="..\..\..\agent\src\Viro.Agent\HardwareDiagnostics.cs" Link="Linked\HardwareDiagnostics.cs" />
+    <EmbeddedResource Include="..\..\..\packages\health-rules\rules.json" LogicalName="rules.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Management" Version="10.*" />
+  </ItemGroup>
+</Project>

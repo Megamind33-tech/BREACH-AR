@@ -1,0 +1,98 @@
+/* Styles owned by the feature pages (support, compute, autopilot, webhooks, security/updates/drivers/software). Keep tokens from style.css; no hard-coded colours. */
+
+.page-head { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:6px; }
+.page-head h1 { margin:0; } .lead { color:var(--mute); margin:4px 0 16px; max-width:70ch; }
+
+/* Autopilot hero */
+.ap-hero { display:grid; grid-template-columns:auto 1fr auto; gap:24px; align-items:center; }
+.ap-orb { width:112px; height:112px; border-radius:50%; display:grid; place-items:center; background:radial-gradient(circle at 30% 25%,var(--panel-2),var(--bg-2)); box-shadow:inset 0 2px 8px rgba(0,0,0,.6), 0 0 0 1px var(--line); color:var(--mute); }
+.ap-orb svg.i { width:56px; height:56px; stroke-width:1.2; }
+.ap-hero.on .ap-orb { background:linear-gradient(150deg,var(--accent-deep),var(--accent)); color:var(--ink); box-shadow:0 0 34px var(--accent-glow), inset 0 1px 0 var(--ov-4); }
+.ap-hero h1 { font-size:30px; margin:0 0 4px; } .ap-hero p { margin:0; color:var(--mute); max-width:56ch; }
+.ap-switch { display:flex; flex-direction:column; align-items:center; gap:8px; font-size:12px; color:var(--mute); }
+.ap-switch .switch { width:72px; height:40px; } .ap-switch .switch::after { width:32px; height:32px; top:3px; left:3px; } .ap-switch .switch:checked::after { transform:translateX(32px); }
+.numtiles { display:grid; grid-template-columns:repeat(auto-fit,minmax(100px,1fr)); gap:14px; }
+.numtile { border-radius:16px; padding:16px 10px; text-align:center; background:linear-gradient(150deg,var(--panel-2),var(--bg-2)); box-shadow:var(--shadow-sm); }
+.numtile svg.i { width:28px; height:28px; stroke-width:1.3; color:var(--accent-2); }
+.numtile b { display:block; font-size:32px; font-weight:300; line-height:1.2; } .numtile span { display:block; font-size:12px; color:var(--mute); }
+.split { display:grid; grid-template-columns:auto 1fr; gap:28px; align-items:center; }
+.needs .item { display:flex; gap:12px; align-items:flex-start; padding:12px 0; border-bottom:1px solid var(--line); } .needs .item:last-child { border:0; }
+.needs .item .pill { flex:none; margin-top:1px; } .needs .item small { display:block; color:var(--mute); }
+.allgood { display:flex; gap:14px; align-items:center; } .allgood svg.i { width:44px; height:44px; color:var(--accent-2); stroke-width:1.3; }
+.steps { list-style:none; padding:0; margin:0; display:grid; gap:10px; } .steps li { display:flex; gap:12px; align-items:flex-start; margin:0; }
+.steps li::before { content:""; flex:none; width:10px; height:10px; margin-top:7px; border-radius:50%; background:linear-gradient(135deg,var(--accent-deep),var(--accent-2)); }
+details.more-list > summary { cursor:pointer; color:var(--accent-2); padding:8px 0; } details.more-list > summary:focus-visible { outline:2px solid var(--accent-2); outline-offset:2px; }
+.timeline .item { display:flex; gap:12px; padding:10px 0; border-bottom:1px solid var(--line); } .timeline .item:last-child { border:0; }
+.timeline .when { margin-left:auto; color:var(--mute); font-size:12px; white-space:nowrap; }
+.timeline small { display:block; color:var(--mute); }
+
+/* forms: sliders with a visible number, switches */
+.slider-field { display:grid; gap:8px; }
+.slider-field .top { display:flex; justify-content:space-between; align-items:baseline; gap:10px; }
+.slider-field label { margin:0; color:var(--ink); } .slider-field output { font-weight:600; font-variant-numeric:tabular-nums; color:var(--accent-2); }
+.slider-field small { color:var(--mute); }
+.form-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:20px 28px; margin:14px 0; }
+.form-grid > div > label { display:block; margin-bottom:4px; color:var(--mute); font-size:12px; }
+.form-grid select,.form-grid input:not([type=range]):not(.switch) { width:100%; }
+.switch-field { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:10px 14px; border-radius:14px; background:var(--bg-2); box-shadow:inset 0 2px 6px rgba(0,0,0,.35); }
+.switch-field span b { display:block; font-weight:600; } .switch-field span small { color:var(--mute); }
+.adv { margin-top:8px; } .adv > summary { cursor:pointer; color:var(--accent-2); } .adv textarea { width:100%; margin-top:8px; font-family:ui-monospace,Consolas,monospace; }
+
+/* Remote support */
+.launch { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; }
+.launch .tile { aspect-ratio:auto; min-height:110px; padding:14px 8px; font-weight:600; }
+.launch .tile small { font-weight:400; color:var(--mute); font-size:11.5px; }
+.launch .tile.hot small { color:var(--ink); }
+.term { background:var(--bg); color:var(--ink); border:1px solid var(--line); padding:14px; border-radius:14px; height:min(420px,55vh); overflow:auto; margin:12px 0; white-space:pre-wrap; word-break:break-word; font:13px/1.45 ui-monospace,Consolas,monospace; box-shadow:inset 0 2px 8px rgba(0,0,0,.5); }
+.cmdline { display:flex; gap:10px; align-items:center; } .cmdline input { flex:1; font-family:ui-monospace,Consolas,monospace; }
+.screen { max-width:100%; background:var(--bg); border-radius:14px; cursor:crosshair; outline:none; margin-top:10px; box-shadow:var(--shadow); } .screen:focus-visible { outline:2px solid var(--accent-2); }
+.session-bar { display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:12px 16px; border-radius:14px; background:var(--bg-2); margin:10px 0; }
+.session-bar .grow { flex:1; min-width:180px; }
+.filerow td:first-child { word-break:break-all; } .filerow svg.i { width:18px; height:18px; vertical-align:-4px; margin-right:6px; color:var(--accent-2); }
+.table-wrap { overflow-x:auto; border-radius:16px; } .table-wrap table { min-width:520px; }
+
+/* Webhooks */
+.hook { display:grid; grid-template-columns:1fr auto; gap:12px 20px; align-items:center; }
+.hook .url { word-break:break-all; font-weight:600; }
+.hook .nums { display:flex; gap:18px; margin-top:6px; color:var(--mute); font-size:12px; flex-wrap:wrap; } .hook .nums b { color:var(--ink); font-size:14px; }
+.hook .btns { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+.hook .err { display:block; margin-top:4px; }
+
+/* Security / updates / drivers / software */
+.status-top { display:flex; gap:24px; align-items:center; flex-wrap:wrap; }
+.chips { display:flex; gap:8px; flex-wrap:wrap; }
+.rowcard { display:flex; align-items:center; gap:14px; flex-wrap:wrap; padding:12px 0; border-bottom:1px solid var(--line); } .rowcard:last-child { border:0; }
+.rowcard .grow { flex:1; min-width:200px; } .rowcard .grow small { display:block; color:var(--mute); }
+.rowcard .btns { display:flex; gap:8px; flex-wrap:wrap; }
+.stage { display:flex; gap:6px; align-items:center; margin-top:6px; } .stage i { width:34px; height:6px; border-radius:6px; background:var(--line); } .stage i.on { background:linear-gradient(90deg,var(--accent-deep),var(--accent-2)); }
+
+@media (max-width:700px) {
+  .ap-hero { grid-template-columns:auto 1fr; } .ap-hero .ap-switch { grid-column:1 / -1; flex-direction:row; justify-content:space-between; }
+  .ap-orb { width:76px; height:76px; } .ap-orb svg.i { width:38px; height:38px; } .ap-hero h1 { font-size:24px; }
+  .split { grid-template-columns:1fr; justify-items:center; text-align:center; }
+  .hook { grid-template-columns:1fr; } .hook .btns { justify-content:flex-start; }
+  .cmdline { flex-direction:column; align-items:stretch; }
+  .launch { grid-template-columns:1fr 1fr; }
+}
+
+/* remote control bar: the buttons wrap instead of running off the page */
+.remote-bar .launch{display:grid;grid-template-columns:repeat(auto-fill,minmax(116px,1fr));gap:10px}
+.remote-bar .tile{width:100%}
+.remote-bar .note{margin-top:14px}
+
+/* remote desktop viewer */
+.dsbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:6px 0}.dsbar .grow{flex:1}.dsbar select{width:auto}
+.dsstat{font-variant-numeric:tabular-nums;color:var(--muted,var(--mute));font-size:13px}
+.dswrap{background:#000;border-radius:12px;overflow:auto;max-height:78vh;display:flex;justify-content:center}.dswrap:fullscreen{max-height:none;align-items:center}
+.dswrap canvas.screen{max-width:100%;height:auto;display:block}.dswrap canvas.screen.actual{max-width:none}
+
+/* Anatomy report: print as a client document, without the console around it. */
+@media print {
+  nav, header, .noprint, .actions, .bar-tools, #toasts { display: none !important; }
+  body, main, .card { background: #fff !important; color: #000 !important; box-shadow: none !important; }
+  .card { break-inside: avoid; border: 1px solid #bbb !important; }
+  details:not([open]) > *:not(summary) { display: block !important; }
+}
+
+/* a short list of reasons inside a table cell */
+.whylist { margin:0; padding-left:16px; } .whylist li { margin:2px 0; } .whylist li::marker { color:var(--mute); }

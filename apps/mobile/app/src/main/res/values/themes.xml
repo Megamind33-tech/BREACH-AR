@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.WorkCare" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/wc_bg</item>
+        <item name="android:statusBarColor">@color/wc_bg</item>
+        <item name="android:navigationBarColor">@color/wc_bg</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+    <style name="Theme.WorkCare.Splash" parent="Theme.WorkCare" />
+</resources>

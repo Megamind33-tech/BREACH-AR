@@ -1,0 +1,1119 @@
+{
+ "version": 1,
+ "collectedAt": "2026-10-01T21:08:23.1720843Z",
+ "collectedBy": "0.1.3",
+ "system": {
+  "manufacturer": "HP",
+  "model": "HP ProBook 430 G7",
+  "family": "103C_5336AN HP ProBook",
+  "sku": "6YX11AV",
+  "productName": "HP ProBook 430 G7",
+  "version": "SBKPFV3",
+  "serial": null,
+  "uuid": null,
+  "assetTag": "5CD1035F6R",
+  "chassis": [
+   "Notebook"
+  ],
+  "formFactor": "laptop",
+  "systemType": "x64-based PC",
+  "joinedDomain": false,
+  "totalPhysicalMemoryBytes": 8420630528
+ },
+ "bios": {
+  "vendor": "HP",
+  "version": "S71 Ver. 01.29.00",
+  "releaseDate": "2026-06-10",
+  "smbios": "3.2",
+  "mode": null,
+  "secureBoot": false,
+  "tpm": {
+   "present": false,
+   "enabled": null,
+   "version": null,
+   "manufacturer": null,
+   "firmware": null
+  }
+ },
+ "board": {
+  "manufacturer": "HP",
+  "product": "869B",
+  "version": "KBC Version 02.3E.00",
+  "serial": null
+ },
+ "cpu": {
+  "name": "Intel(R) Core(TM) i3-10110U CPU @ 2.10GHz",
+  "manufacturer": "GenuineIntel",
+  "description": "Intel64 Family 6 Model 142 Stepping 12",
+  "sockets": 1,
+  "cores": 2,
+  "logical": 4,
+  "maxMhz": 2592,
+  "socket": "U3E1",
+  "l2Kb": 512,
+  "l3Kb": 4096,
+  "architecture": "x64",
+  "virtualization": false,
+  "id": "BFEBFBFF000806EC"
+ },
+ "memory": {
+  "slotsTotal": 2,
+  "slotsUsed": 2,
+  "maxCapacityBytes": 34359738368,
+  "ecc": false,
+  "modules": [
+   {
+    "slot": "Bottom-Slot 1(left)",
+    "bank": "ChannelA",
+    "capacityBytes": 4294967296,
+    "speedMhz": 2667,
+    "configuredMhz": 2400,
+    "manufacturer": "Kingston",
+    "partNumber": "KKN2NM-MIE",
+    "serial": null,
+    "type": "DDR4",
+    "formFactor": "SODIMM",
+    "ecc": false,
+    "voltageMv": 1200
+   },
+   {
+    "slot": "Bottom-Slot 2(right)",
+    "bank": "ChannelB",
+    "capacityBytes": 4294967296,
+    "speedMhz": 2400,
+    "configuredMhz": 2400,
+    "manufacturer": "Samsung",
+    "partNumber": "M471A5244CB0-CRC",
+    "serial": null,
+    "type": "DDR4",
+    "formFactor": "SODIMM",
+    "ecc": false,
+    "voltageMv": 1200
+   }
+  ]
+ },
+ "gpus": [
+  {
+   "name": "Intel(R) UHD Graphics",
+   "vendor": "Intel Corporation",
+   "driverVersion": "31.0.101.2140",
+   "driverDate": "2025-11-05",
+   "vramBytes": 1073741824,
+   "processor": "Intel(R) UHD Graphics Family",
+   "pnp": "PCI\\VEN_8086&DEV_9B41&SUBSYS_869B103C&REV_02\\3&11583659&0&10",
+   "width": 1366,
+   "height": 768,
+   "hz": 60
+  }
+ ],
+ "monitors": [
+  {
+   "name": null,
+   "manufacturerCode": "BOE",
+   "productCode": "0925",
+   "serial": null,
+   "year": 2020,
+   "week": 1,
+   "sizeInches": 13.2,
+   "builtIn": true
+  }
+ ],
+ "network": [
+  {
+   "name": "Intel(R) Wi-Fi 6 AX201 160MHz",
+   "mac": null,
+   "speedMbps": 69,
+   "connection": "Wi-Fi 8",
+   "manufacturer": "Intel Corporation",
+   "pnp": "PCI\\VEN_8086&DEV_02F0&SUBSYS_00748086&REV_00\\3&11583659&0&A3",
+   "wireless": true
+  },
+  {
+   "name": "Realtek PCIe GbE Family Controller #4",
+   "mac": null,
+   "speedMbps": null,
+   "connection": "Ethernet 7",
+   "manufacturer": "Realtek",
+   "pnp": "PCI\\VEN_10EC&DEV_8168&SUBSYS_869B103C&REV_15\\0100B6CC76E0026C00",
+   "wireless": false
+  }
+ ],
+ "battery": {
+  "name": "Primary",
+  "manufacturer": "Hewlett-Packard",
+  "serial": null,
+  "chemistry": "1852787020",
+  "manufactureDate": null,
+  "designMWh": 45045,
+  "fullChargeMWh": 38900,
+  "cycleCount": 412,
+  "wearPercent": 13.6
+ },
+ "drivers": [
+  {
+   "name": "Xvdd SCSI Miniport",
+   "manufacturer": "Xbox",
+   "version": "10.0.22029.3",
+   "date": "2026-07-16",
+   "cls": "SCSIADAPTER",
+   "inf": "oem298.inf",
+   "signed": true
+  },
+  {
+   "name": "WAN Miniport (Network Monitor)",
+   "manufacturer": "Microsoft",
+   "version": "10.0.26100.1",
+   "date": "2006-06-21",
+   "cls": "NET",
+   "inf": "netrasa.inf",
+   "signed": true
+  },
+  {
+   "name": "WAN Miniport (IPv6)",
+   "manufacturer": "Microsoft",
+   "version": "10.0.26100.1",
+   "date": "2006-06-21",
+   "cls": "NET",
+   "inf": "netrasa.inf",
+   "signed": true
+  },
+  {
+   "name": "WAN Miniport (IP)",
+   "manufacturer": "Microsoft",
+   "version": "10.0.26100.1",
+   "date": "2006-06-21",
+   "cls": "NET",
+   "inf": "netrasa.inf",
+   "signed": true
+  },
+  {
+   "name": "WAN Miniport (PPPOE)",
+   "manufacturer": "Microsoft",
+   "version": "10.0.26100.1",
+   "date": "2006-06-21",
+   "cls": "NET",
+   "inf": "netrasa.inf",
+   "signed": true
+  },
+  {
+   "name": "WAN Miniport (PPTP)",
+   "manufacturer": "Microsoft",
+   "version": "10.0.26100.1",
+   "date": "2006-06-21",
+   "cls": "NET",
+   "inf": "netrasa.inf",
+   "signed": true
+  },
+  {
+   "name": "WAN Miniport (L2TP)",
+   "manufacturer": "Microsoft",
+   "version": "10.0.26100.1",
+   "date": "2006-06-21",
+   "cls": "NET",
+   "inf": "netrasa.inf",
+   "signed": true
+  },
+  {
+   "name": "WAN Miniport (IKEv2)",
+   "manufacturer": "Microsoft",
+   "version": "10.0.26100.1",
+   "date": "2006-06-21",
+   "cls": "NET",
+   "inf": "netavpna.inf",
+   "signed": true
+  },
+  {
+   "name": "WAN Miniport (SSTP)",
+   "manufacturer": "Microsoft",
+   "version": "10.0.26100.1",
+   "date": "2006-06-21",
+   "cls": "NET",
+   "inf": "netsstpa.inf",
+   "signed": true
+  },
+  {
+   "name": "NDI Webcam Video",
+   "manufacturer": "NewTek Partners LLP",
+   "version": "1.0.6.12",
+   "date": "2023-07-20",
+   "cls": "MEDIA",
+   "inf": "oem152.inf",
+   "signed": true
+  },
+  {
+   "name": "NDI Webcam Audio",
+   "manufacturer": "Microsoft",
+   "version": "1.0.2.27",
+   "date": "2025-07-02",
+   "cls": "MEDIA",
+   "inf": "oem146.inf",
+   "signed": true
+  },
+  {
+   "name": "Digital Video Recorder",
+   "manufacturer": "Jaksta Technologies",
+   "version": "1.3.1.188",
+   "date": "2014-11-27",
+   "cls": "MEDIA",
+   "inf": "oem56.inf",
+   "signed": true
+  },
+  {
+   "name": "Microsoft Streaming Service Proxy",
+   "manufacturer": "Microsoft",
+   "version": "10.0.26100.1",
+   "date": "2006-06-21",
+   "cls": "MEDIA",
+   "inf": "ksfilter.inf",
+   "signed": true
+  },
+  {
+   "name": "NDIS Virtual Network Adapter Enumerator",
+   "manufacturer": "Microsoft",
+   "version": "10.0.26100.1",
+   "date": "2006-06-21",
+   "cls": "SYSTEM",
+   "inf": "ndisvirtualbus.inf",
+   "signed": true
+  },
+  {
+   "name": "Device Firmware",
+   "manufacturer": "Microsoft",
+   "version": "10.0.26100.4768",
+   "date": "2006-06-21",
+   "cls": "FIRMWARE",
+   "inf": "c_firmware.inf",
+   "signed": true
+  },
+  {
+   "name": "Device Firmware",
+   "manufacturer": "Microsoft",
+   "version": "10.0.26100.4768",
+   "date": "2006-06-21",
+   "cls": "FIRMWARE",
+   "inf": "c_firmware.inf",
+   "signed": true
+  },
+  {
+   "name": "Device Firmware",
+   "manufacturer": "Microsoft",
+   "version": "10.0.26100.4768",
+   "date": "2006-06-21",
+   "cls": "FIRMWARE",
+   "inf": "c_firmware.inf",
+   "signed": true
+  },
+  {
+   "name": "HP S71 System Firmware",
+   "manufacturer": "HP Inc.",
+   "version": "1.29.0.0",
+   "date": "2026-06-10",
+   "cls": "FIRMWARE",
+   "inf": "oem192.inf",
+   "signed": true
+  },
+  {
+   "name": "HP Application Driver",
+   "manufacturer": "HP",
+   "version": "1.66.3710.0",
+   "date": "2024-03-28",
+   "cls": "SYSTEM",
+   "inf": "oem40.inf",
+   "signed": true
+  },
+  {
+   "name": "Intel(R) Dynamic Tuning Manager",
+   "manufacturer": "Intel",
+   "version": "8.7.10802.26924",
+   "date": "2022-04-11",
+   "cls": "SYSTEM",
+   "inf": "oem222.inf",
+   "signed": true
+  },
+  {
+   "name": "Intel Power and Temperature Instrumentation Monitor Driver",
+   "manufacturer": "Intel",
+   "version": "1.9.0.1004",
+   "date": "2012-04-27",
+   "cls": "SYSTEM",
+   "inf": "oem229.inf",
+   "signed": true
+  },
+  {
+   "name": "HID-compliant wireless radio controls",
+   "manufacturer": "(Standard system devices)",
+   "version": "10.0.26100.9444",
+   "date": "2006-06-21",
+   "cls": "HIDCLASS",
+   "inf": "input.inf",
+   "signed": true
+  },
+  {
+   "name": "HP Wireless Button Driver",
+   "manufacturer": "HP Inc.",
+   "version": "2.1.17.7",
+   "date": "2025-10-23",
+   "cls": "HIDCLASS",
+   "inf": "oem159.inf",
+   "signed": true
+  },
+  {
+   "name": "Intel Processor",
+   "manufacturer": "Intel",
+   "version": "10.0.26100.9278",
+   "date": "2009-04-21",
+   "cls": "PROCESSOR",
+   "inf": "cpu.inf",
+   "signed": true
+  },
+  {
+   "name": "Intel Processor",
+   "manufacturer": "Intel",
+   "version": "10.0.26100.9278",
+   "date": "2009-04-21",
+   "cls": "PROCESSOR",
+   "inf": "cpu.inf",
+   "signed": true
+  },
+  {
+   "name": "Intel Processor",
+   "manufacturer": "Intel",
+   "version": "10.0.26100.9278",
+   "date": "2009-04-21",
+   "cls": "PROCESSOR",
+   "inf": "cpu.inf",
+   "signed": true
+  },
+  {
+   "name": "Intel Processor",
+   "manufacturer": "Intel",
+   "version": "10.0.26100.9278",
+   "date": "2009-04-21",
+   "cls": "PROCESSOR",
+   "inf": "cpu.inf",
+   "signed": true
+  },
+  {
+   "name": "Motherboard resources",
+   "manufacturer": "(Standard system devices)",
+   "version": "10.0.26100.1150",
+   "date": "2006-06-21",
+   "cls": "SYSTEM",
+   "inf": "machine.inf",
+   "signed": true
+  },
+  {
+   "name": "Microsoft AC Adapter",
+   "manufacturer": "Microsoft",
+   "version": "10.0.26100.9278",
+   "date": "2006-06-21",
+   "cls": "BATTERY",
+   "inf": "cmbatt.inf",
+   "signed": true
+  },
+  {
+   "name": "Microsoft ACPI-Compliant Control Method Battery",
+   "manufacturer": "Microsoft",
+   "version": "10.0.26100.9278",
+   "date": "2006-06-21",
+   "cls": "BATTERY",
+   "inf": "cmbatt.inf",
+   "signed": true
+  },
+  {
+   "name": "Motherboard resources",
+   "manufacturer": "(Standard system devices)",
+   "version": "10.0.26100.1150",
+   "date": "2006-06-21",
+   "cls": "SYSTEM",
+   "inf": "machine.inf",
+   "signed": true
+  },
+  {
+   "name": "Intel(R) Serial IO GPIO Host Controller - INT34BB",
+   "manufacturer": "Intel Corporation",
+   "version": "5.123.1.1030",
+   "date": "2024-11-15",
+   "cls": "SYSTEM",
+   "inf": "oem230.inf",
+   "signed": true
+  },
+  {
+   "name": "Motherboard resources",
+   "manufacturer": "(Standard system devices)",
+   "version": "10.0.26100.1150",
+   "date": "2006-06-21",
+   "cls": "SYSTEM",
+   "inf": "machine.inf",
+   "signed": true
+  },
+  {
+   "name": "Motherboard resources",
+   "manufacturer": "(Standard system devices)",
+   "version": "10.0.26100.1150",
+   "date": "2006-06-21",
+   "cls": "SYSTEM",
+   "inf": "machine.inf",
+   "signed": true
+  },
+  {
+   "name": "HP Mobile Data Protection Sensor",
+   "manufacturer": "HP Inc.",
+   "version": "7.0.22.11",
+   "date": "2025-10-30",
+   "cls": "SYSTEM",
+   "inf": "oem193.inf",
+   "signed": true
+  },
+  {
+   "name": "Intel(R) SPI (flash) Controller - 02A4",
+   "manufacturer": "INTEL",
+   "version": "10.1.27.4",
+   "date": "1968-07-18",
+   "cls": "SYSTEM",
+   "inf": "oem256.inf",
+   "signed": true
+  },
+  {
+   "name": "Intel(R) SMBus - 02A3",
+   "manufacturer": "INTEL",
+   "version": "10.1.27.4",
+   "date": "1968-07-18",
+   "cls": "SYSTEM",
+   "inf": "oem256.inf",
+   "signed": true
+  },
+  {
+   "name": "Intel® Smart Sound Technology (Intel® SST)",
+   "manufacturer": "Intel(R) Corporation",
+   "version": "10.25.0.8130",
+   "date": "2022-10-17",
+   "cls": "MEDIA",
+   "inf": "oem214.inf",
+   "signed": true
+  },
+  {
+   "name": "Intel(R) Display Audio",
+   "manufacturer": "Intel(R) Corporation",
+   "version": "10.27.0.14",
+   "date": "2024-04-29",
+   "cls": "MEDIA",
+   "inf": "oem188.inf",
+   "signed": true
+  },
+  {
+   "name": "Realtek High Definition Audio",
+   "manufacturer": "Microsoft",
+   "version": "6.0.10016.1",
+   "date": "2026-07-14",
+   "cls": "MEDIA",
+   "inf": "oem301.inf",
+   "signed": true
+  },
+  {
+   "name": "Intel(R) Smart Sound Technology (Intel(R) SST) OED",
+   "manufacturer": "Intel(R) Corporation",
+   "version": "10.25.0.8130",
+   "date": "2022-10-17",
+   "cls": "SYSTEM",
+   "inf": "oem211.inf",
+   "signed": true
+  },
+  {
+   "name": "Intel(R) Smart Sound Technology (Intel(R) SST) Audio Controller",
+   "manufacturer": "Intel(R) Corporation",
+   "version": "10.25.0.8130",
+   "date": "2022-10-17",
+   "cls": "SYSTEM",
+   "inf": "oem210.inf",
+   "signed": true
+  },
+  {
+   "name": "Motherboard resources",
+   "manufacturer": "(Standard system devices)",
+   "version": "10.0.26100.1150",
+   "date": "2006-06-21",
+   "cls": "SYSTEM",
+   "inf": "machine.inf",
+   "signed": true
+  },
+  {
+   "name": "Motherboard resources",
+   "manufacturer": "(Standard system devices)",
+   "version": "10.0.26100.1150",
+   "date": "2006-06-21",
+   "cls": "SYSTEM",
+   "inf": "machine.inf",
+   "signed": true
+  },
+  {
+   "name": "System timer",
+   "manufacturer": "(Standard system devices)",
+   "version": "10.0.26100.1150",
+   "date": "2006-06-21",
+   "cls": "SYSTEM",
+   "inf": "machine.inf",
+   "signed": true
+  },
+  {
+   "name": "System CMOS/real time clock",
+   "manufacturer": "(Standard system devices)",
+   "version": "10.0.26100.1150",
+   "date": "2006-06-21",
+   "cls": "SYSTEM",
+   "inf": "machine.inf",
+   "signed": true
+  },
+  {
+   "name": "Motherboard resources",
+   "manufacturer": "(Standard system devices)",
+   "version": "10.0.26100.1150",
+   "date": "2006-06-21",
+   "cls": "SYSTEM",
+   "inf": "machine.inf",
+   "signed": true
+  },
+  {
+   "name": "Programmable interrupt controller",
+   "manufacturer": "(Standard system devices)",
+   "version": "10.0.26100.1150",
+   "date": "2006-06-21",
+   "cls": "SYSTEM",
+   "inf": "machine.inf",
+   "signed": true
+  },
+  {
+   "name": "High precision event timer",
+   "manufacturer": "(Standard system devices)",
+   "version": "10.0.26100.1150",
+   "date": "2006-06-21",
+   "cls": "SYSTEM",
+   "inf": "machine.inf",
+   "signed": true
+  },
+  {
+   "name": "Intel(R) Dynamic Tuning Generic Participant",
+   "manufacturer": "Intel",
+   "version": "8.7.10802.26924",
+   "date": "2022-04-11",
+   "cls": "SYSTEM",
+   "inf": "oem222.inf",
+   "signed": true
+  },
+  {
+   "name": "Intel(R) Dynamic Tuning Generic Participant",
+   "manufacturer": "Intel",
+   "version": "8.7.10802.26924",
+   "date": "2022-04-11",
+   "cls": "SYSTEM",
+   "inf": "oem222.inf",
+   "signed": true
+  },
+  {
+   "name": "Intel(R) Dynamic Tuning Generic Participant",
+   "manufacturer": "Intel",
+   "version": "8.7.10802.26924",
+   "date": "2022-04-11",
+   "cls": "SYSTEM",
+   "inf": "oem222.inf",
+   "signed": true
+  },
+  {
+   "name": "I/O LPC Controller - 0284 for Intel(R) On-Package Platform Controller Hub",
+   "manufacturer": "INTEL",
+   "version": "10.1.27.4",
+   "date": "1968-07-18",
+   "cls": "SYSTEM",
+   "inf": "oem256.inf",
+   "signed": true
+  },
+  {
+   "name": "Disk drive",
+   "manufacturer": "(Standard disk drives)",
+   "version": "10.0.26100.8972",
+   "date": "2006-06-21",
+   "cls": "DISKDRIVE",
+   "inf": "disk.inf",
+   "signed": true
+  },
+  {
+   "name": "Intel(R) PCI Express Root Port #13 - 02B4",
+   "manufacturer": "INTEL",
+   "version": "10.1.27.4",
+   "date": "1968-07-18",
+   "cls": "SYSTEM",
+   "inf": "oem256.inf",
+   "signed": true
+  },
+  {
+   "name": "Realtek PCIe GbE Family Controller",
+   "manufacturer": "Realtek",
+   "version": "10.79.50.1003",
+   "date": "2025-10-03",
+   "cls": "NET",
+   "inf": "oem231.inf",
+   "signed": true
+  },
+  {
+   "name": "Intel(R) PCI Express Root Port #9 - 02B0",
+   "manufacturer": "INTEL",
+   "version": "10.1.27.4",
+   "date": "1968-07-18",
+   "cls": "SYSTEM",
+   "inf": "oem256.inf",
+   "signed": true
+  },
+  {
+   "name": "Intel(R) 400 Series Chipset Family SATA AHCI Controller",
+   "manufacturer": "Intel Corporation",
+   "version": "18.37.7.1013",
+   "date": "2023-02-06",
+   "cls": "HDC",
+   "inf": "oem232.inf",
+   "signed": true
+  },
+  {
+   "name": "Intel(R) Management Engine Interface #1",
+   "manufacturer": "Intel",
+   "version": "2603.9.4.0",
+   "date": "2026-01-13",
+   "cls": "SYSTEM",
+   "inf": "oem194.inf",
+   "signed": true
+  },
+  {
+   "name": "Synaptics HID Device",
+   "manufacturer": "Synaptics",
+   "version": "19.5.9.55",
+   "date": "2022-08-29",
+   "cls": "HIDCLASS",
+   "inf": "oem235.inf",
+   "signed": true
+  },
+  {
+   "name": "HID-compliant touch pad",
+   "manufacturer": "(Standard system devices)",
+   "version": "10.0.26100.9444",
+   "date": "2006-06-21",
+   "cls": "HIDCLASS",
+   "inf": "input.inf",
+   "signed": true
+  },
+  {
+   "name": "I2C HID Device",
+   "manufacturer": "Microsoft",
+   "version": "10.0.26100.8972",
+   "date": "2006-06-21",
+   "cls": "HIDCLASS",
+   "inf": "hidi2c.inf",
+   "signed": true
+  },
+  {
+   "name": "Intel(R) Serial IO I2C Host Controller - 02E8",
+   "manufacturer": "Intel Corporation",
+   "version": "5.123.1.1030",
+   "date": "2024-11-15",
+   "cls": "SYSTEM",
+   "inf": "oem223.inf",
+   "signed": true
+  },
+  {
+   "name": "BayHubTech Integrated SD controller(SDA Compliant Host)",
+   "manufacturer": "BayHubTech",
+   "version": "1.1.102.1036",
+   "date": "2020-10-20",
+   "cls": "SCSIADAPTER",
+   "inf": "oem219.inf",
+   "signed": true
+  },
+  {
+   "name": "Microsoft Wi-Fi Direct Virtual Adapter",
+   "manufacturer": "Microsoft",
+   "version": "10.0.26100.8972",
+   "date": "2006-06-21",
+   "cls": "NET",
+   "inf": "netvwifimp.inf",
+   "signed": true
+  },
+  {
+   "name": "Microsoft Wi-Fi Direct Virtual Adapter",
+   "manufacturer": "Microsoft",
+   "version": "10.0.26100.8972",
+   "date": "2006-06-21",
+   "cls": "NET",
+   "inf": "netvwifimp.inf",
+   "signed": true
+  },
+  {
+   "name": "Intel(R) Wi-Fi 6 AX201 160MHz",
+   "manufacturer": "Intel Corporation",
+   "version": "24.10.0.4",
+   "date": "2025-11-11",
+   "cls": "NET",
+   "inf": "oem236.inf",
+   "signed": true
+  },
+  {
+   "name": "Intel(R) Shared SRAM - 02EF",
+   "manufacturer": "INTEL",
+   "version": "10.1.27.4",
+   "date": "1968-07-18",
+   "cls": "SYSTEM",
+   "inf": "oem256.inf",
+   "signed": true
+  },
+  {
+   "name": "USB Input Device",
+   "manufacturer": "(Standard system devices)",
+   "version": "10.0.26100.9444",
+   "date": "2006-06-21",
+   "cls": "HIDCLASS",
+   "inf": "input.inf",
+   "signed": true
+  },
+  {
+   "name": "Intel(R) Wireless Bluetooth(R)",
+   "manufacturer": "Intel Corporation",
+   "version": "24.10.0.4",
+   "date": "2025-11-10",
+   "cls": "BLUETOOTH",
+   "inf": "oem218.inf",
+   "signed": true
+  },
+  {
+   "name": "HP Universal Camera Driver",
+   "manufacturer": "Realtek",
+   "version": "10.0.22000.20390",
+   "date": "2025-10-14",
+   "cls": "CAMERA",
+   "inf": "oem283.inf",
+   "signed": true
+  },
+  {
+   "name": "USB Composite Device",
+   "manufacturer": "(Standard USB Host Controller)",
+   "version": "10.0.26100.9444",
+   "date": "2006-06-21",
+   "cls": "USB",
+   "inf": "usb.inf",
+   "signed": true
+  },
+  {
+   "name": "USB xHCI Compliant Host Controller",
+   "manufacturer": "Generic USB xHCI Host Controller",
+   "version": "10.0.26100.9444",
+   "date": "2026-09-03",
+   "cls": "USB",
+   "inf": "usbxhci.inf",
+   "signed": true
+  },
+  {
+   "name": "Intel(R) Thermal Subsytem - 02F9",
+   "manufacturer": "INTEL",
+   "version": "10.1.27.4",
+   "date": "1968-07-18",
+   "cls": "SYSTEM",
+   "inf": "oem255.inf",
+   "signed": true
+  },
+  {
+   "name": "Intel(R) Dynamic Tuning Processor Participant",
+   "manufacturer": "Intel",
+   "version": "8.7.10802.26924",
+   "date": "2022-04-11",
+   "cls": "SYSTEM",
+   "inf": "oem228.inf",
+   "signed": true
+  },
+  {
+   "name": "Intel(R) UHD Graphics",
+   "manufacturer": "Intel Corporation",
+   "version": "31.0.101.2140",
+   "date": "2025-11-05",
+   "cls": "DISPLAY",
+   "inf": "oem287.inf",
+   "signed": true
+  },
+  {
+   "name": "Intel(R) Host Bridge/DRAM Registers - 9B71",
+   "manufacturer": "INTEL",
+   "version": "10.1.30.3",
+   "date": "1968-07-18",
+   "cls": "SYSTEM",
+   "inf": "oem226.inf",
+   "signed": true
+  },
+  {
+   "name": "PCI Express Root Complex",
+   "manufacturer": "(Standard system devices)",
+   "version": "10.0.26100.9278",
+   "date": "2006-06-21",
+   "cls": "SYSTEM",
+   "inf": "pci.inf",
+   "signed": true
+  },
+  {
+   "name": "Charge Arbitration Driver",
+   "manufacturer": "(Standard system devices)",
+   "version": "10.0.26100.8972",
+   "date": "2006-06-21",
+   "cls": "SYSTEM",
+   "inf": "ChargeArbitration.inf",
+   "signed": true
+  },
+  {
+   "name": "Microsoft Kernel Debug Network Adapter",
+   "manufacturer": "Microsoft",
+   "version": "10.0.26100.8521",
+   "date": "2006-06-21",
+   "cls": "NET",
+   "inf": "kdnic.inf",
+   "signed": true
+  },
+  {
+   "name": "Volume Manager",
+   "manufacturer": "Microsoft",
+   "version": "10.0.26100.9278",
+   "date": "2006-06-21",
+   "cls": "SYSTEM",
+   "inf": "volmgr.inf",
+   "signed": true
+  }
+ ],
+ "os": {
+  "caption": "Microsoft Windows 11 Home Single Language",
+  "version": "10.0.26200",
+  "build": "26200",
+  "ubr": "9457",
+  "displayVersion": "25H2",
+  "architecture": "64-bit",
+  "installedAt": "2025-04-02",
+  "lastBoot": "2026-10-01",
+  "edition": "CoreSingleLanguage"
+ },
+ "evidence": {
+  "windowsInstalls": [
+   {
+    "date": "2024-06-28",
+    "product": "Windows 10 Home Single Language",
+    "build": "22631"
+   },
+   {
+    "date": "2024-06-27",
+    "product": "Windows 10 Home Single Language",
+    "build": "19045"
+   }
+  ],
+  "currentWindowsInstall": "2025-04-02",
+  "profiles": [
+   {
+    "createdAt": "2026-06-12"
+   },
+   {
+    "createdAt": "2025-04-02"
+   },
+   {
+    "createdAt": "2026-08-11"
+   },
+   {
+    "createdAt": "2026-08-11"
+   },
+   {
+    "createdAt": "2026-08-11"
+   }
+  ],
+  "setupApiLogStart": "2026-08-31",
+  "systemLogStart": "2026-07-30",
+  "deviceFirstInstalled": [
+   {
+    "name": "Microsoft AC Adapter",
+    "cls": "Battery",
+    "firstInstalled": "2025-04-02"
+   },
+   {
+    "name": "Intel(R) Core(TM) i3-10110U CPU @ 2.10GHz",
+    "cls": "Processor",
+    "firstInstalled": "2026-06-16"
+   },
+   {
+    "name": "Integrated Monitor",
+    "cls": "Monitor",
+    "firstInstalled": "2026-06-16"
+   },
+   {
+    "name": "Intel(R) UHD Graphics",
+    "cls": "Display",
+    "firstInstalled": "2026-06-16"
+   },
+   {
+    "name": "WD PC SN740 SDDPNQD-512G-1006",
+    "cls": "DiskDrive",
+    "firstInstalled": "2026-06-16"
+   },
+   {
+    "name": "Intel(R) Core(TM) i3-10110U CPU @ 2.10GHz",
+    "cls": "Processor",
+    "firstInstalled": "2026-06-16"
+   },
+   {
+    "name": "Intel(R) Core(TM) i3-10110U CPU @ 2.10GHz",
+    "cls": "Processor",
+    "firstInstalled": "2026-06-16"
+   },
+   {
+    "name": "Microsoft ACPI-Compliant Control Method Battery",
+    "cls": "Battery",
+    "firstInstalled": "2025-04-02"
+   },
+   {
+    "name": "Intel(R) Core(TM) i3-10110U CPU @ 2.10GHz",
+    "cls": "Processor",
+    "firstInstalled": "2026-06-16"
+   }
+  ]
+ },
+ "maintenance": {
+  "lastWindowsUpdateInstalled": "2026-09-16",
+  "defenderQuickScan": "2026-09-30",
+  "defenderFullScan": null,
+  "defenderSignaturesUpdated": "2026-10-01",
+  "lastMemoryTest": null,
+  "lastDiskCheck": null,
+  "reliabilityIndex30d": 2.7
+ },
+ "diagnostics": {
+  "collectedAt": "2026-10-01T21:09:01.8722038Z",
+  "storage": {
+   "disks": [
+    {
+     "index": 0,
+     "model": "WD PC SN740 SDDPNQD-512G-1006",
+     "busType": "NVMe",
+     "mediaType": "SSD",
+     "health": "Healthy",
+     "sizeBytes": 512110190592,
+     "reliability": null,
+     "nvme": {
+      "criticalWarning": 0,
+      "temperatureC": 54,
+      "availableSparePercent": 100,
+      "availableSpareThresholdPercent": 5,
+      "percentageUsed": 5,
+      "dataUnitsReadBytes": 156976754688000,
+      "dataUnitsWrittenBytes": 52377553920000,
+      "powerCycles": 1970,
+      "powerOnHours": 2116,
+      "unsafeShutdowns": 469,
+      "mediaErrors": 0,
+      "errorLogEntries": 56
+     },
+     "nvmeError": null
+    }
+   ],
+   "ataSmart": [],
+   "ioErrors": {
+    "days": 30,
+    "disk": {},
+    "ntfsCorruption": 0
+   }
+  },
+  "memory": {
+   "modules": [
+    {
+     "slot": "Bottom-Slot 1(left)",
+     "capacityBytes": 4294967296,
+     "speedMhz": 2667,
+     "configuredMhz": 2400,
+     "manufacturer": "Kingston",
+     "partNumber": "KKN2NM-MIE"
+    },
+    {
+     "slot": "Bottom-Slot 2(right)",
+     "capacityBytes": 4294967296,
+     "speedMhz": 2400,
+     "configuredMhz": 2400,
+     "manufacturer": "Samsung",
+     "partNumber": "M471A5244CB0-CRC"
+    }
+   ],
+   "diagnosticResults": []
+  },
+  "cpu": {
+   "name": "Intel(R) Core(TM) i3-10110U CPU @ 2.10GHz",
+   "cores": 2,
+   "logical": 4,
+   "currentMhz": 2093,
+   "maxMhz": 2592,
+   "thermalThrottleEvents7d": 7
+  },
+  "thermal": {
+   "zones": [
+    {
+     "name": "\\_TZ.CHGZ",
+     "tempC": 54.1
+    },
+    {
+     "name": "\\_TZ.BATZ",
+     "tempC": 35.1
+    },
+    {
+     "name": "\\_TZ.LOCZ",
+     "tempC": 53.1
+    },
+    {
+     "name": "\\_TZ.EXTZ",
+     "tempC": 54.1
+    },
+    {
+     "name": "\\_TZ.CPUZ",
+     "tempC": 97.1
+    }
+   ],
+   "note": "Point-in-time readings from firmware thermal zones; zone names are vendor-defined."
+  },
+  "battery": {
+   "designCapacityMWh": 45045,
+   "fullChargeCapacityMWh": 38900,
+   "cycleCount": 412,
+   "source": "wmi"
+  },
+  "whea": {
+   "events30d": 0,
+   "byId": {},
+   "samples": []
+  },
+  "unavailable": [
+   {
+    "component": "Storage reliability counters",
+    "reason": "access denied (needs the agent service account, not a standard user)"
+   },
+   {
+    "component": "ATA SMART",
+    "reason": "not supported by this hardware/driver"
+   }
+  ]
+ },
+ "unavailable": [],
+ "timingsMs": {
+  "Windows users": 33,
+  "System": 232,
+  "BIOS and firmware": 5032,
+  "Motherboard": 19,
+  "Processor": 21,
+  "Memory": 59,
+  "Graphics": 41,
+  "Displays": 75,
+  "Network adapters": 1015,
+  "Battery": 82,
+  "Device drivers": 5199,
+  "Windows": 32,
+  "Age evidence": 21173,
+  "Maintenance history": 4982,
+  "Hardware diagnostics": 3161
+ },
+ "_fixture": {
+  "name": "HP ProBook 430 G7 (real reading)",
+  "verified": true,
+  "note": "Real reading from a laptop; identifiers removed."
+ }
+}

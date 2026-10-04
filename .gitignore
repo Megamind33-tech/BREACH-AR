@@ -1,0 +1,20 @@
+.env
+*.log
+dist/
+agent/publish/
+.dev-credentials.txt
+.prod-test-credentials.txt
+
+# twin build output
+apps/mobile/.gradle/
+apps/mobile/build/
+apps/mobile/app/build/
+apps/mobile/local.properties
+apps/quickcheck/dist/
+apps/quickcheck/**/bin/
+apps/quickcheck/**/obj/
+docs/screens/
+
+server/data/
+agent/tests/Viro.Agent.Tests/TestResults/
+agent/tools/ui-preview/out/

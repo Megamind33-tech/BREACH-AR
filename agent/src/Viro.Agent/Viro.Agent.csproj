@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>viro-agent</AssemblyName>
+    <RootNamespace>Viro.Agent</RootNamespace>
+    <Version>0.1.12</Version>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationIcon>Assets\viro.ico</ApplicationIcon>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Care\ui\index.html" LogicalName="ui.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.*" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4258.31" />
+    <PackageReference Include="System.Management" Version="10.*" />
+    <PackageReference Include="System.Drawing.Common" Version="10.*" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="10.*" />
+    <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="10.*" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.*" />
+  </ItemGroup>
+</Project>

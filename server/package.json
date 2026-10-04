@@ -1,0 +1,34 @@
+{
+  "name": "viro-control",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "dev:db": "tsx src/devdb.ts",
+    "build": "tsc -p . && node scripts/check-no-miner-in-image.mjs dist",
+    "start": "node dist/index.js",
+    "test": "tsx --test --test-concurrency=1 test/*.test.ts"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@fastify/jwt": "^9.1.0",
+    "@fastify/rate-limit": "^11.2.0",
+    "@fastify/static": "^8.3.0",
+    "@fastify/websocket": "^11.3.1",
+    "fastify": "^5.12.5",
+    "nodemailer": "^10.0.14",
+    "pg": "^8.23.0",
+    "ws": "^8.22.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.3",
+    "@types/nodemailer": "^8.0.2",
+    "@types/pg": "^8.23.1",
+    "@types/ws": "^8.18.2",
+    "embedded-postgres": "^18.4.0-beta.17",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}

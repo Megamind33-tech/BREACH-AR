@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "component": {
+      "type": "string",
+      "enum": [
+        "processor",
+        "memory",
+        "storage",
+        "battery",
+        "graphics",
+        "cooling",
+        "network",
+        "windows",
+        "security",
+        "display",
+        "system",
+        "apps",
+        "sensors"
+      ]
+    },
+    "label": {
+      "type": "string",
+      "maxLength": 80
+    },
+    "detail": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 160
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "status": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "healthy",
+            "attention",
+            "critical"
+          ]
+        },
+        {
+          "type": "string",
+          "const": "unavailable"
+        }
+      ]
+    },
+    "unavailableReason": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 160
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "findingIds": {
+      "maxItems": 30,
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "component",
+    "label",
+    "status",
+    "findingIds"
+  ],
+  "additionalProperties": false
+}

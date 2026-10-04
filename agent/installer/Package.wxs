@@ -1,0 +1,62 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <!--
+    Viro installer. Silent, fleet-deployable:
+      msiexec /i ViroAgent.msi /qn SERVER_URL=https://control.example.com ENROLL_TOKEN=vet_xxx
+    Add INSTALL_COMPUTE=1 only for organizations on the compute-sponsored plan (the Compute Worker is a separate, opt-in service).
+    Upgrades in place (keeps the device identity). SERVER_URL/ENROLL_TOKEN are only needed on first install.
+  -->
+  <Package Name="Viro Agent" Manufacturer="Viro" Version="$(var.Version)" UpgradeCode="6E1B4C0D-2A57-4F0B-9C1F-8D3A7B5E2C91"
+           Scope="perMachine" InstallerVersion="500" Compressed="yes">
+    <MajorUpgrade DowngradeErrorMessage="A newer version of Viro Agent is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <Property Id="SERVER_URL" Secure="yes" />
+    <Property Id="ENROLL_TOKEN" Secure="yes" Hidden="yes" />
+    <Property Id="INSTALL_COMPUTE" Value="0" Secure="yes" />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="VIRO" Name="Viro">
+        <Directory Id="INSTALLFOLDER" Name="Agent" />
+      </Directory>
+    </StandardDirectory>
+
+    <!-- The window for the person at the PC: Start menu > Viro WorkCare. No terminal, no console login, no administrator needed for the user's own changes. -->
+    <StandardDirectory Id="ProgramMenuFolder" />
+    <Feature Id="Main" Title="Viro Agent" Level="1">
+      <ComponentGroupRef Id="AgentFiles" />
+    </Feature>
+
+    <ComponentGroup Id="AgentFiles" Directory="INSTALLFOLDER">
+      <Component Id="StartMenuComponent" Directory="ProgramMenuFolder" Guid="9A3E7C52-1D84-4B6F-A2E0-5C7B9D1F3A68">
+        <Shortcut Id="ViroAppShortcut" Name="Viro WorkCare" Description="See what Viro can do for this PC, free space, manage start-up programs, and undo changes" Target="[INSTALLFOLDER]viro-agent.exe" Arguments="app" WorkingDirectory="INSTALLFOLDER" />
+        <RegistryValue Root="HKLM" Key="Software\Viro\Agent" Name="StartMenuShortcut" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+      <Component Id="AgentExeComponent" Guid="0C8D7A19-53E2-4B6E-A1F4-3B9E5D7C2A10">
+        <File Id="AgentExe" Source="$(var.AgentExe)" Name="viro-agent.exe" KeyPath="yes" />
+        <!-- Stop the running service before files are replaced or removed. -->
+        <ServiceControl Id="StopViroAgent" Name="ViroAgent" Stop="both" Wait="yes" />
+      </Component>
+      <Component Id="ComputeExeComponent" Guid="4B7F2C81-9D3A-4E56-8A1B-2C6E9F0D3B47">
+        <File Id="ComputeExe" Source="$(var.ComputeExe)" Name="viro-compute.exe" KeyPath="yes" />
+        <ServiceControl Id="StopViroCompute" Name="ViroCompute" Stop="both" Wait="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <!-- Enroll this device and register/start the agent service (elevated, deferred, after files are in place). -->
+    <CustomAction Id="ViroSetup" Directory="INSTALLFOLDER" Execute="deferred" Impersonate="no" Return="check"
+                  ExeCommand="&quot;[INSTALLFOLDER]viro-agent.exe&quot; setup --server &quot;[SERVER_URL]&quot; --token &quot;[ENROLL_TOKEN]&quot;" />
+    <CustomAction Id="ViroComputeSetup" Directory="INSTALLFOLDER" Execute="deferred" Impersonate="no" Return="ignore"
+                  ExeCommand="&quot;[INSTALLFOLDER]viro-compute.exe&quot; setup" />
+    <CustomAction Id="ViroComputeTeardown" Directory="INSTALLFOLDER" Execute="deferred" Impersonate="no" Return="ignore"
+                  ExeCommand="&quot;[INSTALLFOLDER]viro-compute.exe&quot; teardown" />
+    <CustomAction Id="ViroTeardown" Directory="INSTALLFOLDER" Execute="deferred" Impersonate="no" Return="ignore"
+                  ExeCommand="&quot;[INSTALLFOLDER]viro-agent.exe&quot; teardown" />
+
+    <InstallExecuteSequence>
+      <Custom Action="ViroSetup" After="InstallFiles" Condition="NOT (REMOVE=&quot;ALL&quot;) AND SERVER_URL&lt;&gt;&quot;&quot;" />
+      <Custom Action="ViroComputeSetup" After="ViroSetup" Condition="NOT (REMOVE=&quot;ALL&quot;) AND INSTALL_COMPUTE=&quot;1&quot;" />
+      <Custom Action="ViroComputeTeardown" Before="ViroTeardown" Condition="(REMOVE=&quot;ALL&quot;) AND NOT UPGRADINGPRODUCTCODE" />
+      <Custom Action="ViroTeardown" Before="RemoveFiles" Condition="(REMOVE=&quot;ALL&quot;) AND NOT UPGRADINGPRODUCTCODE" />
+    </InstallExecuteSequence>
+  </Package>
+</Wix>

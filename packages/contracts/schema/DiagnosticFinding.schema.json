@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "maxLength": 80
+    },
+    "component": {
+      "type": "string",
+      "enum": [
+        "processor",
+        "memory",
+        "storage",
+        "battery",
+        "graphics",
+        "cooling",
+        "network",
+        "windows",
+        "security",
+        "display",
+        "system",
+        "apps",
+        "sensors"
+      ]
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "healthy",
+        "attention",
+        "critical"
+      ]
+    },
+    "title": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "summary": {
+      "type": "string",
+      "maxLength": 400
+    },
+    "evidenceType": {
+      "type": "string",
+      "enum": [
+        "measured",
+        "tested",
+        "inferred"
+      ]
+    },
+    "evidence": {
+      "maxItems": 20,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 60
+          },
+          "value": {
+            "type": [
+              "number",
+              "string",
+              "boolean"
+            ]
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 12
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "value"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "recommendedAction": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 300
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "tier": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "essential",
+            "deep"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "component",
+    "severity",
+    "title",
+    "summary",
+    "evidenceType",
+    "evidence"
+  ],
+  "additionalProperties": false
+}

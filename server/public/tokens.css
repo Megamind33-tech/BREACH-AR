@@ -1,0 +1,32 @@
+/* Design tokens: the single source of colour, type, spacing, radius and elevation for the organization console. Pages use these; they never hard-code a value. */
+@font-face { font-family:"Inter Variable"; font-style:normal; font-weight:100 900; font-display:swap; src:url("fonts/inter-latin-wght-normal.woff2") format("woff2-variations"); }
+:root {
+  /* colour: charcoal surfaces, deep forest green accent */
+  --bg:#141617; --bg-2:#181a1c; --panel:#1e2022; --panel-2:#25282b; --ink:#ffffff; --mute:#b3bac1; --line:#33383d; --hair:1px solid rgba(255,255,255,.09);
+  --accent:#0b4d36; --accent-deep:#04281c; --accent-2:#7fd9b8; --accent-ink:#ffffff; --accent-glow:transparent;
+  --ok:#6fd8ae; --warn:#f2b552; --bad:#ff8479;
+  --bar-from:#04281c; --bar-to:#06301f;
+  /* type */
+  --font:"Inter Variable","Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;
+  --mono:ui-monospace,"Cascadia Mono",Consolas,monospace;
+  --t-title:24px; --t-section:16px; --t-body:15px; --t-label:13px; --t-caption:12.5px; --t-figure:30px;
+  /* spacing scale */
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px; --gap:var(--s4);
+  /* radius and elevation */
+  --r:8px; --r-sm:6px;
+  --shadow:0 1px 2px rgba(0,0,0,.45), 0 8px 24px rgba(0,0,0,.25); --shadow-sm:0 1px 2px rgba(0,0,0,.4);
+  /* overlays: faint lines and fills drawn over a surface (white on dark, black on light) */
+  --ov-1:rgba(255,255,255,.05); --ov-2:rgba(255,255,255,.1); --ov-3:rgba(255,255,255,.18); --ov-4:rgba(255,255,255,.35);
+  --shade-1:rgba(0,0,0,.3); --shade-2:rgba(0,0,0,.5);
+  --gauge-core:#191b1d;
+  color-scheme:dark;
+}
+/* Light theme: follows the system unless the reader chose one (data-theme on <html>). */
+:root[data-theme="light"] { color-scheme:light; --bg:#f3f5f4; --bg-2:#ebeeed; --panel:#ffffff; --panel-2:#f1f4f3; --ink:#14201b; --mute:#55616b; --line:#d3dad7; --hair:1px solid rgba(0,0,0,.12);
+  --accent:#0b6b49; --accent-deep:#085238; --accent-2:#0b6b49; --ok:#0f7a52; --warn:#9a5b00; --bad:#b3261e;
+  --ov-1:rgba(0,0,0,.045); --ov-2:rgba(0,0,0,.07); --ov-3:rgba(0,0,0,.13); --ov-4:rgba(0,0,0,.4); --shade-1:rgba(0,0,0,.06); --shade-2:rgba(0,0,0,.12); --gauge-core:#ffffff;
+  --shadow:0 1px 2px rgba(0,0,0,.12), 0 6px 18px rgba(0,0,0,.08); --shadow-sm:0 1px 2px rgba(0,0,0,.12); }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) { color-scheme:light; --bg:#f3f5f4; --bg-2:#ebeeed; --panel:#ffffff; --panel-2:#f1f4f3; --ink:#14201b; --mute:#55616b; --line:#d3dad7; --hair:1px solid rgba(0,0,0,.12);
+  --accent:#0b6b49; --accent-deep:#085238; --accent-2:#0b6b49; --ok:#0f7a52; --warn:#9a5b00; --bad:#b3261e;
+  --ov-1:rgba(0,0,0,.045); --ov-2:rgba(0,0,0,.07); --ov-3:rgba(0,0,0,.13); --ov-4:rgba(0,0,0,.4); --shade-1:rgba(0,0,0,.06); --shade-2:rgba(0,0,0,.12); --gauge-core:#ffffff;
+  --shadow:0 1px 2px rgba(0,0,0,.12), 0 6px 18px rgba(0,0,0,.08); --shadow-sm:0 1px 2px rgba(0,0,0,.12); } }

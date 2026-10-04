@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Viro.Agent/Viro.Agent.csproj" />
+    <Project Path="src/Viro.Compute/Viro.Compute.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Viro.Agent.Tests/Viro.Agent.Tests.csproj" />
+  </Folder>
+</Solution>

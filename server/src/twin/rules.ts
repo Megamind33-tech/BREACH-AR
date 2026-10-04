@@ -1,0 +1,234 @@
+import type { DiagnosticFindingT, PcInventoryT, SeverityT } from './contracts.js';
+
+/* ------------------------------------------------------------------------------------------------
+ * Portable health rules (version 1). Declarative on purpose: the same rules.json is evaluated by this reference evaluator, the
+ * C# evaluator in QuickCheck and the Kotlin evaluator on the phone, and all three are checked against packages/health-rules/vectors.json.
+ * A rule whose input cannot be read is skipped and reported, never guessed. Rule ids reuse the Control server's codes where one exists.
+ * The presentation layers render these findings; they never invent warnings of their own.
+ * ---------------------------------------------------------------------------------------------- */
+
+export const RULESET_VERSION = 1;
+
+type Sev = SeverityT | 'none';
+export interface Band { lt?: number; gte?: number; gt?: number; eq?: string | number | boolean; severity: Sev; title: string; summary: string; action?: string }
+export interface EvidenceRef { name: string; path?: string; metric?: true; unit?: string }
+export interface Rule {
+  /** 'deep' rules belong to the deeper audit; the evaluator tags their findings so screens can show that. */
+  tier?: 'deep';
+  id: string; component: DiagnosticFindingT['component']; evidenceType: DiagnosticFindingT['evidenceType'];
+  /** Evaluate once per element of this array (paths inside are relative to the element). */
+  each?: string;
+  metric: { path: string; scale?: number } | { ratioPct: [string, string] };
+  unit?: string; bands: Band[]; evidence: EvidenceRef[];
+}
+
+const GIB = 1073741824;
+export const RULES: Rule[] = [
+  { id: 'battery.capacity', component: 'battery', evidenceType: 'measured', metric: { ratioPct: ['battery.fullChargeWh', 'battery.designWh'] }, unit: '%',
+    evidence: [{ name: 'designCapacityWh', path: 'battery.designWh', unit: 'Wh' }, { name: 'fullChargeCapacityWh', path: 'battery.fullChargeWh', unit: 'Wh' }, { name: 'capacityPercent', metric: true, unit: '%' }, { name: 'cycleCount', path: 'battery.cycleCount' }],
+    bands: [
+      { lt: 50, severity: 'critical', title: 'Battery capacity is low', summary: 'Battery retains approximately {value}% of design capacity.', action: 'Plan a battery replacement.' },
+      { lt: 80, severity: 'attention', title: 'Battery capacity reduced', summary: 'Battery retains approximately {value}% of design capacity.', action: 'Monitor battery condition. Replacement is not yet urgent.' },
+      { gte: 0, severity: 'healthy', title: 'Battery in good condition', summary: 'Battery retains approximately {value}% of design capacity.' }] },
+
+  { id: 'storage.nvme_life', component: 'storage', evidenceType: 'measured', each: 'storage', metric: { path: 'nvme.percentageUsed' }, unit: '%',
+    evidence: [{ name: 'percentageUsed', metric: true, unit: '%' }, { name: 'availableSparePercent', path: 'nvme.availableSparePercent', unit: '%' }],
+    bands: [
+      { gte: 100, severity: 'critical', title: 'Drive has reached its rated life', summary: '{item} reports {value}% of rated life used.', action: 'Back up important files and replace the drive.' },
+      { gte: 80, severity: 'attention', title: 'Drive wear is high', summary: '{item} reports {value}% of rated life used.', action: 'Plan a drive replacement. Failure timing cannot be predicted precisely; back up important files.' },
+      { gte: 0, severity: 'healthy', title: 'Drive wear is low', summary: '{item} reports {value}% of rated life used.' }] },
+  { id: 'storage.nvme_spare', component: 'storage', evidenceType: 'measured', each: 'storage', metric: { path: 'nvme.availableSparePercent' }, unit: '%',
+    evidence: [{ name: 'availableSparePercent', metric: true, unit: '%' }],
+    bands: [
+      { lt: 10, severity: 'critical', title: 'Drive spare capacity is almost gone', summary: '{item} has {value}% spare capacity left.', action: 'Back up important files and replace the drive.' },
+      { lt: 30, severity: 'attention', title: 'Drive spare capacity is low', summary: '{item} has {value}% spare capacity left.', action: 'Plan a drive replacement.' },
+      { gte: 0, severity: 'none', title: '', summary: '' }] },
+  { id: 'storage.nvme_critical', component: 'storage', evidenceType: 'measured', each: 'storage', metric: { path: 'nvme.criticalWarning' },
+    evidence: [{ name: 'criticalWarningFlags', metric: true }],
+    bands: [
+      { gt: 0, severity: 'critical', title: 'Drive raised a critical warning', summary: '{item} reports a critical warning from its controller.', action: 'Back up now and replace the drive.' },
+      { gte: 0, severity: 'none', title: '', summary: '' }] },
+  { id: 'storage.nvme_media_errors', component: 'storage', evidenceType: 'measured', each: 'storage', metric: { path: 'nvme.mediaErrors' },
+    evidence: [{ name: 'mediaErrors', metric: true }],
+    bands: [
+      { gt: 0, severity: 'critical', title: 'Drive recorded data integrity errors', summary: '{item} recorded {value} media and data integrity error(s).', action: 'Data integrity is at risk. Back up, then replace the drive.' },
+      { gte: 0, severity: 'none', title: '', summary: '' }] },
+  { id: 'storage.health', component: 'storage', evidenceType: 'measured', each: 'storage', metric: { path: 'health' },
+    evidence: [{ name: 'windowsHealthStatus', metric: true }],
+    bands: [
+      { eq: 'Unhealthy', severity: 'critical', title: 'Windows reports a drive as unhealthy', summary: '{item} is reported as Unhealthy.', action: 'Back up now and replace the drive.' },
+      { eq: 'Warning', severity: 'attention', title: 'Windows reports a drive warning', summary: '{item} is reported with a Warning.', action: 'Verify backups and plan a replacement.' },
+      { eq: 'Healthy', severity: 'healthy', title: 'Drive reports healthy', summary: '{item} is reported as Healthy. No critical SMART warning.' }] },
+  { id: 'storage.unsafe_shutdowns', component: 'storage', evidenceType: 'measured', each: 'storage', metric: { path: 'nvme.unsafeShutdowns' },
+    evidence: [{ name: 'unsafeShutdowns', metric: true }],
+    bands: [
+      { gte: 50, severity: 'attention', title: 'Many unsafe shutdowns recorded', summary: '{item} recorded {value} unsafe shutdowns: power was lost or the PC was forced off.', action: 'Repeated hard power-offs risk file corruption. Check the power supply and shut down normally.' },
+      { gte: 0, severity: 'none', title: '', summary: '' }] },
+  { id: 'storage.free_space', component: 'storage', evidenceType: 'measured', each: 'storage', metric: { ratioPct: ['freeBytes', 'sizeBytes'] }, unit: '%',
+    evidence: [{ name: 'freeBytes', path: 'freeBytes', unit: 'bytes' }, { name: 'sizeBytes', path: 'sizeBytes', unit: 'bytes' }, { name: 'freePercent', metric: true, unit: '%' }],
+    bands: [
+      { lt: 5, severity: 'critical', title: 'Storage is almost full', summary: '{item} has {value}% free.', action: 'Free up space before Windows runs short.' },
+      { lt: 10, severity: 'attention', title: 'Storage is nearly full', summary: '{item} has {value}% free.', action: 'Free up space soon.' },
+      { gte: 0, severity: 'none', title: '', summary: '' }] },
+
+  { id: 'cpu.temperature', component: 'processor', evidenceType: 'measured', metric: { path: 'cpu.peakTempC' }, unit: '°C',
+    evidence: [{ name: 'peakTemperatureC', metric: true, unit: '°C' }, { name: 'cpuUsagePercent', path: 'cpu.usagePercent', unit: '%' }],
+    bands: [
+      { gte: 100, severity: 'critical', title: 'Processor reached a dangerous temperature', summary: 'The processor reached {value}°C.', action: 'Stop heavy work and inspect the cooling system.' },
+      { gte: 90, severity: 'attention', title: 'Processor ran hot', summary: 'The processor reached {value}°C.', action: 'Run a deeper cooling test.' },
+      { gte: 0, severity: 'healthy', title: 'Processor temperature normal', summary: 'The processor peaked at {value}°C.' }] },
+  { id: 'cpu.throttling', component: 'cooling', evidenceType: 'inferred', metric: { path: 'cpu.throttled' },
+    evidence: [{ name: 'peakTemperatureC', path: 'cpu.peakTempC', unit: '°C' }, { name: 'thermalThrottling', metric: true }, { name: 'cpuUsagePercent', path: 'cpu.usagePercent', unit: '%' }],
+    bands: [
+      { eq: true, severity: 'attention', title: 'Cooling problem suspected', summary: 'The processor reduced its speed to protect itself from heat.', action: 'Inspect the cooling system before buying other parts.' },
+      { eq: false, severity: 'none', title: '', summary: '' }] },
+  { id: 'memory.capacity', component: 'memory', evidenceType: 'measured', metric: { path: 'memory.totalBytes', scale: 1 / GIB }, unit: 'GB',
+    evidence: [{ name: 'installedGB', metric: true, unit: 'GB' }, { name: 'slotsUsed', path: 'memory.slotsUsed' }, { name: 'slotsTotal', path: 'memory.slotsTotal' }],
+    bands: [
+      { lt: 4, severity: 'attention', title: 'Memory capacity is low', summary: '{value} GB of memory is installed.', action: 'Modern Windows runs best with 8 GB or more.' },
+      { gte: 0, severity: 'healthy', title: 'Memory capacity adequate', summary: '{value} GB of memory. No immediate issue detected.' }] },
+  { id: 'security.defender', component: 'security', evidenceType: 'measured', metric: { path: 'security.defenderEnabled' },
+    evidence: [{ name: 'defenderEnabled', metric: true }],
+    bands: [
+      { eq: false, severity: 'critical', title: 'Security protection is off', summary: 'Microsoft Defender real-time protection is disabled.', action: 'Turn protection on, or confirm another security product is active.' },
+      { eq: true, severity: 'healthy', title: 'Security protection is on', summary: 'Microsoft Defender real-time protection is enabled.' }] },
+  { id: 'security.firewall', component: 'security', evidenceType: 'measured', metric: { path: 'security.firewallEnabled' },
+    evidence: [{ name: 'firewallEnabled', metric: true }],
+    bands: [
+      { eq: false, severity: 'attention', title: 'Firewall is off', summary: 'The Windows firewall is disabled.', action: 'Turn the firewall on unless another one is in use.' },
+      { eq: true, severity: 'none', title: '', summary: '' }] },
+
+  // ------------------------------------------------------------------------------------------ deep Windows audit (WorkCare Plus)
+  { tier: 'deep', id: 'deep.bitlocker', component: 'security', evidenceType: 'measured', metric: { path: 'deep.encryption.systemDriveProtected' }, evidence: [{ name: 'systemDriveProtected', metric: true }],
+    bands: [
+      { eq: false, severity: 'attention', title: 'Drive is not encrypted', summary: 'The system drive is not protected by BitLocker or device encryption. Anyone holding this PC can read its files.', action: 'Turn on BitLocker or device encryption, and keep the recovery key somewhere safe.' },
+      { eq: true, severity: 'healthy', title: 'Drive is encrypted', summary: 'The system drive is protected by BitLocker or device encryption.' }] },
+  { tier: 'deep', id: 'deep.secure_boot', component: 'security', evidenceType: 'measured', metric: { path: 'deep.secureBoot' }, evidence: [{ name: 'secureBoot', metric: true }],
+    bands: [
+      { eq: false, severity: 'attention', title: 'Secure Boot is off', summary: 'Windows is not checking that what starts before it is trusted, which is how boot-level malware gets in.', action: 'Turn on Secure Boot in the PC firmware settings if it is supported.' },
+      { eq: true, severity: 'healthy', title: 'Secure Boot is on', summary: 'The firmware verifies what starts before Windows.' }] },
+  { tier: 'deep', id: 'deep.tpm', component: 'security', evidenceType: 'measured', metric: { path: 'deep.tpm.present' }, evidence: [{ name: 'tpmPresent', metric: true }, { name: 'tpmReady', path: 'deep.tpm.ready' }],
+    bands: [
+      { eq: false, severity: 'attention', title: 'No security chip (TPM) found', summary: 'Windows reports no TPM. Encryption keys and Windows Hello cannot be hardware-protected.', action: 'Check the firmware for a TPM or fTPM setting.' },
+      { eq: true, severity: 'healthy', title: 'Security chip (TPM) present', summary: 'This PC has a TPM for key protection.' }] },
+  { tier: 'deep', id: 'deep.update_age', component: 'windows', evidenceType: 'measured', metric: { path: 'deep.updates.lastInstalledDaysAgo' }, unit: 'days', evidence: [{ name: 'daysSinceLastUpdate', metric: true, unit: 'days' }],
+    bands: [
+      { gt: 180, severity: 'critical', title: 'Windows has not updated in months', summary: 'The last installed Windows update was {value} day(s) ago.', action: 'Run Windows Update now. Unpatched Windows is the most common way PCs are compromised.' },
+      { gt: 75, severity: 'attention', title: 'Windows updates are overdue', summary: 'The last installed Windows update was {value} day(s) ago.', action: 'Run Windows Update.' },
+      { gte: 0, severity: 'healthy', title: 'Windows updates are recent', summary: 'The last installed Windows update was {value} day(s) ago.' }] },
+  { tier: 'deep', id: 'deep.pending_reboot', component: 'windows', evidenceType: 'measured', metric: { path: 'deep.updates.pendingReboot' }, evidence: [{ name: 'restartPending', metric: true }],
+    bands: [
+      { eq: true, severity: 'attention', title: 'A restart is waiting', summary: 'Windows has installed something that only takes effect after a restart.', action: 'Save your work and restart.' },
+      { eq: false, severity: 'none', title: '', summary: '' }] },
+  { tier: 'deep', id: 'deep.os_support', component: 'windows', evidenceType: 'inferred', metric: { path: 'deep.os.daysSinceSupportEnded' }, unit: 'days', evidence: [{ name: 'windowsBuild', path: 'deep.os.build' }, { name: 'standardSupportEnded', path: 'deep.os.supportEnds' }],
+    bands: [
+      { gt: 0, severity: 'critical', title: 'Windows version is out of support', summary: 'Microsoft ended standard security updates for this Windows version {value} days ago.', action: 'Upgrade Windows. Paid extended updates may still be available for some versions.' },
+      { gt: -180, severity: 'attention', title: 'Windows version support ends soon', summary: 'Microsoft ends standard security updates for this Windows version within six months.', action: 'Plan the move to a supported Windows version.' },
+      { lt: 100000, severity: 'healthy', title: 'Windows version is supported', summary: 'This Windows version still receives standard security updates.' }] },
+  { tier: 'deep', id: 'deep.defender_signatures', component: 'security', evidenceType: 'measured', metric: { path: 'deep.defender.signatureAgeDays' }, unit: 'days', evidence: [{ name: 'definitionsAgeDays', metric: true, unit: 'days' }],
+    bands: [
+      { gt: 14, severity: 'attention', title: 'Virus definitions are out of date', summary: 'Microsoft Defender definitions are {value} day(s) old.', action: 'Open Windows Security and update protection definitions.' },
+      { gte: 0, severity: 'healthy', title: 'Virus definitions are current', summary: 'Microsoft Defender definitions are {value} day(s) old.' }] },
+  { tier: 'deep', id: 'deep.defender_scan', component: 'security', evidenceType: 'measured', metric: { path: 'deep.defender.daysSinceQuickScan' }, unit: 'days', evidence: [{ name: 'daysSinceQuickScan', metric: true, unit: 'days' }],
+    bands: [
+      { gt: 30, severity: 'attention', title: 'No recent malware scan', summary: 'Defender has not completed a quick scan in {value} days.', action: 'Run a quick scan from Windows Security.' },
+      { gte: 0, severity: 'none', title: '', summary: '' }] },
+  { tier: 'deep', id: 'deep.uac', component: 'security', evidenceType: 'measured', metric: { path: 'deep.settings.uacEnabled' }, evidence: [{ name: 'uacEnabled', metric: true }],
+    bands: [
+      { eq: false, severity: 'attention', title: 'User Account Control is off', summary: 'Programs can change the system without asking.', action: 'Turn User Account Control back on in Windows security settings.' },
+      { eq: true, severity: 'none', title: '', summary: '' }] },
+  { tier: 'deep', id: 'deep.smb1', component: 'security', evidenceType: 'measured', metric: { path: 'deep.settings.smb1Enabled' }, evidence: [{ name: 'smb1Enabled', metric: true }],
+    bands: [
+      { eq: true, severity: 'attention', title: 'Old file-sharing protocol (SMBv1) is on', summary: 'SMBv1 is the protocol used by well-known ransomware worms.', action: 'Turn off SMB 1.0 in Windows Features.' },
+      { eq: false, severity: 'none', title: '', summary: '' }] },
+  { tier: 'deep', id: 'deep.rdp', component: 'security', evidenceType: 'measured', metric: { path: 'deep.settings.rdpEnabled' }, evidence: [{ name: 'remoteDesktopEnabled', metric: true }],
+    bands: [
+      { eq: true, severity: 'attention', title: 'Remote Desktop is switched on', summary: 'Other computers can try to sign in to this PC remotely.', action: 'Turn Remote Desktop off unless you use it.' },
+      { eq: false, severity: 'none', title: '', summary: '' }] },
+  { tier: 'deep', id: 'deep.autologon', component: 'security', evidenceType: 'measured', metric: { path: 'deep.settings.autoLogon' }, evidence: [{ name: 'automaticSignIn', metric: true }],
+    bands: [
+      { eq: true, severity: 'attention', title: 'Windows signs in automatically', summary: 'Anyone who starts this PC reaches the desktop without a password.', action: 'Require a password at sign-in.' },
+      { eq: false, severity: 'none', title: '', summary: '' }] },
+  { tier: 'deep', id: 'deep.guest', component: 'security', evidenceType: 'measured', metric: { path: 'deep.settings.guestEnabled' }, evidence: [{ name: 'guestAccountEnabled', metric: true }],
+    bands: [
+      { eq: true, severity: 'attention', title: 'Guest account is enabled', summary: 'The built-in Guest account allows sign-in without a personal account.', action: 'Disable the Guest account.' },
+      { eq: false, severity: 'none', title: '', summary: '' }] },
+  { tier: 'deep', id: 'deep.bluescreens', component: 'system', evidenceType: 'measured', metric: { path: 'deep.reliability.bluescreens30d' }, unit: 'crashes', evidence: [{ name: 'bluescreensLast30Days', metric: true }],
+    bands: [
+      { gte: 3, severity: 'critical', title: 'Windows has crashed repeatedly', summary: 'Windows logged {value} blue-screen crashes in the last 30 days.', action: 'Update drivers and check the drive and memory. Repeated crashes usually mean a hardware or driver fault.' },
+      { gte: 1, severity: 'attention', title: 'Windows crashed recently', summary: 'Windows logged {value} blue-screen crash(es) in the last 30 days.', action: 'Note when it happened and what you were doing. A second one points to a driver or hardware fault.' },
+      { gte: 0, severity: 'healthy', title: 'No blue-screen crashes', summary: 'No blue-screen crash was logged in the last 30 days.' }] },
+  { tier: 'deep', id: 'deep.unexpected_shutdowns', component: 'system', evidenceType: 'measured', metric: { path: 'deep.reliability.unexpectedShutdowns30d' }, unit: 'times', evidence: [{ name: 'unexpectedShutdownsLast30Days', metric: true }],
+    bands: [
+      { gte: 5, severity: 'attention', title: 'The PC keeps shutting down unexpectedly', summary: 'Windows logged {value} unexpected shutdowns or power losses in the last 30 days.', action: 'Check the power supply or battery, and shut down from the Start menu.' },
+      { gte: 0, severity: 'none', title: '', summary: '' }] },
+  { tier: 'deep', id: 'deep.disk_errors', component: 'storage', evidenceType: 'measured', metric: { path: 'deep.reliability.diskErrors30d' }, unit: 'errors', evidence: [{ name: 'diskErrorsLast30Days', metric: true }],
+    bands: [
+      { gte: 10, severity: 'critical', title: 'Windows is logging many disk errors', summary: 'Windows logged {value} disk errors in the last 30 days.', action: 'Back up important files now and have the drive checked.' },
+      { gte: 1, severity: 'attention', title: 'Windows logged disk errors', summary: 'Windows logged {value} disk error(s) in the last 30 days.', action: 'Back up important files and run a drive health check.' },
+      { gte: 0, severity: 'healthy', title: 'No disk errors logged', summary: 'Windows logged no disk errors in the last 30 days.' }] },
+  { tier: 'deep', id: 'deep.app_crashes', component: 'apps', evidenceType: 'measured', metric: { path: 'deep.reliability.appCrashes30d' }, unit: 'crashes', evidence: [{ name: 'appCrashesLast30Days', metric: true }, { name: 'mostCrashedApp', path: 'deep.reliability.topCrashingApp' }],
+    bands: [
+      { gte: 25, severity: 'attention', title: 'Programs keep crashing', summary: 'Windows logged {value} program crashes in the last 30 days.', action: 'Update or reinstall the program that crashes most.' },
+      { gte: 0, severity: 'none', title: '', summary: '' }] },
+  { tier: 'deep', id: 'deep.wifi_security', component: 'network', evidenceType: 'measured', metric: { path: 'deep.wifi.security' }, evidence: [{ name: 'wifiSecurity', metric: true }],
+    bands: [
+      { eq: 'open', severity: 'attention', title: 'Connected to an open Wi-Fi network', summary: 'Open networks do not encrypt what this PC sends over Wi-Fi.', action: 'Use a network with a password, or a VPN.' },
+      { eq: 'wep', severity: 'attention', title: 'Wi-Fi uses outdated WEP security', summary: 'WEP can be broken in minutes.', action: 'Change the router to WPA2 or WPA3.' },
+      { eq: 'wpa', severity: 'attention', title: 'Wi-Fi uses outdated WPA security', summary: 'Original WPA is weak.', action: 'Change the router to WPA2 or WPA3.' },
+      { eq: 'wpa2', severity: 'healthy', title: 'Wi-Fi uses WPA2', summary: 'The connected Wi-Fi network is encrypted with WPA2.' },
+      { eq: 'wpa3', severity: 'healthy', title: 'Wi-Fi uses WPA3', summary: 'The connected Wi-Fi network is encrypted with WPA3.' }] },
+  { tier: 'deep', id: 'deep.startup', component: 'system', evidenceType: 'measured', metric: { path: 'deep.startup.count' }, evidence: [{ name: 'startupPrograms', metric: true }],
+    bands: [
+      { gt: 25, severity: 'attention', title: 'Many programs start with Windows', summary: '{value} programs start automatically, which slows start-up and uses memory.', action: 'Turn off the ones you do not need in Task Manager > Startup.' },
+      { gte: 0, severity: 'none', title: '', summary: '' }] },
+];
+
+// ---------------------------------------------------------------------------------------------- evaluator
+const get = (o: unknown, path: string): unknown => path.split('.').reduce<unknown>((a, k) => (a != null && typeof a === 'object' ? (a as Record<string, unknown>)[k] : undefined), o);
+const numeric = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
+const fmt = (v: unknown): string => numeric(v) ? String(Math.abs(v - Math.round(v)) < 1e-9 ? Math.round(v) : Math.round(v * 10) / 10) : String(v);
+
+function metricOf(rule: Rule, ctx: unknown): number | string | boolean | undefined {
+  const m = rule.metric;
+  if ('ratioPct' in m) {
+    const a = get(ctx, m.ratioPct[0]), b = get(ctx, m.ratioPct[1]);
+    return numeric(a) && numeric(b) && b > 0 ? Math.round((a / b) * 100 * 1e6) / 1e6 : undefined;
+  }
+  const v = get(ctx, m.path);
+  if (numeric(v)) return m.scale ? v * m.scale : v;
+  return typeof v === 'string' || typeof v === 'boolean' ? v : undefined;
+}
+function matches(b: Band, v: number | string | boolean): boolean {
+  if (b.eq !== undefined) return v === b.eq;
+  if (!numeric(v)) return false;
+  return (b.lt === undefined || v < b.lt) && (b.gte === undefined || v >= b.gte) && (b.gt === undefined || v > b.gt);
+}
+
+export interface EvaluationResult { findings: DiagnosticFindingT[]; skipped: string[] }
+export function evaluate(inv: PcInventoryT | Record<string, unknown>, rules: Rule[] = RULES): EvaluationResult {
+  const findings: DiagnosticFindingT[] = []; const skipped = new Set<string>();
+  for (const rule of rules) {
+    const items: { ctx: unknown; suffix: string; label: string }[] = rule.each
+      ? ((get(inv, rule.each) as unknown[] | undefined) ?? []).map((it, i) => ({ ctx: it, suffix: '.' + i, label: String((it as any)?.model ?? `Drive ${i + 1}`) }))
+      : [{ ctx: inv, suffix: '', label: '' }];
+    if (!items.length) skipped.add(rule.id);
+    for (const it of items) {
+      const value = metricOf(rule, it.ctx);
+      if (value === undefined) { skipped.add(rule.id); continue; }
+      const band = rule.bands.find(b => matches(b, value));
+      if (!band || band.severity === 'none') continue;
+      const text = (t: string) => t.replace('{value}', fmt(value)).replace('{item}', it.label);
+      const evidence = rule.evidence.flatMap(e => {
+        const v = e.metric ? value : get(it.ctx, e.path ?? '');
+        return v === undefined || v === null ? [] : [{ name: e.name, value: typeof v === 'number' ? Number(fmt(v)) : v as string | boolean, ...(e.unit ? { unit: e.unit } : {}) }];
+      });
+      findings.push({ ...(rule.tier ? { tier: 'deep' as const } : {}), id: rule.id + it.suffix, component: rule.component, severity: band.severity, title: band.title, summary: text(band.summary), evidenceType: rule.evidenceType, evidence, ...(band.action ? { recommendedAction: band.action } : {}) });
+    }
+  }
+  return { findings, skipped: [...skipped] };
+}
+
+export const tally = (f: DiagnosticFindingT[]) => ({ passed: f.filter(x => x.severity === 'healthy').length, attention: f.filter(x => x.severity === 'attention').length, critical: f.filter(x => x.severity === 'critical').length });
+export const worst = (f: DiagnosticFindingT[]): SeverityT => f.some(x => x.severity === 'critical') ? 'critical' : f.some(x => x.severity === 'attention') ? 'attention' : 'healthy';
+export const SCAN_DISCLAIMER = 'A quick check shows the state of this device now. It does not prove long-term reliability.';

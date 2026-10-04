@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- TLS everywhere except an explicitly local session with a PC on the same network: the WCP1 session layer encrypts that traffic itself, so cleartext HTTP is allowed
+     only for private-network addresses at run time (the app refuses anything else), never to the internet. Android cannot express "private ranges" here, so cleartext is
+     enabled and the app's own transport layer enforces the private-address rule. The Control server connection is https and is checked in code. -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors><certificates src="system" /></trust-anchors>
+    </base-config>
+</network-security-config>

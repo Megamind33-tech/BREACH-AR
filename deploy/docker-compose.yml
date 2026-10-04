@@ -1,0 +1,41 @@
+# Viro Control on a single Linux VPS. Caddy terminates TLS (automatic certificates).
+# Copy .env.example to .env and fill in every value before `docker compose up -d`.
+# NOTE: this file has been written but not yet run end-to-end (Docker was not available on the development machine).
+services:
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: viro
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: viro
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U viro"], interval: 5s, retries: 10 }
+  redis:
+    image: redis:7-alpine        # reserved for cross-instance support-session relay and job fan-out when scaling out
+    restart: unless-stopped
+  control:
+    build: ../server
+    restart: unless-stopped
+    depends_on: { postgres: { condition: service_healthy } }
+    environment:
+      DATABASE_URL: postgres://viro:${POSTGRES_PASSWORD}@postgres:5432/viro
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET (32+ random bytes)}
+      PLATFORM_KEY: ${PLATFORM_KEY:?set PLATFORM_KEY}
+      JOB_SIGNING_KEY: ${JOB_SIGNING_KEY:?set JOB_SIGNING_KEY (PKCS8 PEM, newlines as \n)}
+      NODE_ENV: production
+      RELEASES_DIR: /data/releases
+      REQUIRE_TRUSTED_SIGNATURE: ${REQUIRE_TRUSTED_SIGNATURE:-1}
+      PORT: "8080"
+    volumes: [releases:/data/releases]
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    environment: { DOMAIN: "${DOMAIN:?set DOMAIN}" }
+    # Long timeouts and no buffering so remote-support WebSockets and large release downloads work.
+    command: caddy reverse-proxy --from ${DOMAIN} --to control:8080
+    volumes: [caddy_data:/data]
+    depends_on: [control]
+volumes: { pgdata: {}, caddy_data: {}, releases: {} }

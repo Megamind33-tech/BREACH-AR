@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Security and privacy | Viro WorkCare</title>
+<meta name="description" content="How Viro WorkCare protects your computers, how remote sessions work, and exactly what it collects and does not collect.">
+<meta property="og:title" content="Security and privacy | Viro WorkCare"><meta property="og:description" content="How Viro WorkCare protects your computers, how remote sessions work, and exactly what it collects and does not collect."><meta property="og:type" content="website">
+<meta name="theme-color" content="#fbfcfb">
+<link rel="icon" type="image/png" href="/logo.png">
+<link rel="preload" href="/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/site/site.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="nav" id="top"><div class="wrap nav-in">
+  <a class="brand" href="/site/" aria-label="Viro WorkCare home"><span class="mark"><img src="/logo.png" alt="" width="26" height="26"></span><span>Viro <b>WorkCare</b></span></a>
+  <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="menu">Menu</button>
+  <nav class="menu" id="menu" aria-label="Main"><a href="/site/features.html">Features</a><a href="/site/security.html" aria-current="page">Security &amp; privacy</a><a href="/site/about.html">About</a><a href="/site/contact.html">Contact</a><a class="only-small" href="https://control.viro3.online/" data-signin>Sign in</a></nav>
+  <div class="nav-cta"><a class="link" href="https://control.viro3.online/" data-signin>Sign in</a><a class="btn small" href="mailto:info@viro3.online?subject=Viro%20WorkCare%20demonstration&body=Hello%2C%0A%0AI%20would%20like%20to%20see%20Viro%20WorkCare.%0A%0ANumber%20of%20computers%20we%20look%20after%3A%0ANumber%20of%20sites%3A%0AOrganization%3A%0A">Request a demo</a></div>
+</div></header>
+<main id="main">
+
+<div class="wrap"><div class="page-head"><h1>Security and privacy</h1><p class="lead">Software that can change your computers has to be careful. Here is how Viro is built, how remote help works, and exactly what it collects.</p></div></div>
+<div class="wrap layout">
+  <nav class="toc" aria-label="On this page"><a href="#built">How it is built</a><a href="#remote">Remote sessions</a><a href="#collects">What it collects</a><a href="#never">What it does not collect</a><a href="#questions">Questions</a></nav>
+  <div class="prose">
+    <h2 id="built">How it is built</h2>
+    <ul>
+      <li><b>Signed updates.</b> Every update to the Viro agent is digitally signed. The computer checks the signature and the file’s fingerprint before installing, and rolls back if the new version does not start.</li>
+      <li><b>Signed actions.</b> Every administrative action, such as a repair or a restart, is a signed job. The computer refuses a job that is not signed by your Control server, or that has expired.</li>
+      <li><b>Tamper checks.</b> The agent reports a fingerprint of its own program and whether its data folder is protected. Your Control server raises an alert if the program does not match the signed release.</li>
+      <li><b>Separate organizations.</b> Each organization’s data is separate. One organization cannot see another’s computers, people or records.</li>
+      <li><b>Roles and two-step sign-in.</b> People have only the access their role needs. An authenticator app can be required for owners, administrators and technicians.</li>
+      <li><b>An audit log.</b> Every administrative action is recorded with who, what, where and when.</li>
+    </ul>
+
+    <h2 id="remote">How remote sessions work</h2>
+    <ul>
+      <li>A support person must give a reason, which is recorded.</li>
+      <li>The person at the computer sees a notice that a session has started.</li>
+      <li>Either side can end the session at any time.</li>
+      <li>The session is recorded in the audit log: who connected, to which computer, when, and why.</li>
+      <li>Screen watching and control happen only while a session is open.</li>
+    </ul>
+
+    <h2 id="collects">What it collects</h2>
+    <p class="mute">Viro collects only what it needs to look after the computer. Each item is used for the purpose in the right-hand column.</p>
+    <table class="table"><thead><tr><th>Information</th><th>What it is, and why</th></tr></thead><tbody>
+      <tr><td>Health</td><td>Disk space, Windows update and security status, start-up time, crashes, heat and battery. To raise alerts and score health.</td></tr>
+      <tr><td>Inventory</td><td>The computer’s hardware and the software installed, with versions. To plan updates and upgrades.</td></tr>
+      <tr><td>Hardware condition</td><td>Parts and their serial numbers where Windows exposes them, age evidence, drive self-monitoring counters and memory errors. To warn before something fails.</td></tr>
+      <tr><td>Activity</td><td>Processor and memory use, uptime, the signed-in user’s account name and the computer’s network address. To show whether a computer is busy, idle or offline.</td></tr>
+      <tr><td>Browser extensions</td><td>The names of installed Chrome and Edge extensions. So an unsafe extension can be found and blocked.</td></tr>
+      <tr><td>Support sessions</td><td>Who connected, when, why, and what was done. For accountability.</td></tr>
+    </tbody></table>
+
+    <h2 id="never">What it does not collect</h2>
+    <ul>
+      <li>The contents of your files.</li>
+      <li>Browser history, cookies or saved passwords.</li>
+      <li>Keystrokes.</li>
+      <li>What is on the screen, except while a support session is open.</li>
+    </ul>
+    <p>Cleanup removes temporary files and browser caches only. It never touches personal files, cookies, history or passwords.</p>
+    <div class="callout">Your organization decides who is an administrator, and every administrative action is recorded in your audit log.</div>
+
+    <h2 id="questions">Questions</h2>
+    <p>If you want to know more about how your data is handled, write to <a href="mailto:info@viro3.online">info@viro3.online</a> or call <a href="tel:+260976092585">+260 976 092 585</a>.</p>
+  </div>
+</div>
+<section class="tight"><div class="wrap"><div class="band">
+  <video class="hero-video" muted loop playsinline autoplay preload="metadata" poster="/media/hero-poster.jpg" aria-hidden="true" tabindex="-1" disablepictureinpicture disableremoteplayback><source src="/media/hero.mp4" type="video/mp4"></video>
+  <h2>Questions about your data?</h2><p>Ask us anything about how Viro works before you decide.</p>
+  <div class="actions"><a class="btn light" href="mailto:info@viro3.online?subject=Viro%20WorkCare%20demonstration&body=Hello%2C%0A%0AI%20would%20like%20to%20see%20Viro%20WorkCare.%0A%0ANumber%20of%20computers%20we%20look%20after%3A%0ANumber%20of%20sites%3A%0AOrganization%3A%0A">Request a demo</a><a class="btn ghost" style="color:#fff;border-color:rgba(255,255,255,.45)" href="tel:+260976092585">Call +260 976 092 585</a></div>
+</div></div></section>
+<script src="/hero-video.js"></script>
+</main>
+<footer><div class="wrap">
+  <div class="foot">
+    <div><a class="brand" href="/site/"><span class="mark"><img src="/logo.png" alt="" width="26" height="26"></span><span>Viro <b>WorkCare</b></span></a><p>Care for the Windows computers in your organization: health, security, updates and repairs.</p></div>
+    <div><h4>Product</h4><ul><li><a href="/site/features.html">Features</a></li><li><a href="/site/security.html">Security &amp; privacy</a></li><li><a href="https://control.viro3.online/" data-signin>Sign in</a></li></ul></div>
+    <div><h4>Company</h4><ul><li><a href="/site/about.html">About us</a></li><li><a href="/site/contact.html">Contact</a></li><li><a href="mailto:info@viro3.online?subject=Viro%20WorkCare%20demonstration&body=Hello%2C%0A%0AI%20would%20like%20to%20see%20Viro%20WorkCare.%0A%0ANumber%20of%20computers%20we%20look%20after%3A%0ANumber%20of%20sites%3A%0AOrganization%3A%0A">Request a demo</a></li></ul></div>
+    <div><h4>Orange Mobility Solutions</h4><ul><li><a href="mailto:info@viro3.online">info@viro3.online</a></li><li><a href="tel:+260976092585">+260 976 092 585</a></li><li>18 Mukuni Road<br>Kansenshi, Ndola<br>Copperbelt Province, Zambia</li></ul></div>
+  </div>
+  <div class="legal"><span>&copy; <span data-year>2026</span> Orange Mobility Solutions. All rights reserved.</span><span>Registered in Zambia &middot; PACRA no. 320241014086</span></div>
+</div></footer>
+<script src="/site/site.js"></script>
+</body>
+</html>
