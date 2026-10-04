@@ -158,3 +158,8 @@ td { font-size:14px; } tr.row td:nth-child(5) { white-space:nowrap; }
 @media (max-width:700px) { .budget-main .fig { font-size:34px; } .budget-list a { gap:10px; } .budget-list .amt { font-size:14px; } .card.budget .toggle-row > .btn { width:auto; } }
 .budget-list a { display:flex; } .budget-list a > span:first-child { flex:1 1 auto; } .budget-list .amt { flex:none; }
 .budget-list a { white-space:normal !important; } .budget-list b { white-space:nowrap; }
+/* action tiles (Remote control) stay neutral cards with one highlighted tile, as before the restyle */
+.launch button.tile:not(.hot) { background:var(--panel-2); color:var(--ink); border:1px solid var(--line); }
+.launch button.tile:not(.hot):hover { background:var(--panel); border-color:var(--emerald); }
+.launch button.tile:not(.hot) svg { color:var(--emerald); } .launch button.tile:not(.hot) small { color:var(--mute); }
+.launch button.tile.hot { background:var(--accent); color:var(--accent-ink); } .launch button.tile.hot small, .launch button.tile.hot svg { color:var(--accent-ink); }
