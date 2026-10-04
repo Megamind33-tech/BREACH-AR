@@ -83,7 +83,7 @@ pages['index.html'] = head('Viro WorkCare: your PC, looked after and proved', 'V
   <div class="hero3-text">
     <p class="eyebrow">Windows PC care, made in Zambia</p>
     <h1>Your PC, looked after. And proved.</h1>
-    <p class="lead">Free cleaners clear junk and hope. Viro finds what is actually wrong, fixes it, checks that the fix worked, and lets you undo it. When you buy a new PC, everything comes with you.</p>
+    <p class="lead">Free cleaners clear junk and hope. Viro checks the whole PC, software and hardware: what is wrong, how old it really is, what it is worth and what to do next. It fixes what it can, checks that the fix worked, and lets you undo it. When you buy a new PC, everything comes with you.</p>
     <div class="actions"><a class="btn big" href="${DL}">Download free for Windows</a><a class="btn big ghost" href="${BUY}">Get Viro Care</a></div>
     <p class="note">The free tools need no account. For a school, shop or office: <a href="${DEMO}">request a demonstration</a>.</p>
   </div>
@@ -105,6 +105,23 @@ pages['index.html'] = head('Viro WorkCare: your PC, looked after and proved', 'V
   <div class="stage3">${shot('app-fix', 'Fix my PC: 11.8 GB freed, memory in use down from 71% to 52%, six start-up programs turned off, each fix checked, with an Undo.')}</div>
 </div></section>
 
+
+<section id="whole-pc"><div class="wrap">
+  <div class="sec-head center"><p class="eyebrow">Not just software</p><h2>The whole PC, checked. Parts, age and value.</h2><p>Most tools only look at Windows. Viro opens up the machine: it reads every part, tells you how old the PC really is, what it is worth today, and whether to repair it, upgrade it or replace it, with an estimated price for each.</p></div>
+  <div class="grid3">
+    <div class="cell">${ico('chip')}<h3>Processor, memory and board</h3><p>What is inside, how fast it is for today's programs, how much memory is fitted, and whether a cheap upgrade would help.</p></div>
+    <div class="cell">${ico('disk')}<h3>Drives and their health</h3><p>The drive's own wear and error counts, hours powered on and unsafe shut-downs, so a failing drive is caught before your files go.</p></div>
+    <div class="cell">${ico('update')}<h3>Battery</h3><p>How much of its original capacity is left and how many times it has been charged, in plain words, with when to replace it.</p></div>
+    <div class="cell">${ico('rocket')}<h3>Cooling and heat</h3><p>Slowdowns caused by heat, clogged fans and dried thermal paste, with what to clean or service and what it costs.</p></div>
+    <div class="cell">${ico('shield')}<h3>Graphics, screen and network</h3><p>The graphics chip, the screen and its age, and the network adapters, so nothing is guessed.</p></div>
+    <div class="cell">${ico('win')}<h3>Windows 11 ready?</h3><p>Whether this PC can run Windows 11, and what it means for security updates if it cannot.</p></div>
+    <div class="cell">${ico('clock')}<h3>Real age</h3><p>An estimated age from the screen, battery, processor and Windows install records, and how that compares with the usual life of this kind of PC.</p></div>
+    <div class="cell">${ico('clean')}<h3>What it is worth</h3><p>An estimated value for a PC of this age and condition, and the price of a comparable new one.</p></div>
+    <div class="cell">${ico('help')}<h3>Repair, upgrade or replace</h3><p>One clear answer with the reasoning: repair when the work costs a small share of a new PC, replace when it does not.</p></div>
+  </div>
+  <p class="note" style="text-align:center;margin-top:22px">The free scan shows what is wrong. Wear warnings, value and the repair-or-replace answer are in Viro Care. Prices are estimates from typical prices, not quotes.</p>
+</div></section>
+
 <section id="compare"><div class="wrap">
   <div class="sec-head"><h2>Free cleaners clear junk. Viro does the rest.</h2><p>Tools like Microsoft PC Manager are a good start, and the cleaning part of Viro is free too. What they do not do is where Viro earns its place.</p></div>
   <div class="compare-wrap"><table class="compare">
@@ -115,6 +132,8 @@ pages['index.html'] = head('Viro WorkCare: your PC, looked after and proved', 'V
       <tr><th scope="row">Installed programs with their sizes</th><td class="y">Yes</td><td class="y">Yes</td><td class="y hl">Yes</td></tr>
       <tr><th scope="row">Every fix re-checked, with before and after and undo</th><td class="n">No</td><td class="n">No</td><td class="y hl">Yes</td></tr>
       <tr><th scope="row">Finds why a PC is slow or crashing</th><td class="n">No</td><td class="n">No</td><td class="y hl">Yes</td></tr>
+      <tr><th scope="row">Reads the hardware: drives, battery, cooling, memory, age</th><td class="n">No</td><td class="n">No</td><td class="y hl">Yes</td></tr>
+      <tr><th scope="row">Estimated value of your PC today</th><td class="n">No</td><td class="n">No</td><td class="y hl">Yes</td></tr>
       <tr><th scope="row">Early warning for failing drives and batteries</th><td class="n">No</td><td class="n">No</td><td class="y hl">Yes</td></tr>
       <tr><th scope="row">Repair, upgrade or replace advice, with a price for your PC's age</th><td class="n">No</td><td class="n">No</td><td class="y hl">Yes</td></tr>
       <tr><th scope="row">Remove stubborn programs, with undo</th><td class="n">No</td><td class="n">No</td><td class="y hl">Yes</td></tr>
