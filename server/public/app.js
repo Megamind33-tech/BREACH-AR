@@ -70,8 +70,14 @@ function loginView(msg = '', creds = null) {
     ${second ? `<label for="l-code">Code</label><input id="l-code" name="code" inputmode="text" autocomplete="one-time-code" placeholder="123456" required autofocus>`
     : `<label for="l-email">Email</label><input id="l-email" name="email" type="email" placeholder="you@company.com" autocomplete="username" required autofocus>
     <label for="l-pw">Password</label><input id="l-pw" name="password" type="password" placeholder="Your password" autocomplete="current-password" required>`}
-    <button>${second ? 'Verify' : 'Sign in'}</button>${second ? '<button type="button" class="ghost" id="back">Back</button>' : ''}<span class="err" role="alert">${esc(msg === '' ? '' : msg)}</span></form><p class="mute signin-about"><a href="/site/">About Viro WorkCare</a> · <a href="/site/contact.html">Contact us</a></p></div></div>`;
+    <button>${second ? 'Verify' : 'Sign in'}</button>${second ? '<button type="button" class="ghost" id="back">Back</button>' : ''}<span class="err" role="alert">${esc(msg === '' ? '' : msg)}</span></form><p class="mute signin-about">${second ? '' : 'New here? <a href="#" id="newacct">Create a personal account</a> · '}<a href="/site/">About Viro WorkCare</a> · <a href="/site/contact.html">Contact us</a></p></div></div>`;
   if (second) $('#back').onclick = () => loginView();
+  $('#newacct')?.addEventListener('click', async e => {
+    e.preventDefault();
+    const v = await dialog('Create a personal account', '<p class="mute">For your own PC or a few PCs at home. You will confirm your email address before you can sign in.</p><label>Your name</label><input name="name" required minlength="2" autocomplete="name"><label>Email</label><input name="email" type="email" required autocomplete="email"><label>Password (10 or more characters)</label><input name="password" type="password" required minlength="10" autocomplete="new-password"><label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" name="terms" required style="margin-top:4px"><span>I agree to the <a href="/site/terms.html" target="_blank" rel="noopener">terms</a> and <a href="/site/privacy.html" target="_blank" rel="noopener">privacy notice</a>.</span></label>', 'Create account');
+    if (!v) return;
+    try { const r = await post('/api/v1/signup', { name: v.name, email: v.email, password: v.password, acceptTerms: true }); loginView(r.message); } catch (x) { loginView(x.message); }
+  });
   $('#f').onsubmit = async e => {
     e.preventDefault();
     const f = Object.fromEntries(new FormData(e.target)), body = second ? { ...creds, code: f.code.trim() } : f;

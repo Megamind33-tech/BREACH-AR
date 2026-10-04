@@ -238,4 +238,46 @@ pages['contact.html'] = head('Contact | Viro WorkCare', 'Contact Orange Mobility
 </div></div>
 ` + foot();
 
+
+pages['privacy.html'] = head('Privacy notice | Viro WorkCare', 'What Viro WorkCare collects, why, how long we keep it, and how to have it removed.', '/site/privacy.html') + `
+<div class="wrap"><div class="page-head"><h1>Privacy notice</h1><p class="lead">Plain words about what we collect and why. Orange Mobility Solutions is responsible for your data.</p></div></div>
+<div class="wrap" style="padding-bottom:112px"><div class="prose">
+  <h2>What we collect</h2>
+  <p><strong>Your account:</strong> your name, email address and a protected form of your password. We use your email to confirm your account and to send what you ask for, such as a buyer certificate or a payment confirmation.</p>
+  <p><strong>About your computers:</strong> the computer's make and model, parts, Windows version, health readings (drive, battery, memory, start-up), the list of installed programs and their sizes, and what Viro fixed. We read this so we can tell you what is wrong and prove a fix worked.</p>
+  <p><strong>Payments:</strong> the order reference, amount, and the transaction number or receipt you give us. We do not receive your mobile money PIN, card number or bank password.</p>
+  <p><strong>Backups (Viro Move), if you use them:</strong> the files and settings you choose. They are encrypted on your computer before they leave it, with a key that only you hold, so we cannot read them. If you lose the key we cannot recover them.</p>
+  <h2>What we do not do</h2>
+  <p>We do not sell your data. We do not read your files, browsing history or messages. We do not run adverts. Serial numbers are never published: a buyer certificate shows only the last four characters.</p>
+  <h2>Who sees it</h2>
+  <p>You, and the staff of Orange Mobility Solutions who support you. If you are part of an organization, its administrators see that organization's computers. Our email provider sends the messages you ask for.</p>
+  <h2>How long we keep it</h2>
+  <p>While your account is open. When you close it, or ask us to, we delete your account, computers, backups and certificates, except records we must keep for accounting or the law.</p>
+  <h2>Your choices</h2>
+  <p>You can ask to see, correct, export or delete your data at any time. Write to <a href="mailto:${CO.email}">${CO.email}</a> and we will answer within a reasonable time.</p>
+  <p class="mute">Last updated 4 October 2026.</p>
+</div></div>
+` + foot();
+
+pages['terms.html'] = head('Terms of use | Viro WorkCare', 'The terms for using Viro WorkCare.', '/site/terms.html') + `
+<div class="wrap"><div class="page-head"><h1>Terms of use</h1><p class="lead">What you can expect from Viro WorkCare, and what we ask of you.</p></div></div>
+<div class="wrap" style="padding-bottom:112px"><div class="prose">
+  <h2>The service</h2>
+  <p>Viro WorkCare helps you look after Windows computers: it finds problems, makes fixes you approve, checks that they worked, and lets you undo them. Some features are free and some are part of a paid plan. What is included in each plan is shown on the Plan and payments page.</p>
+  <h2>Changes to your computer</h2>
+  <p>Fixes change your computer. Viro checks the result and keeps what it needs to undo the change, but no software can promise that nothing will ever go wrong. Keep copies of files you cannot afford to lose. Programs removed by force are moved aside, not deleted, so they can be restored.</p>
+  <h2>Estimates and certificates</h2>
+  <p>Ages, values, remaining life and repair costs are estimates for planning. A certificate states what Viro measured on the day shown. It is not a warranty and cannot see damage that has no sensor. Do not rely on it as the only check before you buy.</p>
+  <h2>Payments</h2>
+  <p>You pay by mobile money, bank transfer or cash, quoting the reference we give you. Your plan starts when we confirm the money has arrived. Plans are for the computers and period you paid for. If something is wrong with a payment, write to us and we will put it right.</p>
+  <h2>Your account</h2>
+  <p>Keep your password private and use the service lawfully. Use Viro only on computers you own or are allowed to manage. We may suspend an account that is used to harm others or to break the law.</p>
+  <h2>Our responsibility</h2>
+  <p>We work to keep the service reliable but cannot promise it will always be available. To the extent the law allows, our responsibility for any loss is limited to the amount you paid us in the last twelve months.</p>
+  <h2>Contact</h2>
+  <p>Questions about these terms: <a href="mailto:${CO.email}">${CO.email}</a>.</p>
+  <p class="mute">Last updated 4 October 2026.</p>
+</div></div>
+` + foot();
+
 for (const [file, html] of Object.entries(pages)) { writeFileSync(join(OUT, file), html); console.log('wrote site/' + file, html.length, 'bytes'); }

@@ -9,6 +9,7 @@ import { buildStatement, serialKey } from './certificate-content.js';
 import { certificateEmail, certificateEmailHtml, verifyPage } from './certificate-pages.js';
 import { anatomyHelpers } from './anatomy.js';
 import { REFERENCE_PRICE_BOOK } from './anatomy-engine.js';
+import { lacks } from './entitlements.js';
 export { buildStatement, serialKey };
 
 /**
@@ -62,6 +63,7 @@ export function registerCertificateRoutes(app: FastifyInstance, c: JobCtx, deps:
   app.post('/api/v1/devices/:id/certificates', { preHandler: c.requireRole('admin') }, async (req, reply) => {
     const { id } = z.object({ id: uuid }).parse(req.params);
     const b = z.object({ buyerEmail: z.string().email().max(200) }).strict().parse(req.body);
+    { const why = await lacks(db, req.user.org, 'certificate.issue'); if (why) return reply.code(402).send({ error: why, upgrade: true }); }
     if (!mailer || !signer) return reply.code(503).send({ error: 'Certificates cannot be issued yet: Viro email delivery or the signing key is not set up on this server.' });
     if (!(await db.query('SELECT 1 FROM devices WHERE id=$1 AND org_id=$2 AND revoked_at IS NULL', [id, req.user.org])).rowCount) return reply.code(404).send({ error: 'computer not found' });
     await db.query(`UPDATE resale_certificates SET status='failed', failure='the computer did not report back in time' WHERE status='awaiting_inspection' AND requested_at < now() - interval '${INSPECTION_WAIT_HOURS} hours'`);

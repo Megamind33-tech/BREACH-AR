@@ -43,6 +43,7 @@ import { registerJobRoutes, jobsForHeartbeat, type JobSigner } from './jobs.js';
 import { registerPlatformRoutes } from './platform.js';
 import { registerPlatformOps } from './platform-ops.js';
 import { registerBillingRoutes } from './billing.js';
+import { registerSignupRoutes } from './signup.js';
 import { registerTwinRoutes } from './twin.js';
 import { ensureAnatomy, computeWanted } from './autoprovision.js';
 import { registerWakeRoutes, AdapterSchema } from './wake.js';
@@ -171,13 +172,14 @@ export async function buildApp(cfg: AppConfig) {
   // ---- administrator auth -------------------------------------------------
   app.post('/api/v1/auth/login', { config: { rateLimit: { max: cfg.loginRateLimitPerMinute ?? 10, timeWindow: '1 minute' } } }, async (req, reply) => {
     const body = z.object({ email: z.string(), password: z.string(), code: z.string().max(40).nullish() }).parse(req.body);
-    const r = await db.query('SELECT u.id, u.org_id, u.role, u.password_hash, u.disabled_at, u.mfa_secret_enc, u.mfa_last_step, u.mfa_locked_until, o.require_mfa, (o.suspended_at IS NOT NULL) AS suspended FROM users u JOIN organizations o ON o.id=u.org_id WHERE u.email=lower($1)', [body.email]);
+    const r = await db.query('SELECT u.id, u.org_id, u.role, u.email_verified_at, u.password_hash, u.disabled_at, u.mfa_secret_enc, u.mfa_last_step, u.mfa_locked_until, o.require_mfa, (o.suspended_at IS NOT NULL) AS suspended FROM users u JOIN organizations o ON o.id=u.org_id WHERE u.email=lower($1)', [body.email]);
     const u = r.rows[0];
     const ok = u ? await verifyPassword(body.password, u.password_hash) : (await hashPassword('x'), false);
     if (!ok || u.disabled_at) {
       await audit({ orgId: u?.org_id ?? null, actorType: 'user', actorId: body.email, action: 'auth.login', result: 'denied', ip: req.ip });
       return reply.code(401).send({ error: 'invalid credentials' });
     }
+    if (!u.email_verified_at) return reply.code(403).send({ error: 'Confirm your email first: open the link we sent you.', emailNotVerified: true });
     if (u.suspended) { await audit({ orgId: u.org_id, actorType: 'user', actorId: u.id, action: 'auth.login', result: 'denied', ip: req.ip }); return reply.code(403).send({ error: 'this organization is suspended; contact the platform' }); }
     if (u.mfa_secret_enc) {
       if (!body.code) return reply.code(401).send({ error: 'mfa_required', mfa: true });
@@ -194,7 +196,7 @@ export async function buildApp(cfg: AppConfig) {
   });
 
   app.get('/api/v1/me', { preHandler: requireRole('viewer') }, async req => {
-    const o = await db.query('SELECT id, name, plan FROM organizations WHERE id=$1', [req.user.org]);
+    const o = await db.query('SELECT id, name, plan, kind FROM organizations WHERE id=$1', [req.user.org]);
     return { userId: req.user.sub, role: req.user.role, organization: o.rows[0], mfaSetupRequired: !!req.user.mfaSetup };
   });
 
@@ -495,6 +497,7 @@ export async function buildApp(cfg: AppConfig) {
   registerPassportRoutes(app, jobCtx);
   registerHistoryRoutes(app, jobCtx);
   const mailer = createMailer(db); app.decorate('mailer', mailer);
+  registerSignupRoutes(app, jobCtx, { mailer, baseUrl: process.env.PUBLIC_BASE_URL || 'https://control.viro3.online' });
   registerCertificateRoutes(app, jobCtx, { mailer, signer: CertSigner.load(), baseUrl: process.env.PUBLIC_BASE_URL || 'https://control.viro3.online' });
   registerIncidentRoutes(app, { ...jobCtx, signer: cfg.signer }, { healthOf });
   registerFleetRoutes(app, jobCtx);

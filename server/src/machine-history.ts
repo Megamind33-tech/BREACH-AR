@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { FastifyInstance } from 'fastify';
 import type { JobCtx } from './jobs.js';
+import { lacks } from './entitlements.js';
 
 /**
  * The machine's history: what Windows, the hardware and Viro's own records say about how this computer has been used and changed.
@@ -101,6 +102,7 @@ export async function loadHistory(c: JobCtx, orgId: string, deviceId: string) {
 export function registerHistoryRoutes(app: FastifyInstance, c: JobCtx) {
   app.get('/api/v1/devices/:id/history', { preHandler: c.requireRole('viewer') }, async (req, reply) => {
     const { id } = z.object({ id: z.string().uuid() }).parse(req.params);
+    const why = await lacks(c.db, req.user.org, 'history.machine'); if (why) return reply.code(402).send({ error: why, upgrade: true });
     const h = await loadHistory(c, req.user.org, id);
     return h ? h : reply.code(404).send({ error: 'computer not found' });
   });
