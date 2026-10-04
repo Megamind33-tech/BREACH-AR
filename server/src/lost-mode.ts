@@ -88,7 +88,7 @@ export function registerLostModeRoutes(app: FastifyInstance, c: JobCtx) {
   app.post('/agent/v1/lost/recovered', { preHandler: c.requireDevice }, async req => {
     const { id, orgId } = req.device!;
     await db.query(`UPDATE devices SET lost_mode=false, lost_passphrase=NULL, recovered_at=now() WHERE id=$1`, [id]);
-    await c.audit({ orgId, actorType: 'device', actorId: id, action: 'device.lost.recovered', targetType: 'device', targetId: id, ip: req.ip });
+    await c.audit({ orgId, actorType: 'device', actorId: id, action: 'device.lost.recovered', targetType: 'device', targetId: id, ip: req.ip } as any);
     return { ok: true };
   });
 
