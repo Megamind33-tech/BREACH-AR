@@ -30,7 +30,7 @@ const js = async expr => { const r = await send('Runtime.evaluate', { expression
 
 await send('Page.enable');
 await send('Emulation.setDeviceMetricsOverride', { width: VW, height: VH, deviceScaleFactor: DSF, mobile: false });
-await send('Page.addScriptToEvaluateOnNewDocument', { source: `window.__start='overview';window.__scenario='plus';` + mock });
+await send('Page.addScriptToEvaluateOnNewDocument', { source: `window.__start='overview';window.__scenario='demo';` + mock });
 await send('Page.navigate', { url: ui }); await sleep(2800);
 
 // the film overlay: cursor, step caption, and title / end cards

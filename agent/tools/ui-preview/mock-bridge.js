@@ -3,16 +3,18 @@
    Used only by tools/ui-preview/preview.mjs; it is never shipped. */
 (function () {
   const GB = 1073741824, MB = 1048576, now = Date.now(), ago = m => new Date(now - m * 60000).toISOString();
-  const SCENARIO = (window.__scenario || 'attention');
+  const SCENARIO0 = (window.__scenario || 'attention');
+  // 'demo' is a person with Viro Care on their own PC: the 'plus' data, in kwacha, with no organization behind it
+  const DEMO = SCENARIO0 === 'demo', SCENARIO = DEMO ? 'plus' : SCENARIO0;
 
   const findings = [
     { reason: 'The system drive is almost full', recommendation: 'Free up space before Windows runs out of room for updates. Viro found 11.4 GB it can clear safely.', impact: 'high', category: 'storage', remedy: 'safe-fix', fix: { recipe: 'cleanup.safe' } },
     { reason: 'Programs are holding 2.8 GB of memory they are not using', recommendation: 'Viro can ask Windows to take that memory back. Nothing is closed.', impact: 'medium', category: 'performance', remedy: 'safe-fix', fix: { recipe: 'memory.trim-idle' } },
     { reason: '9 programs start with Windows and slow the start-up', recommendation: 'Stop the ones you do not need at start-up. They still open when you start them.', impact: 'medium', category: 'performance', remedy: 'safe-fix', fix: { recipe: 'startup.optimize' } },
     { reason: 'The battery holds 62% of its original capacity', recommendation: 'It still works, but it will not last through a lesson. Plan a replacement.', impact: 'medium', category: 'hardware', remedy: 'hardware' },
-    { reason: 'One program crashed 6 times this week', recommendation: 'Viro found the likely cause and can repair the program.', impact: 'medium', category: 'reliability', remedy: 'review' },
-    { reason: 'Windows Firewall is turned off for private networks', recommendation: 'Turn it back on. Viro checks that it stays on.', impact: 'high', category: 'security', remedy: 'review' },
-    { reason: '2 driver updates are waiting', recommendation: 'Drivers are rolled out by your administrator, one computer first.', impact: 'low', category: 'drivers', remedy: 'review' },
+    { reason: 'One program crashed 6 times this week', recommendation: 'Viro found the likely cause and can repair the program.', impact: 'medium', category: 'reliability', remedy: DEMO ? 'manual' : 'review' },
+    { reason: 'Windows Firewall is turned off for private networks', recommendation: 'Turn it back on. Viro checks that it stays on.', impact: 'high', category: 'security', remedy: DEMO ? 'manual' : 'review' },
+    { reason: '2 driver updates are waiting', recommendation: 'Drivers are rolled out by your administrator, one computer first.', impact: 'low', category: 'drivers', remedy: DEMO ? 'manual' : 'review' },
   ];
   const view = SCENARIO === 'healthy' ? null : {
     hostname: 'LAB-PC-02', autopilotLevel: 'BALANCED',
@@ -37,7 +39,7 @@
       { kind: 'memory', title: 'Gave back 1.4 GB of idle memory', at: ago(380), detail: 'Nothing was closed' },
       { kind: 'resolved', title: 'Windows Firewall turned back on', at: ago(1500), detail: 'Verified by Windows' },
     ],
-    workspace: { organization: 'Riverside Academy', site: 'Science Block', department: 'Computer Lab' },
+    workspace: DEMO ? null : { organization: 'Riverside Academy', site: 'Science Block', department: 'Computer Lab' },
   };
 
   const startup = [
@@ -113,7 +115,7 @@
       { kind: 'NVMe SSD', label: 'WD PC SN740 512 GB', risk: 'WATCH', why: ['471 unsafe shutdowns recorded.'], action: null },
       { kind: 'Graphics', label: 'Intel UHD Graphics', risk: 'LOW', why: ['Nothing points at a graphics problem.'], action: null } ] },
     advice: { age: { ageYears: 6.7 }, lifeStage: { stage: 'Past its typical life' }, windows: { supportNote: null }, priceNote: 'Viro typical prices (an estimate, not a quote)',
-      cost: { priced: true, currency: 'USD', decision: 'REPAIR', repairTotal: 125, residualValue: 63, replacementCost: 700, lines: [ { title: 'Replace the memory with 16 GB', total: 65, priced: true }, { title: 'Cooling service', total: 60, priced: true } ], reasoning: ['The repairs cost 18% of a new computer; the rule is to repair when that is 35% or less.'] } },
+      cost: { priced: true, currency: DEMO ? 'ZMW' : 'USD', decision: 'REPAIR', repairTotal: DEMO ? 3350 : 125, residualValue: DEMO ? 1700 : 63, replacementCost: DEMO ? 18900 : 700, lines: [ { title: 'Replace the memory with 16 GB', total: DEMO ? 1750 : 65, priced: true }, { title: 'Cooling service', total: DEMO ? 1600 : 60, priced: true } ], reasoning: ['The repairs cost 18% of a new computer; the rule is to repair when that is 35% or less.'] } },
     history: { facts: [ { label: 'Windows versions upgraded through', value: '2', basis: 'measured' }, { label: 'Memory changes seen', value: '0', basis: 'observed' }, { label: 'NVMe drive: time powered on', value: '2,148 hours (about 0.2 years)', basis: 'measured' } ], limits: ['A clean reinstall erases Windows own upgrade records, so the reinstall count is a minimum, never an exact count.'] } } };
   if (SCENARIO === 'plus') {
     data['account.status'].features.push('move.cloud');

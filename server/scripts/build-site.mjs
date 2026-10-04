@@ -83,11 +83,13 @@ const pages = {};
 
 // ------------------------------------------------------------------ home
 pages['index.html'] = head('Viro WorkCare: your PC, looked after and proved', 'Viro finds what is wrong with your Windows PC, fixes it, checks the fix worked and lets you undo it. Move to a new PC without starting over. For one PC or a whole organization.', '/site/') + `
-<section class="hero3"><div class="wrap hero3-in">
+<section class="hero3">
+  <video class="hero-video" muted loop playsinline autoplay preload="metadata" poster="/media/hero-poster.jpg" aria-hidden="true" tabindex="-1" disablepictureinpicture disableremoteplayback><source src="/media/hero.mp4" type="video/mp4"></video>
+<div class="wrap hero3-in">
   <div class="hero3-text">
     <p class="eyebrow">Windows PC care, made in Zambia</p>
     <h1>Your PC, looked after. And proved.</h1>
-    <p class="lead">Free cleaners clear junk and hope. Viro checks the whole PC, software and hardware: what is wrong, how old it really is, what it is worth and what to do next. It fixes what it can, checks that the fix worked, and lets you undo it. When you buy a new PC, everything comes with you.</p>
+    <p class="lead">Free cleaners clear junk and hope. Viro checks the whole PC, software and hardware: what is wrong, how old it really is and what it is worth. It fixes what it can, proves the fix worked, and lets you undo it.</p>
     <div class="actions"><a class="btn big" href="${DL}">Download free for Windows</a><a class="btn big ghost" href="${BUY}">Get Viro Care</a></div>
     <p class="note">The free tools need no account. For a school, shop or office: <a href="${DEMO}">request a demonstration</a>.</p>
   </div>

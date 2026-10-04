@@ -260,7 +260,7 @@ function drawNav() {
 function drawStrip() {
   const s = S.sys, v = S.view, w = v?.workspace;
   const parts = [`<b>${esc(v?.hostname || S.env?.machine || 'This PC')}</b>`, s?.cpu && esc(s.cpu.replace(/\s+\d+-Core Processor|\(R\)|\(TM\)/g, '').replace(/\s{2,}/g, ' ').trim()), s?.ramGb && `${Math.round(s.ramGb)} GB memory`, s?.os && esc(s.os), s?.uptimeSeconds != null && `Up ${upText(s.uptimeSeconds)}`].filter(Boolean);
-  $('#strip').innerHTML = `<span class="dot ${v ? 'ok' : ''}" style="margin:0"></span><span class="t">${parts.join('<i> · </i>')}</span><span class="sp"></span><span class="conn">${v ? `Managed by ${esc(w?.organization || 'your organization')}` : S.acct?.signedIn ? `${esc(S.acct.planName || 'Free plan')} · ${esc(S.acct.email)}` : 'Free plan · <a href="#" id="conn-acct" style="color:var(--green)">Sign in</a>'}</span>`;
+  $('#strip').innerHTML = `<span class="dot ${v ? 'ok' : ''}" style="margin:0"></span><span class="t">${parts.join('<i> · </i>')}</span><span class="sp"></span><span class="conn">${v && (w?.organization || !S.acct?.signedIn) ? `Managed by ${esc(w?.organization || 'your organization')}` : S.acct?.signedIn ? `${esc(S.acct.planName || 'Free plan')} · ${esc(S.acct.email)}` : 'Free plan · <a href="#" id="conn-acct" style="color:var(--green)">Sign in</a>'}</span>`;
   $('#conn-acct')?.addEventListener('click', e => { e.preventDefault(); go('account'); });
 }
 function head(extra = '') { const [t, s] = TITLES[S.page]; $('#top').innerHTML = `<div><h1>${t}</h1><p>${s}</p></div><div class="actions">${extra}</div>`; }
@@ -701,7 +701,7 @@ RENDER.report = async () => {
   if (!a.signedIn) { $('#view').innerHTML = `<div class="page">${note('Sign in to your Viro account to read this PC. The reading is worked out by Viro and is not kept.')}<div class="tight row"><button class="btn primary" id="si">Sign in</button></div></div>`; $('#si').onclick = () => go('account'); return; }
   $('#view').innerHTML = scanning('gauge', 'Reading this PC…', 'Drives, battery, memory, age and history. This takes up to a minute.');
   const r = await call('pc.report', {}); if (!r.ok) { $('#view').innerHTML = `<div class="page">${note(esc(r.message || 'Could not read this PC.'))}</div>`; return; }
-  const d = r.report, cur = d.advice?.cost?.currency || 'USD', money = n => n == null ? '—' : cur + ' ' + Number(n).toLocaleString('en-US');
+  const d = r.report, cur = d.advice?.cost?.currency || 'USD', money = n => n == null ? '—' : (cur === 'ZMW' ? 'K' : cur) + ' ' + Number(n).toLocaleString('en-US');
   const lockCard = (feat, text) => `<div class="card page"><div class="row"><span style="color:var(--green)">${ic('lock', 20)}</span><div class="grow"><b>${esc(a.titles[feat] || feat)}</b><div class="sub">${text}</div></div><button class="btn primary sm" data-plans>See plans</button></div></div>`;
   const adv = d.advice, hist = d.history, hl = d.health;
   const verdict = adv?.cost?.priced ? ({ KEEP: ['Keep it', 'ok'], REPAIR: ['Repair it', 'warn'], REPLACE: ['Replace it', 'bad'], UNDECIDED: ['Not enough information', 'na'] }[adv.cost.decision] || ['', 'na']) : null;

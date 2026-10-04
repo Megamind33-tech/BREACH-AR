@@ -198,3 +198,12 @@ footer { border-top:1px solid var(--line); padding:64px 0 36px; background:#f4f8
 .usage-steps { list-style:none; counter-reset:u; display:flex; flex-wrap:wrap; justify-content:center; gap:10px 22px; max-width:1100px; margin:28px auto 0; padding:0; color:var(--mute); font-size:15px; }
 .usage-steps li { counter-increment:u; display:flex; align-items:center; gap:8px; } .usage-steps li::before { content:counter(u); width:24px; height:24px; border-radius:50%; background:var(--accent); color:#fff; font-size:13px; font-weight:700; display:grid; place-items:center; flex:none; }
 @media (max-width:560px) { .usage video { border-radius:10px; } .usage-steps { flex-direction:column; align-items:flex-start; } }
+
+/* ---- the first screen: deep green, with the dew-covered plant glowing behind the app ---- */
+.hero3 { position:relative; isolation:isolate; color:#fff; background:radial-gradient(60% 75% at 88% 8%, rgba(37,170,115,.34) 0, transparent 62%), radial-gradient(45% 55% at 0% 100%, rgba(95,224,168,.12) 0, transparent 70%), #07120e; }
+.hero3::before { content:''; position:absolute; inset:0; z-index:-1; background-image:radial-gradient(rgba(255,255,255,.07) 1.4px, transparent 1.5px); background-size:34px 34px; -webkit-mask-image:linear-gradient(180deg,#000 0,transparent 85%); mask-image:linear-gradient(180deg,#000 0,transparent 85%); }
+.hero3 .hero-video { position:absolute; z-index:-1; top:0; right:0; height:100%; width:auto; aspect-ratio:16/9; max-width:80%; object-fit:cover; mix-blend-mode:screen; opacity:.85; pointer-events:none; -webkit-mask-image:linear-gradient(90deg, transparent 0, transparent 26%, #000 62%); mask-image:linear-gradient(90deg, transparent 0, transparent 26%, #000 62%); }
+.hero3 .eyebrow { color:#5fe0a8; } .hero3 h1 { color:#fff; } .hero3 .lead { color:rgba(255,255,255,.76); } .hero3 .note { color:rgba(255,255,255,.62); } .hero3 .note a { color:#5fe0a8; }
+.hero3 .btn.ghost { color:#fff; border-color:rgba(255,255,255,.35); background:rgba(255,255,255,.04); } .hero3 .btn.ghost:hover { background:rgba(255,255,255,.1); }
+.hero3 .collage .pic { box-shadow:0 0 0 1px rgba(255,255,255,.1), 0 40px 90px rgba(0,0,0,.55); }
+@media (max-width:900px) { .hero3 .hero-video { top:auto; bottom:0; height:46%; width:100%; max-width:none; aspect-ratio:auto; opacity:.55; -webkit-mask-image:linear-gradient(0deg,#000 35%,transparent); mask-image:linear-gradient(0deg,#000 35%,transparent); } }
