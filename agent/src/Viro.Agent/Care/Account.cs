@@ -109,6 +109,7 @@ public static class FeatureGate
         {
             case "slow.analyze": case "stability.analyze": return "diagnose.cause";
             case "apps.repair": return "repair.programs";
+            case "fix.all": return "fix.verified";
             case "apps.uninstall": return args.ValueKind == JsonValueKind.Object && args.TryGetProperty("forced", out var f) && f.ValueKind == JsonValueKind.True ? "uninstall.forced" : null;
             case "recipe.run":
                 var r = args.ValueKind == JsonValueKind.Object && args.TryGetProperty("recipe", out var x) ? x.GetString() : null;

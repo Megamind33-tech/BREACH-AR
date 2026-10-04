@@ -72,6 +72,26 @@ public sealed class LocalBridge(LocalActions act, Func<bool>? isAdmin = null, Ac
                 var r = await act.RunRecipeAsync("app.uninstall", ct, o);
                 return new { verified = r.Verified == true, applied = r.Applied, needed = r.Needed, r.Summary, rebootRequired = r.RebootRequired, needsAdmin = r.Summary.Contains("administrator", StringComparison.OrdinalIgnoreCase), canForce = r.Applied == false && r.Needed && !r.Summary.Contains("protected", StringComparison.OrdinalIgnoreCase), repairId = r.RepairId, undoable = r.RollbackAvailable };
             }
+            case "fix.all":      // one pass through every safe fix, measured before and after, so the person sees what actually changed
+            {
+                (long free, double mem, int startup) Snap()
+                {
+                    var d = new DriveInfo(Path.GetPathRoot(Environment.GetFolderPath(Environment.SpecialFolder.Windows))!);
+                    return (d.AvailableFreeSpace, Math.Round(act.MemoryNow().UsedPercent, 1), act.StartupPrograms().Count(a => a.Item.Enabled));
+                }
+                var before = await Task.Run(Snap, ct); var steps = new List<object>();
+                foreach (var recipe in new[] { "cleanup.safe", "memory.trim-idle", "startup.optimize" })
+                {
+                    try
+                    {
+                        var r = await act.RunRecipeAsync(recipe, ct);
+                        steps.Add(new { recipe, title = r.Title, needed = r.Needed, applied = r.Applied, verified = r.Verified == true, r.Summary, undoId = r.RollbackAvailable ? r.RepairId : null, needsAdmin = r.Summary.Contains("administrator", StringComparison.OrdinalIgnoreCase) });
+                    }
+                    catch (Exception e) when (e is not OperationCanceledException) { steps.Add(new { recipe, title = recipe, needed = false, applied = false, verified = false, Summary = e.Message, undoId = (string?)null, needsAdmin = false }); }
+                }
+                var after = await Task.Run(Snap, ct);
+                return new { before = new { freeBytes = before.free, memoryPercent = before.mem, startupItems = before.startup }, after = new { freeBytes = after.free, memoryPercent = after.mem, startupItems = after.startup }, steps };
+            }
             case "slow.analyze":
             {
                 var shut = await Task.Run(() => ShutdownHistory.Read(), ct); var boot = await Task.Run(() => BootHistory.Read(), ct); var env = act.Env;

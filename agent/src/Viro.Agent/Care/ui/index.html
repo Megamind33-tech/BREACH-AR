@@ -298,8 +298,9 @@ function issueRow(f) {
   return `<div class="issue ${esc(f.impact)}" data-impact="${esc(f.impact)}"><i class="sev"></i><b>${esc(f.reason)}</b><span class="tag">${esc(CAT[f.category] || f.category)}</span><div>${act}</div>${f.recommendation ? `<div class="more">${esc(f.recommendation)}</div>` : ''}</div>`;
 }
 RENDER.overview = async () => {
-  const v = await load(); drawNav(); head(`<button class="btn primary" id="rf">${ic('refresh')}Check again</button>`);
+  const v = await load(); drawNav(); head(`<button class="btn ghost" id="rf">${ic('refresh')}Check again</button><button class="btn primary" id="fixall">${ic('wrench')}Fix my PC</button>`);
   $('#rf').onclick = e => busy(e.currentTarget, 'Checking', async () => { await load(true); RENDER.overview(); });
+  $('#fixall').onclick = e => fixMyPc(e.currentTarget);
   const vitals = foot => `<div class="card vitals">${vital('cpu', 'chip', 'Processor', '<span></span>')}${vital('ram', 'gauge', 'Memory', '<a data-go2="memory">Details</a>')}${vital('disk', 'disk', 'Drive C:', '<a data-go2="space">Free up space</a>')}${foot || ''}</div>`;
   if (!v?.health) {
     $('#view').innerHTML = `<div class="page">${vitals('')}<div class="head2"><h2>Tools</h2></div><div class="grid g3">
@@ -332,6 +333,26 @@ RENDER.overview = async () => {
 async function fixFinding(b) {
   const rec = b.dataset.fix; if (rec === 'cleanup.safe') return go('space');
   await busy(b, 'Fixing', async () => { const r = await call('recipe.run', { recipe: rec }); toast(r.summary, r.verified || !r.needed ? 'ok' : 'bad'); S.view = undefined; RENDER.overview(); });
+}
+
+/* ----- Fix my PC: every safe fix in one pass, measured before and after ----- */
+async function fixMyPc(btn) {
+  if (!await modal('Fix my PC?', 'Viro will clear temporary files, give back idle memory and turn off start-up programs that only slow you down. It measures your PC before and after, and every change can be undone.', 'Fix my PC')) return;
+  const r = await busy(btn, 'Fixing and checking', () => call('fix.all'));
+  if (!r) return; S.view = undefined; showFixResult(r);
+}
+function showFixResult(r) {
+  head(); const b = r.before, a = r.after;
+  const freed = a.freeBytes - b.freeBytes, mem = +(b.memoryPercent - a.memoryPercent).toFixed(1), st = b.startupItems - a.startupItems;
+  const ok = r.steps.filter(x => x.applied && x.verified).length, bad = r.steps.filter(x => x.applied && !x.verified).length, nothing = r.steps.every(x => !x.applied);
+  const row = (k, was, now, change, good) => `<div class="ctl"><div class="grow"><b>${k}</b></div><div class="muted" style="width:130px;text-align:right">Before ${was}</div><div style="width:130px;text-align:right"><b style="color:#fff">After ${now}</b></div><span class="pill ${good ? 'ok' : 'na'}" style="min-width:92px;justify-content:center">${change}</span></div>`;
+  $('#view').innerHTML = `<div class="page">${sum([{ k: 'Result', v: nothing ? 'Already in good shape' : `${ok} fix${ok === 1 ? '' : 'es'} checked`, tone: bad ? 'warn' : '' }, { k: 'Space freed', v: freed > 0 ? gb(freed) : '0 MB' }, { k: 'Memory in use', v: a.memoryPercent + '%', sub: mem > 0 ? `down ${mem} points` : '' }, { k: 'Start-up programs on', v: a.startupItems, sub: st > 0 ? `${st} turned off` : '' }])}
+    ${panel('Before and after', 'Measured on this PC just now, not estimated.', '<button class="btn ghost sm" id="again">Run again</button>',
+      row('Free space', gb(b.freeBytes), gb(a.freeBytes), freed > 0 ? '+' + gb(freed) : 'no change', freed > 0) + row('Memory in use', b.memoryPercent + '%', a.memoryPercent + '%', mem > 0 ? '-' + mem + ' points' : 'no change', mem > 0) + row('Start-up programs on', b.startupItems, a.startupItems, st > 0 ? st + ' off' : 'no change', st > 0))}
+    ${panel('What was done', 'Each fix is checked after it runs. Undo puts things back exactly as they were.', '', r.steps.map(x => `<div class="ctl"><span class="check ${x.applied && x.verified ? 'on' : ''}">${ic(x.applied && x.verified ? 'check' : x.applied ? 'alert' : 'info', 12)}</span><div class="grow"><b>${esc(x.title)}</b><small>${esc(x.summary)}</small></div>${x.undoId ? `<button class="btn ghost sm" data-undo="${esc(x.undoId)}">Undo</button>` : x.needsAdmin ? '<span class="pill warn">Needs administrator</span>' : ''}</div>`).join(''))}
+    <div class="note">${ic('info')}<div>Start-up time shows its change the next time the PC restarts: check it on the Start-up and shut-down page.</div></div></div>`;
+  $('#again').onclick = e => fixMyPc(e.currentTarget);
+  $$('[data-undo]').forEach(u => u.onclick = async () => { if (!await modal('Undo this fix?', 'Viro will put things back exactly as they were.', 'Undo')) return; await busy(u, 'Undoing', async () => { const x = await call('undo', { id: u.dataset.undo }); toast(x.summary, x.rolledBack ? 'ok' : 'bad'); u.remove(); }); });
 }
 
 /* ----- security ----- */

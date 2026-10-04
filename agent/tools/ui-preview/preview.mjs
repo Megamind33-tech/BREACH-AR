@@ -42,6 +42,7 @@ await send('Runtime.enable');
 for (const page of pages) {
   const { identifier } = await send('Page.addScriptToEvaluateOnNewDocument', { source: `window.__start=${JSON.stringify(page)};window.__scenario=${JSON.stringify(scenario)};` + mock });
   await send('Page.navigate', { url: ui }); await sleep(2600);
+  if (arg('eval', '')) { await js(arg('eval', '')); await sleep(1200); }
   const { data } = await send('Page.captureScreenshot', { format: 'png' });
   writeFileSync(join(OUT, `${tag}-${page}.png`), Buffer.from(data, 'base64'));
   await send('Page.removeScriptToEvaluateOnNewDocument', { identifier });
