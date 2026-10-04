@@ -43,7 +43,15 @@ for (const page of pages) {
   const { identifier } = await send('Page.addScriptToEvaluateOnNewDocument', { source: `window.__start=${JSON.stringify(page)};window.__scenario=${JSON.stringify(scenario)};` + mock });
   await send('Page.navigate', { url: ui }); await sleep(2600);
   if (arg('eval', '')) { await js(arg('eval', '')); await sleep(1200); }
-  const { data } = await send('Page.captureScreenshot', { format: 'png' });
+  const pane = process.argv.includes('--pane'); let clip;
+  if (process.argv.includes('--fit') || process.argv.includes('--full') || pane) {
+    const full = process.argv.includes('--full');
+    const need = await js("(()=>{const v=document.getElementById('view');const n=document.getElementById('nav');const own=Math.ceil(v.getBoundingClientRect().top + v.scrollHeight);return " + (full ? "Math.max(own, Math.ceil(n.getBoundingClientRect().top + n.scrollHeight + 150))" : "own") + "})()");
+    const h = pane ? need + 18 : Math.max(height, need + 6);
+    await send('Emulation.setDeviceMetricsOverride', { width, height: h, deviceScaleFactor: 1, mobile: false }); await sleep(700);
+    if (pane) clip = { x: 224, y: 0, width: width - 224, height: h, scale: 1 };
+  }
+  const { data } = await send('Page.captureScreenshot', { format: 'png', ...(clip ? { clip } : {}) });
   writeFileSync(join(OUT, `${tag}-${page}.png`), Buffer.from(data, 'base64'));
   await send('Page.removeScriptToEvaluateOnNewDocument', { identifier });
   console.log('wrote', `${tag}-${page}.png`);

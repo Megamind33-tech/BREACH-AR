@@ -16,7 +16,7 @@ const PRICE = { care: 250, careHelp: 450, orgFrom: 35, certificate: 60 };
 const DL = '/install/ViroAgent.msi', SIGNUP = 'https://control.viro3.online/?signup=1';
 const esc = s => s.replace(/&(?!amp;|#)/g, '&amp;');
 const IMG = Object.fromEntries(readdirSync(join(OUT, 'img')).filter(f => f.endsWith('.webp')).map(f => [f.replace('.webp', ''), execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'stream=width,height', '-of', 'csv=p=0', join(OUT, 'img', f)]).toString().trim().split(',').map(Number)]));
-const shot = (name, alt, { eager = false } = {}) => `<figure class="window"><div class="wbar" aria-hidden="true"><i></i><i></i><i></i><span>Viro WorkCare</span></div><img src="/site/img/${name}.webp" width="${IMG[name][0]}" height="${IMG[name][1]}" alt="${alt}"${eager ? ' fetchpriority="high"' : ' loading="lazy" decoding="async"'}></figure>`;
+const shot = (name, alt, { eager = false, fade = false } = {}) => `<img class="pic${fade ? ' fade' : ''}" src="/site/img/${name}.webp" width="${IMG[name][0]}" height="${IMG[name][1]}" alt="${alt}"${eager ? ' fetchpriority="high"' : ' loading="lazy" decoding="async"'}>`;
 
 const head = (title, description, page) => `<!doctype html>
 <html lang="en">
@@ -62,24 +62,35 @@ const band = (h, p) => `<section class="tight"><div class="wrap"><div class="ban
 </div></div></section>
 <script src="/hero-video.js"></script>
 `;
-const row = ({ title, text, points, img, alt, flip }) => `<div class="row${flip ? ' flip' : ''}">
+const row = ({ title, text, points, img, alt, flip, fade }) => `<div class="row${flip ? ' flip' : ''}">
   <div class="text"><h2>${title}</h2><p>${text}</p><ul class="points">${points.map(p => `<li>${p}</li>`).join('')}</ul></div>
-  <div class="media">${shot(img, alt)}</div>
+  <div class="media">${shot(img, alt, { fade })}</div>
 </div>`;
 
+const ICO = {
+  clean: '<path d="M4 20h10M7 20l3-9 4 2-3 7"/><path d="M13 5l2-2 2 2-2 2zM17 9l3-1M10 8L8 5"/>', rocket: '<path d="M5 15c-1 2-1 4-1 4s2 0 4-1M9 14l-3-3c1-4 5-8 12-8 0 7-4 11-8 12z"/><circle cx="14.5" cy="9.5" r="1.5"/>',
+  chip: '<rect x="7" y="7" width="10" height="10" rx="1.5"/><path d="M10 3v3M14 3v3M10 18v3M14 18v3M3 10h3M3 14h3M18 10h3M18 14h3"/>', update: '<path d="M12 4v11M7.5 11L12 15.5 16.5 11M5 20h14"/>',
+  trash: '<path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13M10 11v6M14 11v6"/>', shield: '<path d="M12 3l7 3v5.5c0 4.4-3 7.8-7 9.5-4-1.700-7-5.100-7-9.500V6z"/><path d="M8.500 12l2.500 2.500 4.500-5"/>',
+  clock: '<circle cx="12" cy="12" r="8.500"/><path d="M12 7.500V12l3 2"/>', disk: '<rect x="3" y="14" width="18" height="6" rx="2"/><path d="M3 14l3-8h12l3 8M7 17h.01"/>',
+  help: '<circle cx="12" cy="12" r="9"/><path d="M9.500 9.500a2.500 2.500 0 015 .5c0 1.500-2.500 2-2.500 3.500M12 17h.01"/>', win: '<path d="M3 5.500l7-1v7H3zM11 4.400l10-1.400v8.500H11zM3 12.500h7v7l-7-1zM11 12.500h10V21l-10-1.400z"/>',
+};
+const ico = n => `<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICO[n]}</svg>`;
 const pages = {};
 
 // ------------------------------------------------------------------ home
 pages['index.html'] = head('Viro WorkCare: your PC, looked after and proved', 'Viro finds what is wrong with your Windows PC, fixes it, checks the fix worked and lets you undo it. Move to a new PC without starting over. For one PC or a whole organization.', '/site/') + `
-<section class="hero2"><div class="wrap hero2-in">
-  <div class="hero2-text">
+<section class="hero3"><div class="wrap hero3-in">
+  <div class="hero3-text">
     <p class="eyebrow">Windows PC care, made in Zambia</p>
     <h1>Your PC, looked after. And proved.</h1>
     <p class="lead">Free cleaners clear junk and hope. Viro finds what is actually wrong, fixes it, checks that the fix worked, and lets you undo it. When you buy a new PC, everything comes with you.</p>
     <div class="actions"><a class="btn big" href="${DL}">Download free for Windows</a><a class="btn big ghost" href="${SIGNUP}">Create a free account</a></div>
     <p class="note">Free to start. For a school, shop or office: <a href="${DEMO}">request a demonstration</a>.</p>
   </div>
-  <div class="hero2-shot">${shot('app-overview', 'The Viro WorkCare window: this PC at a glance, with its health, memory, drive and the three things that need attention.', { eager: true })}</div>
+  <div class="collage">
+    ${shot('app-overview', 'The Viro WorkCare window: this PC at a glance, with its health score, memory, drive and the seven things that need attention.', { eager: true })}
+    <div class="float">${shot('app-fix', 'The result of Fix my PC: space freed, memory in use down, start-up programs turned off, each with an Undo.', { eager: true })}</div>
+  </div>
 </div></section>
 
 <section class="strip"><div class="wrap"><ul class="proof">
@@ -88,6 +99,11 @@ pages['index.html'] = head('Viro WorkCare: your PC, looked after and proved', 'V
   <li><b>Honest</b><span>It says what it measured and what it could not. No scare scores.</span></li>
   <li><b>Made in Zambia</b><span>By ${CO.name}, with local payment and local support.</span></li>
 </ul></div></section>
+
+<section class="dark" id="proof"><div class="wrap">
+  <div class="sec-head center"><p class="eyebrow">The difference</p><h2>Fix it, then prove it.</h2><p>One click clears temporary files, gives back idle memory and turns off start-up programs that only slow you down. Viro measures your PC before and after, so you see what actually changed, and every step has an Undo.</p></div>
+  <div class="stage3">${shot('app-fix', 'Fix my PC: 11.8 GB freed, memory in use down from 71% to 52%, six start-up programs turned off, each fix checked, with an Undo.')}</div>
+</div></section>
 
 <section id="compare"><div class="wrap">
   <div class="sec-head"><h2>Free cleaners clear junk. Viro does the rest.</h2><p>Tools like Microsoft PC Manager are a good start, and the cleaning part of Viro is free too. What they do not do is where Viro earns its place.</p></div>
@@ -108,11 +124,33 @@ pages['index.html'] = head('Viro WorkCare: your PC, looked after and proved', 'V
 </div></section>
 
 <section class="tint"><div class="wrap">
-  <div class="sec-head"><h2>What you get with Viro Care</h2></div>
-  ${row({ title: 'Fix it, then prove it', text: 'One click clears temporary files, gives back idle memory and turns off start-up programs that only slow you down. Viro measures your PC before and after, so you see what actually changed.', points: ['Before and after, measured on your PC, not estimated', 'Every fix has an Undo, and Viro tells you if one did not work', 'Programs Windows depends on are never touched'], img: 'app-fix', alt: 'The result of Fix my PC: 11.8 GB freed, memory in use down from 71% to 52%, six start-up programs turned off, each with an Undo.' })}
-  ${row({ flip: true, title: 'Know what is wearing out, and what it will cost', text: 'Viro reads your drives, battery, memory and cooling, and says in plain words what to do. It weighs repair against replacement for a PC of your age, with an estimated price.', points: ['Warnings for failing drives and tired batteries before they fail', 'Repair, upgrade or replace, with the reasons and a price', 'How the PC has been used: Windows upgrades, drive hours, unsafe shut-downs'], img: 'app-report', alt: 'The PC report: one part to replace soon, three to watch, an estimated age of 6.7 years and a verdict of repair it, with USD 125 of work to expect.' })}
-  ${row({ title: 'Get a new PC without starting over', text: 'Back up your files, wallpaper and settings, bookmarks, Wi-Fi networks and your list of programs. On the new PC, sign in, enter your passphrase and put it all back.', points: ['Encrypted on your PC before it leaves it: Viro cannot read it', 'Programs are reinstalled for you; the ones Windows cannot find are listed', 'Nothing on the new PC is overwritten'], img: 'app-move', alt: 'Viro Move: a backup of Old laptop, 3.2 GB used of 10 GB, with a button to put it on this PC.' })}
-  ${row({ flip: true, title: 'Buying or selling a used PC? Show the proof', text: 'Viro inspects the PC afresh and emails a signed certificate straight to the buyer. The seller cannot edit it. It says how old the PC is, what is worn, what repairs to expect and what it is worth.', points: ['Sent only to the buyer, so it cannot be faked', 'The buyer checks the serial number on the certificate page', 'Honest about what it could not see'], img: 'cert-inspection', alt: 'A Viro Certificate of Inspection for a Dell Latitude 5400: assessment not recommended, about 6.5 years old, USD 220 of work to expect, with a verification seal and QR code.' })}
+  ${row({ title: 'Know what is wearing out, and what it will cost', text: 'Viro reads your drives, battery, memory and cooling, and says in plain words what to do. It weighs repair against replacement for a PC of your age, with an estimated price.', points: ['Warnings for failing drives and tired batteries before they fail', 'Repair, upgrade or replace, with the reasons and a price', 'How the PC has been used: Windows upgrades, drive hours, unsafe shut-downs'], img: 'app-report', alt: 'The PC report: one part to replace soon, three to watch, an estimated age of 6.7 years and a verdict of repair it, with USD 125 of work to expect.' })}
+  ${row({ flip: true, title: 'Get a new PC without starting over', text: 'Back up your files, wallpaper and settings, bookmarks, Wi-Fi networks and your list of programs. On the new PC, sign in, enter your passphrase and put it all back.', points: ['Encrypted on your PC before it leaves it: Viro cannot read it', 'Programs are reinstalled for you; the ones Windows cannot find are listed', 'Nothing on the new PC is overwritten'], img: 'app-move', alt: 'Viro Move: choose your folders, settings and programs, then protect the backup with a passphrase only you know.' })}
+  ${row({ title: 'Buying or selling a used PC? Show the proof', text: 'Viro inspects the PC afresh and emails a signed certificate straight to the buyer. The seller cannot edit it. It says how old the PC is, what is worn, what repairs to expect and what it is worth.', points: ['Sent only to the buyer, so it cannot be faked', 'The buyer checks the serial number on the certificate page', 'Honest about what it could not see'], img: 'cert-inspection', alt: 'A Viro Certificate of Inspection for a Dell Latitude 5400: assessment, about 6.5 years old, USD 220 of work to expect, with a verification seal.', fade: true })}
+</div></section>
+
+<section id="more"><div class="wrap">
+  <div class="sec-head"><h2>And everything else a PC needs.</h2><p>The basics are free and always will be. The rest is in Viro Care.</p></div>
+  <div class="grid3">
+    <div class="cell">${ico('clean')}<h3>Free up space</h3><p>Clear temporary files and caches that Windows leaves behind.</p></div>
+    <div class="cell">${ico('rocket')}<h3>Start-up programs</h3><p>Turn off what only slows you down. Everything still opens when you start it.</p></div>
+    <div class="cell">${ico('chip')}<h3>Memory</h3><p>Ask Windows to take back idle memory. Nothing is closed.</p></div>
+    <div class="cell">${ico('trash')}<h3>Uninstall properly</h3><p>Sizes for every program, and stubborn or hidden ones removed with undo.</p></div>
+    <div class="cell">${ico('disk')}<h3>Backup check</h3><p>Are your files really protected? Viro looks at OneDrive, Windows Backup and Viro Move.</p></div>
+    <div class="cell">${ico('clock')}<h3>Weekly care</h3><p>The safe fixes run by themselves, and a report arrives by email.</p></div>
+    <div class="cell">${ico('update')}<h3>Updates</h3><p>Windows and program updates in one place, installed when you choose.</p></div>
+    <div class="cell">${ico('win')}<h3>Windows 11 ready?</h3><p>Whether your PC can move up, and what that means for its security updates.</p></div>
+    <div class="cell">${ico('help')}<h3>Ask a technician</h3><p>A real person reads your question and replies. Part of the help plan.</p></div>
+  </div>
+</div></section>
+
+<section class="tint"><div class="wrap">
+  <div class="sec-head center"><h2>How it works</h2></div>
+  <div class="steps">
+    <div class="step"><div class="n">1</div><h3>Download and open it</h3><p>One small installer. The free tools work straight away, with no account.</p></div>
+    <div class="step"><div class="n">2</div><h3>See what is wrong</h3><p>Viro scans your PC and explains each finding in plain words, with the fix next to it.</p></div>
+    <div class="step"><div class="n">3</div><h3>Fix it, and see the proof</h3><p>Choose Viro Care when you want the checked fixes, the warnings and the move to a new PC.</p></div>
+  </div>
 </div></section>
 
 <section id="pricing"><div class="wrap">

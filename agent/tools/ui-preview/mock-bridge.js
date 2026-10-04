@@ -9,6 +9,9 @@
     { reason: 'The system drive is almost full', recommendation: 'Free up space before Windows runs out of room for updates. Viro found 11.4 GB it can clear safely.', impact: 'high', category: 'storage', remedy: 'safe-fix', fix: { recipe: 'cleanup.safe' } },
     { reason: 'Programs are holding 2.8 GB of memory they are not using', recommendation: 'Viro can ask Windows to take that memory back. Nothing is closed.', impact: 'medium', category: 'performance', remedy: 'safe-fix', fix: { recipe: 'memory.trim-idle' } },
     { reason: '9 programs start with Windows and slow the start-up', recommendation: 'Stop the ones you do not need at start-up. They still open when you start them.', impact: 'medium', category: 'performance', remedy: 'safe-fix', fix: { recipe: 'startup.optimize' } },
+    { reason: 'The battery holds 62% of its original capacity', recommendation: 'It still works, but it will not last through a lesson. Plan a replacement.', impact: 'medium', category: 'hardware', remedy: 'hardware' },
+    { reason: 'One program crashed 6 times this week', recommendation: 'Viro found the likely cause and can repair the program.', impact: 'medium', category: 'reliability', remedy: 'review' },
+    { reason: 'Windows Firewall is turned off for private networks', recommendation: 'Turn it back on. Viro checks that it stays on.', impact: 'high', category: 'security', remedy: 'review' },
     { reason: '2 driver updates are waiting', recommendation: 'Drivers are rolled out by your administrator, one computer first.', impact: 'low', category: 'drivers', remedy: 'review' },
   ];
   const view = SCENARIO === 'healthy' ? null : {
