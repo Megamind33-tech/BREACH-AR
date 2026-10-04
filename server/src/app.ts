@@ -44,6 +44,7 @@ import { registerPlatformRoutes } from './platform.js';
 import { registerPlatformOps } from './platform-ops.js';
 import { registerBillingRoutes } from './billing.js';
 import { registerSignupRoutes } from './signup.js';
+import { registerHelpRoutes } from './help.js';
 import { registerTwinRoutes } from './twin.js';
 import { ensureAnatomy, computeWanted } from './autoprovision.js';
 import { registerWakeRoutes, AdapterSchema } from './wake.js';
@@ -497,6 +498,7 @@ export async function buildApp(cfg: AppConfig) {
   registerPassportRoutes(app, jobCtx);
   registerHistoryRoutes(app, jobCtx);
   const mailer = createMailer(db); app.decorate('mailer', mailer);
+  registerHelpRoutes(app, jobCtx, { mailer, inbox: process.env.HELP_INBOX || undefined });
   registerSignupRoutes(app, jobCtx, { mailer, baseUrl: process.env.PUBLIC_BASE_URL || 'https://control.viro3.online' });
   registerCertificateRoutes(app, jobCtx, { mailer, signer: CertSigner.load(), baseUrl: process.env.PUBLIC_BASE_URL || 'https://control.viro3.online' });
   registerIncidentRoutes(app, { ...jobCtx, signer: cfg.signer }, { healthOf });

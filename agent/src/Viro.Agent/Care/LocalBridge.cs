@@ -30,6 +30,25 @@ public sealed class LocalBridge(LocalActions act, Func<bool>? isAdmin = null, Ac
             case "account.signin": { var r = await account.SignInAsync(Str(args, "email"), Str(args, "password"), args.TryGetProperty("code", out var cd) && cd.ValueKind == JsonValueKind.String ? cd.GetString() : null, ct); return new { ok = r.Ok, message = r.Message, needsCode = r.NeedsCode, state = Shape(account.State(await ManagedAsync(ct))) }; }
             case "account.signup": { var r = await account.SignUpAsync(Str(args, "name"), Str(args, "email"), Str(args, "password"), ct); return new { ok = r.Ok, message = r.Message }; }
             case "account.signout": account.SignOut(); return Shape(account.State(await ManagedAsync(ct)));
+            case "help.request":
+            {
+                object? details = null;
+                if (args.TryGetProperty("includeDetails", out var inc) && inc.ValueKind == JsonValueKind.True)
+                {
+                    var sys = await Task.Run(Collectors.Summary, ct); var d = new DriveInfo(Path.GetPathRoot(Environment.GetFolderPath(Environment.SpecialFolder.Windows))!);
+                    var issues = new List<string>();
+                    try { if (await act.SelfAsync(ct) is { } v && v.TryGetProperty("health", out var h) && h.TryGetProperty("findings", out var fs)) foreach (var x in fs.EnumerateArray().Take(8)) if (x.TryGetProperty("reason", out var rs) && rs.GetString() is { Length: > 0 } t) issues.Add(t.Length > 190 ? t[..190] : t); } catch (Exception) { }
+                    details = new { machine = $"{sys.Manufacturer} {sys.Model}".Trim(), windows = sys.Os, freeGb = Math.Round(d.AvailableFreeSpace / 1073741824.0, 1), memoryPercent = Math.Round(act.MemoryNow().UsedPercent, 0), issues };
+                }
+                var (status, body) = await account.SendAsync(HttpMethod.Post, "/api/v1/help/requests", new { subject = Str(args, "subject"), message = Str(args, "message"), contact = Str(args, "contact") is { Length: > 0 } c ? c : null, details }, ct);
+                var ok = status is >= 200 and < 300;
+                return new { ok, message = body.TryGetProperty(ok ? "message" : "error", out var m) ? m.GetString() : (ok ? "Sent." : "Could not send your request."), signedOut = status == 401 };
+            }
+            case "help.list":
+            {
+                var (status, body) = await account.SendAsync(HttpMethod.Get, "/api/v1/help/requests", null, ct);
+                return new { ok = status is >= 200 and < 300, requests = status is >= 200 and < 300 && body.TryGetProperty("requests", out var rq) ? (object)rq.Clone() : Array.Empty<object>(), signedOut = status == 401 };
+            }
             case "account.manage": openUrl?.Invoke(account.ManageUrl); return new { opened = openUrl is not null, url = account.ManageUrl };
 
             case "env": return new { admin = admin(), user = Environment.UserName, machine = Environment.MachineName, version = Collectors.AgentVersion };

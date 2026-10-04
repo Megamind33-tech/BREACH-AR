@@ -98,6 +98,7 @@
   };
 
   const listeners = [];
+  if (SCENARIO === 'plus') { data['account.status'] = { ...data['account.status'], signedIn: true, email: 'chanda@example.com', plan: 'care-year', planName: 'Viro Care', active: true, validUntil: '2027-10-04T00:00:00Z', features: [...data['account.status'].free, 'diagnose.cause', 'repair.programs', 'fix.verified', 'help.technician'] }; data['help.list'] = { ok: true, requests: [{ subject: 'Laptop very slow', status: 'answered', created_at: '2026-10-02T09:00:00Z', reply: 'Please run Fix my PC and tell me what changes.' }] }; data['help.request'] = { ok: true, message: 'Thank you. A technician will reply by email, usually within one working day.' }; }
   if (SCENARIO === 'free') data['slow.analyze'] = { locked: true, feature: 'diagnose.cause', title: 'Why it is slow or crashing: the actual cause' };
   window.chrome = { webview: {
     addEventListener: (t, f) => { if (t === 'message') listeners.push(f); },

@@ -92,6 +92,24 @@ public class AccountTests
     }
 
     [Fact]
+    public async Task AskingATechnicianNeedsTheHelpPlanAndSendsOnlyWhatThePersonChose()
+    {
+        using var sb = new Sandbox(); var act = new LocalActions(new SandboxUserEnv(sb, Path.Combine(sb.Root, "undo")));
+        string? sent = null; var handler = new FakeViro(r =>
+        {
+            if (r.RequestUri!.AbsolutePath == "/api/v1/auth/login") return (HttpStatusCode.OK, "{\"token\":\"t\"}");
+            if (r.RequestUri.AbsolutePath == "/api/v1/entitlements") return (HttpStatusCode.OK, JsonSerializer.Serialize(new { kind = "personal", plan = "help", planName = "Care with help", active = true, validUntil = "2099-01-01T00:00:00Z", features = new[] { "help.technician" } }));
+            if (r.RequestUri.AbsolutePath == "/api/v1/help/requests") { sent = r.Content!.ReadAsStringAsync().Result; return (HttpStatusCode.Created, "{\"message\":\"Thank you.\"}"); }
+            return (HttpStatusCode.NotFound, "{}");
+        });
+        var svc = new AccountService(new MemStore(), handler, "https://example.test"); var bridge = new LocalBridge(act, () => false, null, null, svc, null, () => Task.FromResult(false));
+        Assert.True((await Call(bridge, "help.request", "{\"subject\":\"Slow\",\"message\":\"It is very slow\"}")).GetProperty("locked").GetBoolean());
+        await svc.SignInAsync("a@b.c", "pw", null, default);
+        var r = await Call(bridge, "help.request", "{\"subject\":\"Slow\",\"message\":\"It is very slow indeed\",\"contact\":\"0961\",\"includeDetails\":false}");
+        Assert.True(r.GetProperty("ok").GetBoolean()); Assert.Contains("\"subject\":\"Slow\"", sent); Assert.Contains("\"contact\":\"0961\"", sent); Assert.DoesNotContain("machine", sent!);      // no PC details unless the box was ticked
+    }
+
+    [Fact]
     public void FeatureNamesInTheWindowMatchTheServersList()
     {
         // the server is the source of truth: every feature the window gates on must exist in server/src/entitlements.ts

@@ -222,14 +222,14 @@ const S = { env: null, view: undefined, page: null, sys: null, timer: null };
 const PAGES = [
   ['Protect', [['overview', 'Overview', 'home'], ['security', 'Security', 'shield'], ['updates', 'Updates and drivers', 'update'], ['swupdates', 'Program updates', 'refresh'], ['stability', 'Crashes and freezes', 'alert']]],
   ['Optimize', [['performance', 'Performance', 'gauge'], ['slow', 'Start-up and shut-down', 'power'], ['apps', 'Repair programs', 'wrench'], ['installed', 'Installed programs', 'trash'], ['space', 'Free space', 'broom'], ['startup', 'Start-up programs', 'rocket'], ['memory', 'Memory', 'chip']]],
-  ['This PC', [['workspace', 'Workspace', 'link'], ['account', 'Viro account', 'lock']]],
+  ['This PC', [['workspace', 'Workspace', 'link'], ['account', 'Viro account', 'lock'], ['help', 'Ask a technician', 'info']]],
   ['History', [['activity', 'What Viro did', 'clock'], ['undo', 'Undo changes', 'undo']]],
 ];
 const TITLES = {
   overview: ["Overview", "Your PC at a glance"], security: ["Security", "Windows protection"], updates: ["Updates and drivers", "Waiting Windows updates"],
   performance: ["Performance", "Heat, battery, start-up"], space: ["Free space", "Remove temporary files"], startup: ["Start-up programs", "What starts with Windows"], memory: ["Memory", "What is using memory"],
   swupdates: ["Program updates", "Newer versions available"], stability: ["Crashes and freezes", "What Windows recorded"], slow: ["Start-up and shut-down", "What slows this PC"],
-  installed: ["Installed programs", "Sizes, and removal"], apps: ["Repair programs", "Fix programs that misbehave"], workspace: ["Workspace", "Your organization"], account: ["Viro account", "Your plan and what it includes"], activity: ["What Viro did", "Verified changes"], undo: ["Undo changes", "Put things back"],
+  installed: ["Installed programs", "Sizes, and removal"], apps: ["Repair programs", "Fix programs that misbehave"], workspace: ["Workspace", "Your organization"], account: ["Viro account", "Your plan and what it includes"], help: ["Ask a technician", "A real person looks at it"], activity: ["What Viro did", "Verified changes"], undo: ["Undo changes", "Put things back"],
 };
 const NOSERVICE = 'The Viro background service is not reachable, so health details are unavailable. Free space, start-up programs and memory still work.';
 const note = t => `<div class="note">${ic('info')}<div>${t}</div></div>`;
@@ -688,6 +688,25 @@ RENDER.account = async () => {
     const r = await call('account.signup', { name: $('#mn')?.value || '', email: $('#me')?.value || '', password: $('#mp2')?.value || '' }).catch(x => ({ ok: false, message: x.message }));
     toast(r.message, r.ok ? 'ok' : 'bad');
   };
+};
+
+/* ---------- ask a technician ---------- */
+RENDER.help = async () => {
+  head(); const a = S.acct = await call('account.status');
+  if (!a.signedIn && !a.managed) { $('#view').innerHTML = `<div class="page">${note('Sign in to your Viro account to ask a technician. Replies come to your email.')}<div class="tight row"><button class="btn primary" id="si">Sign in</button></div></div>`; $('#si').onclick = () => go('account'); return; }
+  if (a.managed) { $('#view').innerHTML = `<div class="page">${note('This PC is managed by your organization. Ask your administrator, or use the Viro console to request remote support.')}</div>`; return; }
+  let list = []; try { const r = await call('help.list'); list = r.requests || []; } catch (e) { if (!e.locked) throw e; throw e; }
+  const input = 'width:100%;border-radius:8px;border:0;background:var(--bg);color:#fff;padding:0 12px;font:inherit;margin-top:8px';
+  $('#view').innerHTML = `<div class="page"><div class="card page"><h2>Tell us what is wrong</h2><div class="sub">A technician reads it and replies by email, usually within one working day.</div>
+    <input id="hs" placeholder="In a few words" maxlength="120" style="height:40px;${input}"><textarea id="hm" rows="5" placeholder="What happens, and since when?" style="padding:10px 12px;resize:none;${input}"></textarea><input id="hc" placeholder="Phone or WhatsApp number (optional)" maxlength="40" style="height:40px;${input}">
+    <label class="ctl" style="margin-top:10px;cursor:pointer"><span class="check on" id="hk">${ic('check', 12)}</span><div class="grow"><b>Include a short summary of this PC</b><small>Make and model, Windows version, free space, memory use and what Viro found. No files or personal data.</small></div></label>
+    <div class="tight row"><button class="btn primary" id="hsend">Send to a technician</button><span class="muted" id="hmsg"></span></div></div>
+    ${list.length ? panel('Your requests', '', '', list.map(r => `<div class="ctl"><div class="grow"><b>${esc(r.subject)}</b><small>${esc(new Date(r.created_at).toLocaleDateString([], { dateStyle: 'medium' }))}${r.reply ? ' · Reply: ' + esc(r.reply) : ''}</small></div><span class="pill ${r.status === 'open' ? 'warn' : 'ok'}">${r.status === 'open' ? 'Waiting' : 'Answered'}</span></div>`).join('')) : ''}</div>`;
+  let inc = true; $('#hk').parentElement.onclick = () => { inc = !inc; $('#hk').classList.toggle('on', inc); };
+  $('#hsend').onclick = e => busy(e.currentTarget, 'Sending', async () => {
+    const r = await call('help.request', { subject: $('#hs').value, message: $('#hm').value, contact: $('#hc').value, includeDetails: inc });
+    $('#hmsg').textContent = r.ok ? '' : r.message; toast(r.message, r.ok ? 'ok' : 'bad'); if (r.ok) RENDER.help();
+  });
 };
 
 /* ---------- start ---------- */

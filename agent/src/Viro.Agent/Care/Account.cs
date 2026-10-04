@@ -96,6 +96,21 @@ public sealed class AccountService(IAccountStore store, HttpMessageHandler? hand
         catch (Exception e) when (e is HttpRequestException or TaskCanceledException) { return (false, "Could not reach Viro. Check your internet connection and try again."); }
     }
 
+    /// <summary>One call to Viro as the signed-in person. Returns the status code and the JSON body; a rejected token signs the person out.</summary>
+    public async Task<(int Status, JsonElement Body)> SendAsync(HttpMethod method, string path, object? body, CancellationToken ct)
+    {
+        var s = Read(); if (s is null) return (401, JsonDocument.Parse("{\"error\":\"Sign in to your Viro account first.\"}").RootElement.Clone());
+        using var req = new HttpRequestMessage(method, server + path); req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", s.Token);
+        if (body is not null) req.Content = new StringContent(JsonSerializer.Serialize(body, Web), Encoding.UTF8, "application/json");
+        try
+        {
+            var r = await http.SendAsync(req, ct); var text = await r.Content.ReadAsStringAsync(ct);
+            if (r.StatusCode == System.Net.HttpStatusCode.Unauthorized) store.Clear();
+            return ((int)r.StatusCode, JsonDocument.Parse(text.Length == 0 ? "{}" : text).RootElement.Clone());
+        }
+        catch (Exception e) when (e is HttpRequestException or TaskCanceledException) { return (0, JsonDocument.Parse("{\"error\":\"Could not reach Viro. Check your internet connection and try again.\"}").RootElement.Clone()); }
+    }
+
     public void SignOut() => store.Clear();
     public string ManageUrl => server + "/#/billing";
 }
@@ -110,6 +125,7 @@ public static class FeatureGate
             case "slow.analyze": case "stability.analyze": return "diagnose.cause";
             case "apps.repair": return "repair.programs";
             case "fix.all": return "fix.verified";
+            case "help.request": return "help.technician";
             case "apps.uninstall": return args.ValueKind == JsonValueKind.Object && args.TryGetProperty("forced", out var f) && f.ValueKind == JsonValueKind.True ? "uninstall.forced" : null;
             case "recipe.run":
                 var r = args.ValueKind == JsonValueKind.Object && args.TryGetProperty("recipe", out var x) ? x.GetString() : null;

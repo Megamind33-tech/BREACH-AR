@@ -36,6 +36,7 @@ services:
       CERT_SIGNING_KEY_B64: ${CERT_SIGNING_KEY_B64:-}   # Viro certificate signing key (PKCS8 PEM, base64 on one line); without it certificates are refused
       SMTP_URL: ${SMTP_URL:-}                      # Viro's own outgoing mail (certificates); without it certificates are refused
       MAIL_FROM: ${MAIL_FROM:-}
+      HELP_INBOX: ${HELP_INBOX:-}                  # where new help requests are announced by email (optional; they are always in the operator console)
       PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-https://control.viro3.online}
       NODE_ENV: production
       RELEASES_DIR: /data/releases
