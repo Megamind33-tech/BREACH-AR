@@ -53,3 +53,16 @@
   tr.row > td.host { font-family:inherit; text-transform:none; font-size:14px; font-weight:600; overflow-wrap:anywhere; }
   .table-wrap, .tablewrap, main > div:has(> table) { overflow:visible; max-width:100%; }
 }
+
+/* the restyle's one-line health cell must not make a phone card wider than the screen */
+@media (max-width:700px) {
+  table:has(tr.row) { border:0; background:transparent; box-shadow:none; border-radius:0; }
+  tr.row > td.posture { min-width:0; white-space:normal; } tr.row > td.posture .bar { width:70px; }
+  tr.row > td { font-size:14px; } tr.row { box-shadow:var(--shadow-sm); }
+}
+@media (max-width:700px) { table:has(tr.row), .table-wrap > table:has(tr.row) { min-width:0 !important; width:100% !important; } .table-wrap:has(tr.row) { overflow:visible; border:0; background:transparent; box-shadow:none; } }
+@media (max-width:700px) {
+  tr.row { grid-template-areas:"chk host alerts" ". posture posture" ". last last"; gap:6px 10px; }
+  tr.row > td.posture { display:flex; align-items:center; gap:10px; } tr.row > td.posture .bar { width:90px; margin:0; flex:none; } tr.row > td.posture > * { margin:0; }
+  tr.row > td:nth-child(7) { justify-self:start; font-size:12.5px; }
+}
