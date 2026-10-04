@@ -128,6 +128,19 @@ h1[data-eyebrow]::before{content:attr(data-eyebrow);display:block;margin-bottom:
   -webkit-mask-image:linear-gradient(0deg, #000 35%, transparent); mask-image:linear-gradient(0deg, #000 35%, transparent); } }
 .signin .art > .hero-video { position:absolute; z-index:0; top:0; bottom:auto; right:-4%; left:auto; width:74%; height:100%; max-width:none; aspect-ratio:auto; object-fit:cover; object-position:center; -webkit-mask-image:linear-gradient(90deg, transparent 0, #000 40%); mask-image:linear-gradient(90deg, transparent 0, #000 40%); }
 .signin .art:has(> .hero-video)::before { display:none; }
+/* Operator console on a phone: no status strip, the menu button above the title, lists as cards instead of sideways-scrolling tables */
+@media (max-width:700px) {
+  #statusbar { display:none; }
+  .top { gap:10px; } .top > .btn.menu-btn { flex:0 0 auto; width:auto; margin-right:auto; }
+  .top .grow { flex:1 1 100%; min-width:0; } .top > .btn:not(.menu-btn), .top > button:not(.menu-btn), .top > input, .top > select { flex:1 1 100%; width:100% !important; justify-content:center; }
+  h1 { font-size:26px; } .h1-ico { display:none; } .tools input, .tools select, .tools .btn { flex:1 1 100%; width:100%; }
+  .card:has(tr.row) { overflow:visible; padding:10px; background:transparent; border:0; box-shadow:none; }
+  table:has(tr.row), table:has(tr.row) tbody { display:block; width:100%; min-width:0; } table:has(tr.row) thead { display:none; }
+  tr.row { display:block; background:var(--panel); border:var(--hair); border-radius:14px; padding:12px 14px; margin-bottom:10px; }
+  .main { overflow-x:hidden; } tr.row > td { white-space:normal !important; max-width:100%; display:block; padding:2px 0; border:0; background:none !important; overflow-wrap:anywhere; }
+  tr.row > td:first-child { font-size:16px; padding-bottom:4px; }
+  .tile b { font-size:26px; } .tiles { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+}
 @media print { .hero-video { display:none; } }
 
 /* Banner scrim: a soft dark fade on the text side, over the video, so the headline stays crisp at any width (the plant stays whole). */
