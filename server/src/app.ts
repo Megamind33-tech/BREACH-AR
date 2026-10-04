@@ -500,7 +500,7 @@ export async function buildApp(cfg: AppConfig) {
   registerPassportRoutes(app, jobCtx);
   registerHistoryRoutes(app, jobCtx);
   const mailer = createMailer(db); app.decorate('mailer', mailer);
-  registerMyPcRoutes(app, jobCtx);
+  registerMyPcRoutes(app, jobCtx, { mailer });
   registerMoveRoutes(app, jobCtx, { dir: process.env.MOVE_DIR || join(tmpdir(), 'viro-move') });
   registerHelpRoutes(app, jobCtx, { mailer, inbox: process.env.HELP_INBOX || undefined });
   registerSignupRoutes(app, jobCtx, { mailer, baseUrl: process.env.PUBLIC_BASE_URL || 'https://control.viro3.online' });

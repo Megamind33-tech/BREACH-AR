@@ -140,6 +140,9 @@ public static class FeatureGate
             case "slow.analyze": case "stability.analyze": return "diagnose.cause";
             case "apps.repair": return "repair.programs";
             case "fix.all": return "fix.verified";
+            case "backup.check": return "backup.check";
+            case "apps.leftovers": case "apps.leftovers.clean": return "uninstall.forced";
+            case "schedule.enable": case "schedule.run": return "maintenance.scheduled";
             case "help.request": return "help.technician";
             case "move.list": case "move.backup": case "move.open": case "move.restore": case "move.delete": case "move.preview": return "move.cloud";
             case "apps.uninstall": return args.ValueKind == JsonValueKind.Object && args.TryGetProperty("forced", out var f) && f.ValueKind == JsonValueKind.True ? "uninstall.forced" : null;

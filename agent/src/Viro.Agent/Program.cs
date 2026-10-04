@@ -86,6 +86,13 @@ if (args.Length > 0)
             ui.SetApartmentState(ApartmentState.STA); ui.Start(); ui.Join();
             return 0;
         }
+        case "maintain":
+        {
+            // The weekly care task: runs as the signed-in person, applies every safe fix and sends the result to Viro. Quiet: no window.
+            var act = new Viro.Agent.Care.LocalActions(new Viro.Agent.Care.UserRepairEnv());
+            var r = await Viro.Agent.Care.Maintenance.RunAsync(act, new Viro.Agent.Care.AccountService(new Viro.Agent.Care.DpapiAccountStore()), CancellationToken.None);
+            Console.WriteLine(r.Message); return r.Ok ? 0 : 1;
+        }
         case "startup-optimize":
         case "startup-rollback":
         {

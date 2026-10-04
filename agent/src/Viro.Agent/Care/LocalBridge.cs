@@ -139,24 +139,33 @@ public sealed class LocalBridge(LocalActions act, Func<bool>? isAdmin = null, Ac
             }
             case "fix.all":      // one pass through every safe fix, measured before and after, so the person sees what actually changed
             {
-                (long free, double mem, int startup) Snap()
-                {
-                    var d = new DriveInfo(Path.GetPathRoot(Environment.GetFolderPath(Environment.SpecialFolder.Windows))!);
-                    return (d.AvailableFreeSpace, Math.Round(act.MemoryNow().UsedPercent, 1), act.StartupPrograms().Count(a => a.Item.Enabled));
-                }
-                var before = await Task.Run(Snap, ct); var steps = new List<object>();
-                foreach (var recipe in new[] { "cleanup.safe", "memory.trim-idle", "startup.optimize" })
-                {
-                    try
-                    {
-                        var r = await act.RunRecipeAsync(recipe, ct);
-                        steps.Add(new { recipe, title = r.Title, needed = r.Needed, applied = r.Applied, verified = r.Verified == true, r.Summary, undoId = r.RollbackAvailable ? r.RepairId : null, needsAdmin = r.Summary.Contains("administrator", StringComparison.OrdinalIgnoreCase) });
-                    }
-                    catch (Exception e) when (e is not OperationCanceledException) { steps.Add(new { recipe, title = recipe, needed = false, applied = false, verified = false, Summary = e.Message, undoId = (string?)null, needsAdmin = false }); }
-                }
-                var after = await Task.Run(Snap, ct);
-                return new { before = new { freeBytes = before.free, memoryPercent = before.mem, startupItems = before.startup }, after = new { freeBytes = after.free, memoryPercent = after.mem, startupItems = after.startup }, steps };
+                var r = await FixAll.RunAsync(act, ct);
+                return new { before = new { freeBytes = r.Before.FreeBytes, memoryPercent = r.Before.MemoryPercent, startupItems = r.Before.StartupItems }, after = new { freeBytes = r.After.FreeBytes, memoryPercent = r.After.MemoryPercent, startupItems = r.After.StartupItems },
+                    steps = r.Steps.Select(x => new { recipe = x.Recipe, title = x.Title, needed = x.Needed, applied = x.Applied, verified = x.Verified, summary = x.Summary, undoId = x.UndoId, needsAdmin = x.NeedsAdmin }).ToList() };
             }
+            case "backup.check":
+            {
+                DateTime? lastMove = null;
+                var (st, body) = await account.SendAsync(HttpMethod.Get, "/api/v1/move/snapshots", null, ct);
+                if (st is >= 200 and < 300 && body.TryGetProperty("snapshots", out var sn)) foreach (var x in sn.EnumerateArray()) if (x.TryGetProperty("status", out var ss) && ss.GetString() == "complete" && x.TryGetProperty("created_at", out var ca) && DateTime.TryParse(ca.GetString(), null, System.Globalization.DateTimeStyles.AdjustToUniversal | System.Globalization.DateTimeStyles.AssumeUniversal, out var d) && (lastMove is null || d > lastMove)) lastMove = d;
+                var v = await Task.Run(() => BackupCheck.Evaluate(BackupCheck.Read(lastMove)), ct);
+                return new { state = v.State, headline = v.Headline, items = v.Items.Select(i => new { name = i.Name, state = i.State, detail = i.Detail }).ToList(), advice = v.Advice, limits = v.Limits };
+            }
+            case "apps.leftovers":
+            {
+                var items = await Task.Run(() => LeftoverScan.Find(Str(args, "name"), Str(args, "publisher"), act.Env), ct);
+                return new { items = items.Select(l => new { id = l.Id, kind = l.Kind, path = l.Path, bytes = l.Bytes }).ToList() };
+            }
+            case "apps.leftovers.clean":
+            {
+                var o = JsonSerializer.Serialize(new { name = Str(args, "name"), publisher = Str(args, "publisher"), ids = Strings(args, "ids") }, Web);
+                var r = await act.RunRecipeAsync("app.leftovers", ct, o);
+                return new { verified = r.Verified == true, applied = r.Applied, r.Summary, undoable = r.RollbackAvailable, repairId = r.RepairId };
+            }
+            case "schedule.status": { var st = await new CareSchedule(new SystemProcessRunner(), Environment.ProcessPath ?? "").StatusAsync(ct); return new { enabled = st.Enabled, nextRun = st.NextRun }; }
+            case "schedule.enable": { var ok = await new CareSchedule(new SystemProcessRunner(), Environment.ProcessPath ?? "").EnableAsync(ct); return new { ok, message = ok ? "Weekly care is on. It runs on Sundays at 11:00 while you are signed in to Windows." : "Windows would not create the task." }; }
+            case "schedule.disable": { var ok = await new CareSchedule(new SystemProcessRunner(), Environment.ProcessPath ?? "").DisableAsync(ct); return new { ok }; }
+            case "schedule.run": { var r = await Maintenance.RunAsync(act, account, ct); return new { ok = r.Ok, message = r.Message }; }
             case "slow.analyze":
             {
                 var shut = await Task.Run(() => ShutdownHistory.Read(), ct); var boot = await Task.Run(() => BootHistory.Read(), ct); var env = act.Env;

@@ -220,8 +220,8 @@ async function upgradeModal(e) {
 /* ---------- state and pages ---------- */
 const S = { env: null, view: undefined, page: null, sys: null, timer: null };
 const PAGES = [
-  ['Protect', [['overview', 'Overview', 'home'], ['report', 'PC report', 'gauge'], ['security', 'Security', 'shield'], ['updates', 'Updates and drivers', 'update'], ['swupdates', 'Program updates', 'refresh'], ['stability', 'Crashes and freezes', 'alert']]],
-  ['Optimize', [['performance', 'Performance', 'gauge'], ['slow', 'Start-up and shut-down', 'power'], ['apps', 'Repair programs', 'wrench'], ['installed', 'Installed programs', 'trash'], ['space', 'Free space', 'broom'], ['startup', 'Start-up programs', 'rocket'], ['memory', 'Memory', 'chip']]],
+  ['Protect', [['overview', 'Overview', 'home'], ['report', 'PC report', 'gauge'], ['backup', 'Backup check', 'disk'], ['security', 'Security', 'shield'], ['updates', 'Updates and drivers', 'update'], ['swupdates', 'Program updates', 'refresh'], ['stability', 'Crashes and freezes', 'alert']]],
+  ['Optimize', [['performance', 'Performance', 'gauge'], ['slow', 'Start-up and shut-down', 'power'], ['apps', 'Repair programs', 'wrench'], ['installed', 'Installed programs', 'trash'], ['schedule', 'Weekly care', 'clock'], ['space', 'Free space', 'broom'], ['startup', 'Start-up programs', 'rocket'], ['memory', 'Memory', 'chip']]],
   ['This PC', [['workspace', 'Workspace', 'link'], ['account', 'Viro account', 'lock'], ['move', 'Viro Move', 'update'], ['help', 'Ask a technician', 'info']]],
   ['History', [['activity', 'What Viro did', 'clock'], ['undo', 'Undo changes', 'undo']]],
 ];
@@ -229,7 +229,7 @@ const TITLES = {
   overview: ["Overview", "Your PC at a glance"], security: ["Security", "Windows protection"], updates: ["Updates and drivers", "Waiting Windows updates"],
   performance: ["Performance", "Heat, battery, start-up"], space: ["Free space", "Remove temporary files"], startup: ["Start-up programs", "What starts with Windows"], memory: ["Memory", "What is using memory"],
   swupdates: ["Program updates", "Newer versions available"], stability: ["Crashes and freezes", "What Windows recorded"], slow: ["Start-up and shut-down", "What slows this PC"],
-  installed: ["Installed programs", "Sizes, and removal"], apps: ["Repair programs", "Fix programs that misbehave"], workspace: ["Workspace", "Your organization"], account: ["Viro account", "Your plan and what it includes"], report: ["PC report", "Health, repair or replace, and history"], help: ["Ask a technician", "A real person looks at it"], move: ["Viro Move", "Your files, settings and programs on your next PC"], activity: ["What Viro did", "Verified changes"], undo: ["Undo changes", "Put things back"],
+  installed: ["Installed programs", "Sizes, and removal"], apps: ["Repair programs", "Fix programs that misbehave"], workspace: ["Workspace", "Your organization"], account: ["Viro account", "Your plan and what it includes"], report: ["PC report", "Health, repair or replace, and history"], backup: ["Backup check", "Are your files protected?"], schedule: ["Weekly care", "Fixes that run by themselves"], help: ["Ask a technician", "A real person looks at it"], move: ["Viro Move", "Your files, settings and programs on your next PC"], activity: ["What Viro did", "Verified changes"], undo: ["Undo changes", "Put things back"],
 };
 const NOSERVICE = 'The Viro background service is not reachable, so health details are unavailable. Free space, start-up programs and memory still work.';
 const note = t => `<div class="note">${ic('info')}<div>${t}</div></div>`;
@@ -558,8 +558,16 @@ RENDER.installed = async () => {
         apps = fresh.apps;
         banner = still ? { bad: true, title: `${a.name} still appears after removal`, detail: 'Windows still lists it. Scan again, or restart the PC and check.' } : { title: `${a.name} was removed`, detail: `Checked again afterwards: it is no longer installed.${sz ? ` About ${gb(a.sizeBytes)} freed.` : ''}${x.rebootRequired ? ' Restart to finish.' : ''}${x.undoable ? ' Forced removal can be undone from Undo changes.' : ''}` };
       } else banner = { bad: true, title: `${a.name} was not removed`, detail: x?.summary || 'Nothing changed.' };
-      draw();
+      draw(); if (banner && !banner.bad) offerLeftovers(a);
     } finally { busyNow = false; }
+  }
+  async function offerLeftovers(a) {
+    let lo; try { lo = await call('apps.leftovers', { name: a.name, publisher: a.publisher }); } catch { return; }                  // free plans do not see this
+    if (!lo?.items?.length) return;
+    const total = lo.items.reduce((n, x) => n + (x.bytes || 0), 0);
+    if (!await modal(a.name + ' left some things behind', lo.items.map(x => '<b>' + esc(x.kind === 'shortcut' ? 'Shortcut' : 'Folder') + '</b> ' + esc(x.path) + (x.bytes ? ' (' + gb(x.bytes) + ')' : '')).join('<br>') + '<br><br>Viro will move these aside (' + gb(total) + '), not delete them. You can undo it from Undo changes.', 'Remove these')) return;
+    const r = await call('apps.leftovers.clean', { name: a.name, publisher: a.publisher, ids: lo.items.map(x => x.id) });
+    toast(r.summary, r.verified ? 'ok' : 'bad');
   }
 
   const draw = () => {
@@ -805,6 +813,31 @@ function movePlan(r) {
     $('#gorst').onclick = e => busy(e.currentTarget, 'Starting', async () => { const x = await call('move.restore', { folders: [...useFiles], settings: o.settings, wifi: o.wifi, appIds: [...apps] }); if (!x.ok) { $('#rm').textContent = x.message; return; } moveProgress(); });
   }; draw();
 }
+
+/* ---------- backup check ---------- */
+RENDER.backup = async () => {
+  head('<button class="btn ghost" id="bb">' + ic('refresh') + 'Check again</button>'); $('#bb').onclick = () => RENDER.backup();
+  $('#view').innerHTML = scanning('disk', 'Checking your backups…', 'Looking at OneDrive, Windows Backup and Viro Move.');
+  const v = await call('backup.check'); const tone = { protected: 'ok', partial: 'warn', none: 'bad' }[v.state];
+  const pill = { ok: ['ok', 'OK'], warn: ['warn', 'Old'], bad: ['bad', 'Not protected'], unknown: ['na', 'Not found'] };
+  $('#view').innerHTML = `<div class="page">${sum([{ k: 'Your files', v: v.state === 'protected' ? 'Backed up' : v.state === 'partial' ? 'Partly backed up' : 'Not backed up', tone: tone === 'ok' ? '' : 'warn', sub: esc(v.headline) }])}
+    ${panel('What Viro found', '', v.state !== 'protected' ? '<button class="btn primary sm" id="gomove">Back up with Viro Move</button>' : '', v.items.map(i => `<div class="ctl"><div class="grow"><b>${esc(i.name)}</b><small>${esc(i.detail)}</small></div><span class="pill ${(pill[i.state] || pill.unknown)[0]}">${(pill[i.state] || pill.unknown)[1]}</span></div>`).join(''))}
+    ${v.advice.length ? panel('What to do', '', '', v.advice.map(a => `<div class="ctl"><div class="grow">${esc(a)}</div></div>`).join('')) : ''}
+    ${note(v.limits.map(esc).join('<br>'))}</div>`;
+  $('#gomove')?.addEventListener('click', () => go('move'));
+};
+
+/* ---------- weekly care ---------- */
+RENDER.schedule = async () => {
+  head(); const [st, a] = [await call('schedule.status'), S.acct = await call('account.status')];
+  $('#view').innerHTML = `<div class="page">${sum([{ k: 'Weekly care', v: st.enabled ? 'On' : 'Off', tone: st.enabled ? '' : 'warn', sub: st.enabled && st.nextRun ? 'next run ' + esc(st.nextRun) : '' }, { k: 'Runs', v: 'Sundays', sub: '11:00, while you are signed in' }])}
+    ${panel('What it does', 'Every week Viro runs the safe fixes, measures your PC before and after, and emails you what changed. Every fix can be undone from What Viro did.', '', `<div class="ctl"><div class="grow"><b>Clear temporary files and caches</b></div></div><div class="ctl"><div class="grow"><b>Give back idle memory</b><small>Nothing is closed.</small></div></div><div class="ctl"><div class="grow"><b>Turn off start-up programs that only slow you down</b></div></div>`)}
+    <div class="tight row">${st.enabled ? '<button class="btn ghost" id="off">Turn off</button>' : '<button class="btn primary" id="on">Turn on weekly care</button>'}<button class="btn ghost" id="now">Run it now</button><span class="muted" id="sm"></span></div>
+    ${!a.signedIn && !a.managed ? note('Sign in to your Viro account so the weekly report can be emailed to you.') : ''}</div>`;
+  $('#on')?.addEventListener('click', e => busy(e.currentTarget, 'Turning on', async () => { const r = await call('schedule.enable'); toast(r.message, r.ok ? 'ok' : 'bad'); RENDER.schedule(); }));
+  $('#off')?.addEventListener('click', e => busy(e.currentTarget, 'Turning off', async () => { await call('schedule.disable'); RENDER.schedule(); }));
+  $('#now').onclick = e => busy(e.currentTarget, 'Running', async () => { const r = await call('schedule.run'); $('#sm').textContent = r.message; toast(r.message, r.ok ? 'ok' : 'bad'); });
+};
 
 /* ---------- ask a technician ---------- */
 RENDER.help = async () => {
