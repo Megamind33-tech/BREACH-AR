@@ -87,7 +87,14 @@ public sealed class ControlClient
             offer = new(u.GetProperty("version").GetString()!, u.GetProperty("url").GetString()!, u.GetProperty("manifest").GetString()!, u.GetProperty("signature").GetString()!, u.GetProperty("sha256").GetString()!, u.GetProperty("size").GetInt64());
         var sessions = root.TryGetProperty("sessions", out var ss) && ss.ValueKind == JsonValueKind.Array ? ss.EnumerateArray().Select(x => new SessionOffer(x.GetProperty("id").GetString()!, x.GetProperty("kind").GetString()!, x.GetProperty("admin").GetString()!, x.TryGetProperty("reason", out var rs) ? rs.GetString() : null)).ToList() : [];
         var poll = root.TryGetProperty("pollSeconds", out var ps) && ps.ValueKind == JsonValueKind.Number ? ps.GetInt32() : 0;
-        return new(jobs, cancel, offer, sessions, poll);
+        LostState? lost = null;
+        if (root.TryGetProperty("lost", out var lo) && lo.ValueKind == JsonValueKind.Object)
+        {
+            var locked = lo.TryGetProperty("locked", out var lk) && lk.ValueKind == JsonValueKind.True;
+            lost = locked && lo.TryGetProperty("salt", out var sa) && lo.TryGetProperty("hash", out var ha) && lo.TryGetProperty("iterations", out var it)
+                ? new LostState(true, sa.GetString(), ha.GetString(), it.GetInt32()) : new LostState(false, null, null, 0);
+        }
+        return new(jobs, cancel, offer, sessions, poll, Lost: lost);
     }
     public Task StartJobAsync(string id, CancellationToken ct) => SendAsync(HttpMethod.Post, $"agent/v1/jobs/{id}/start", new { }, ct);
     public Task ReportJobAsync(string id, string status, object? result, string? error, CancellationToken ct) => SendAsync(HttpMethod.Post, $"agent/v1/jobs/{id}/result", new { status, result, error }, ct);
@@ -103,6 +110,9 @@ public sealed class ControlClient
     }
     /// <summary>Best effort: tells Control this device was uninstalled on purpose.</summary>
     public async Task GoodbyeAsync(CancellationToken ct) { try { await SendAsync(HttpMethod.Post, "agent/v1/goodbye", new { }, ct); } catch { /* offline or already revoked */ } }
+
+    /// <summary>Tells Control the right passphrase was entered on this PC, so lost mode ends there too. Best effort: the lock has already opened either way.</summary>
+    public async Task ReportRecoveredAsync(CancellationToken ct) { try { await SendAsync(HttpMethod.Post, "agent/v1/lost/recovered", new { }, ct); } catch { /* the next successful heartbeat will agree the server is no longer saying locked, which is enough */ } }
 
     /// <summary>Generic authenticated call for other Viro services (the compute worker). The caller disposes the returned document.</summary>
     public Task<JsonDocument?> CallAsync(HttpMethod method, string path, object? body, CancellationToken ct) => SendAsync(method, path, body ?? new { }, ct);
@@ -121,5 +131,7 @@ public sealed class ControlClient
     }
 }
 
-public sealed record HeartbeatReply(List<JobEnvelope> Jobs, List<string> Cancel, UpdateOffer? Update = null, List<SessionOffer>? Sessions = null, int PollSeconds = 0, ComputeWanted? Compute = null);
+public sealed record HeartbeatReply(List<JobEnvelope> Jobs, List<string> Cancel, UpdateOffer? Update = null, List<SessionOffer>? Sessions = null, int PollSeconds = 0, ComputeWanted? Compute = null, LostState? Lost = null);
 public sealed record ComputeWanted(bool Install);
+/// <summary>What the server says about lost mode at this moment. Locked is false both when it was never reported and once it has been recovered.</summary>
+public sealed record LostState(bool Locked, string? SaltB64, string? HashB64, int Iterations);

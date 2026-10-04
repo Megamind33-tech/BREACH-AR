@@ -125,6 +125,7 @@ if (args.Length > 0)
             return 0;
         }
         case "ui-helper": return await Viro.Agent.Care.UserUiHelper.RunAsync(Arg("--pipe") ?? throw new ArgumentException("--pipe required"), CancellationToken.None);
+        case "guard-check": return await LostGuard.CheckAsync(CancellationToken.None);   // run every 15 minutes by the lost-mode guard task; a no-op unless a PC is both locked and missing its service
         case "desktop-helper": return await DesktopHelper.RunAsync(Arg("--pipe") ?? throw new ArgumentException("--pipe required"), CancellationToken.None);
         case "hardware": Console.WriteLine(JsonSerializer.Serialize(HardwareDiagnostics.Run(), pretty)); return 0;
         case "health":

@@ -43,7 +43,8 @@ public sealed class UserUiBridge(ILogger log, Func<string, Process?>? launcher =
         {
             if (Connected) return true;
             if (DateTime.UtcNow < _failedUntil) return false;      // nobody is signed in (or the helper failed): do not try again every cycle
-            _idle ??= new Timer(_ => { if (_pipe is not null && DateTime.UtcNow - _lastUse > IdleShutdown) Stop(); }, null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
+            // A lock held open counts as in use for as long as it is pending, however long that is, so the idle timer never pulls the helper out from under an open lock screen.
+            _idle ??= new Timer(_ => { bool pending; lock (_pending) pending = _pending.Count > 0; if (_pipe is not null && !pending && DateTime.UtcNow - _lastUse > IdleShutdown) Stop(); }, null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
             Stop();
             var name = "viro-ui-" + Guid.NewGuid().ToString("N");
             var sec = new PipeSecurity();
@@ -90,6 +91,23 @@ public sealed class UserUiBridge(ILogger log, Func<string, Process?>? launcher =
         var r = await RequestAsync(new { k = "windows", id }, id, TimeSpan.FromSeconds(25), ct);
         if (r is not { } el || !el.TryGetProperty("items", out var items)) return null;
         return [.. items.EnumerateArray().Select(i => new WindowInfo(i.GetProperty("pid").GetInt32(), i.GetProperty("visible").GetBoolean(), i.GetProperty("foreground").GetBoolean(), i.GetProperty("minimized").GetBoolean()))];
+    }
+
+    /// <summary>Shows the lost-mode lock on the signed-in session and does not return until it unlocks, however long that takes.</summary>
+    public async Task<bool> LockAsync(string saltB64, string hashB64, int iterations, CancellationToken ct)
+    {
+        var id = Guid.NewGuid().ToString("N");
+        var r = await RequestAsync(new { k = "lock", id, saltB64, hashB64, iterations }, id, TimeSpan.FromDays(3650), ct);
+        return r is { } el && el.TryGetProperty("unlocked", out var u) && u.ValueKind == JsonValueKind.True;
+    }
+
+    /// <summary>The server says this PC is no longer lost: close an open lock window without needing the passphrase. Best effort; nothing to do if no session is connected.</summary>
+    public async Task TellUnlockedAsync(CancellationToken ct)
+    {
+        if (!Connected) return;
+        await _send.WaitAsync(ct);
+        try { await PipeFrames.WriteAsync(_pipe!, PipeFrames.Ui, JsonSerializer.SerializeToUtf8Bytes(new { k = "unlock_remote", id = Guid.NewGuid().ToString("N") }, Web), ct); }
+        catch { /* nothing open to tell */ } finally { _send.Release(); }
     }
 
     public async Task<string?> NotifyAsync(Notice n, CancellationToken ct)
@@ -159,6 +177,13 @@ public static class UserUiHelper
             using var doc = JsonDocument.Parse(m.payload); var r = doc.RootElement.Clone(); var k = r.GetProperty("k").GetString(); var id = r.GetProperty("id").GetString()!;
             if (k == "quit") break;
             if (k == "windows") await Reply(new { id, items = EnumerateWindows() });
+            else if (k == "lock")
+                _ = Task.Run(async () =>
+                {
+                    var ok = await LostLockWindow.ShowAsync(r.GetProperty("saltB64").GetString()!, r.GetProperty("hashB64").GetString()!, r.GetProperty("iterations").GetInt32());
+                    await Reply(new { id, unlocked = ok });
+                }, ct);
+            else if (k == "unlock_remote") LostLockWindow.CloseRemotely();
             else if (k == "notify")
                 _ = Task.Run(async () =>
                 {

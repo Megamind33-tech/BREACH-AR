@@ -156,6 +156,7 @@ public sealed class Installer(IProcessRunner proc, Func<bool> isElevated, Action
     }
 
     async Task<bool> ServiceExistsAsync(CancellationToken ct) => (await proc.RunAsync("sc.exe", $"query {ServiceName}", T, ct)).ExitCode != 1060;
+    public static async Task<bool> IsServiceRegisteredAsync(IProcessRunner proc, CancellationToken ct) => (await proc.RunAsync("sc.exe", $"query {ServiceName}", TimeSpan.FromSeconds(30), ct)).ExitCode != 1060;
 
     async Task StopAsync(CancellationToken ct)
     {

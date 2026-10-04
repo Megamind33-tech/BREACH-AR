@@ -46,6 +46,9 @@ export function registerAnatomyRoutes(app: FastifyInstance, c: JobCtx) {
     const prev = (await db.query('SELECT data FROM device_anatomy WHERE device_id=$1', [id])).rows[0]?.data ?? null;
     await db.query(`INSERT INTO device_anatomy(device_id,org_id,data,collected_at) VALUES ($1,$2,$3,$4)
                     ON CONFLICT (device_id) DO UPDATE SET data=EXCLUDED.data, collected_at=EXCLUDED.collected_at, received_at=now()`, [id, orgId, JSON.stringify(a), a.collectedAt]);
+    // A serial lets a buyer check later, the same way a certificate's serial does, whether this computer was ever reported stolen.
+    const serial = a.system?.serial ?? a.board?.serial;
+    if (typeof serial === 'string' && serial.trim()) { const { serialHashOf } = await import('./lost-mode.js'); await db.query('UPDATE devices SET serial_hash=$2 WHERE id=$1', [id, serialHashOf(serial)]); }
     const fp = fingerprintOf(a); const last = (await db.query('SELECT fingerprint FROM anatomy_history WHERE device_id=$1 ORDER BY collected_at DESC LIMIT 1', [id])).rows[0];
     let changes = 0;
     if (!last || last.fingerprint !== fp) {

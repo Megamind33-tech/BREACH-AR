@@ -48,6 +48,8 @@ public sealed class AgentWorker(ILogger<AgentWorker> log) : BackgroundService
         var updater = cfg.JobSigningPublicKey == "" ? null : new SelfUpdater(AgentConfig.DataDir, Path.GetDirectoryName(Environment.ProcessPath)!, Collectors.AgentVersion, cfg.JobSigningPublicKey);
         updater?.RecoverOnStartup();
         var support = new SupportManager(client, new SupportSessionRunner(new SessionNotifier(), new FilePolicy(AgentConfig.DataDir, Environment.GetFolderPath(Environment.SpecialFolder.Windows)), () => new PowerShellTerminal(), log, DesktopBridge.TryCreate(log)), log);
+        var lostMode = new LostModeGuard(client, log);
+        lostMode.EnforceCachedStateAsync(ct);   // a PC that was locked before it last shut down comes back locked, even before it reaches Control again
         Collectors.CpuPercent(); // prime the CPU delta
         log.LogInformation("Viro Agent {Version} started for device {Device}", Collectors.AgentVersion, cfg.DeviceId);
 
@@ -81,6 +83,7 @@ public sealed class AgentWorker(ILogger<AgentWorker> log) : BackgroundService
                     }
                     if (installed && provisioner is not null) { var note = await provisioner.EnsureAsync(reply.Compute?.Install == true, ct); if (note is not null) log.LogInformation("{Note}", note); }
                     if (runner is not null) { runner.Cancel(reply.Cancel); await runner.OfferAsync(reply.Jobs, ct); }
+                    lostMode.ApplyServerState(reply.Lost, ct);
                     beatSent = true;
                     if (DateTime.UtcNow - lastInventory > InventoryEvery)
                     {

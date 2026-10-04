@@ -146,6 +146,7 @@ pages['index.html'] = head('Viro WorkCare: your PC, looked after and proved', 'V
       <tr><th scope="row">Finds why a PC is slow or crashing</th><td class="n">No</td><td class="n">No</td><td class="y hl">Yes</td></tr>
       <tr><th scope="row">Reads the hardware: drives, battery, cooling, memory, age</th><td class="n">No</td><td class="n">No</td><td class="y hl">Yes</td></tr>
       <tr><th scope="row">Estimated value of your PC today</th><td class="n">No</td><td class="n">No</td><td class="y hl">Yes</td></tr>
+      <tr><th scope="row">If it is lost or stolen: lock it and see where it last connected</th><td class="n">No</td><td class="n">No</td><td class="y hl">Yes</td></tr>
       <tr><th scope="row">Early warning for failing drives and batteries</th><td class="n">No</td><td class="n">No</td><td class="y hl">Yes</td></tr>
       <tr><th scope="row">Repair, upgrade or replace advice, with a price for your PC's age</th><td class="n">No</td><td class="n">No</td><td class="y hl">Yes</td></tr>
       <tr><th scope="row">Remove stubborn programs, with undo</th><td class="n">No</td><td class="n">No</td><td class="y hl">Yes</td></tr>

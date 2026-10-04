@@ -55,6 +55,7 @@ import { registerAnatomyRoutes } from './anatomy.js';
 import { registerUpgradeRoutes } from './upgrade-routes.js';
 import { registerAccountRoutes, checkSecondFactor, MFA_ROLES } from './account.js';
 import { atLeast, hashPassword, newSecret, sha256Hex, verifyPassword, type Role } from './security.js';
+import { registerLostModeRoutes, lostStateFor, trackLocation } from './lost-mode.js';
 
 export interface AppConfig {
   db: Db;
@@ -291,7 +292,7 @@ export async function buildApp(cfg: AppConfig) {
          LEFT JOIN sites s ON s.id=d.site_id LEFT JOIN departments dep ON dep.id=d.department_id
         WHERE d.id=$1 AND d.org_id=$2`, [id, req.user.org]);
     if (!d.rowCount) return reply.code(404).send({ error: 'not found' });
-    const { credential_hash, ...device } = d.rows[0];
+    const { credential_hash, lost_passphrase, ...device } = d.rows[0];
     const inv = await db.query('SELECT hardware, software, collected_at FROM device_inventory WHERE device_id=$1', [id]);
     const hb = await db.query('SELECT received_at, metrics FROM device_heartbeats WHERE device_id=$1 ORDER BY received_at DESC LIMIT 60', [id]);
     const hs = await db.query('SELECT snapshot, collected_at FROM device_health WHERE device_id=$1', [id]);
@@ -359,6 +360,7 @@ export async function buildApp(cfg: AppConfig) {
     const { id, orgId } = req.device!;
     // The address this PC reaches the internet from (PCs behind one router share it) and its adapters: what Wake-on-LAN needs to find a helper on the same network.
     await db.query('UPDATE devices SET public_ip=$2, network=COALESCE($3::jsonb, network), network_at=CASE WHEN $3::jsonb IS NULL THEN network_at ELSE now() END WHERE id=$1', [id, req.ip, b.network ? JSON.stringify(b.network) : null]);
+    await trackLocation(db, orgId, id, req.ip, b.network ?? null).catch(() => { /* a missed location is not worth failing the heartbeat for */ });
     await db.query(
       `UPDATE devices SET hostname=$3, agent_version=$4, logged_in_user=$5, ip_address=$6, os_caption=$7, os_build=$8,
               uptime_seconds=$9, last_seen_at=now() WHERE id=$1 AND org_id=$2`,
@@ -378,7 +380,8 @@ export async function buildApp(cfg: AppConfig) {
     const sessions = await pendingSessions(db, orgId, id);
     await ensureAnatomy(db, cfg.signer, orgId, id, b.agentVersion).catch(() => false);   // every PC, new or old, gets its anatomy without anyone asking
     const compute = await computeWanted(db, orgId).catch(() => ({ install: false }));
-    return { ok: true, serverTime: new Date().toISOString(), update, sessions, compute, pollSeconds: sessions.length ? 3 : 30, ...(await jobsForHeartbeat(db, orgId, id)) };
+    const lost = await lostStateFor(db, id);
+    return { ok: true, serverTime: new Date().toISOString(), update, sessions, compute, lost, pollSeconds: lost?.locked || sessions.length ? 3 : 30, ...(await jobsForHeartbeat(db, orgId, id)) };
   });
 
   app.put('/agent/v1/inventory', { preHandler: requireDevice }, async (req) => {
@@ -472,6 +475,8 @@ export async function buildApp(cfg: AppConfig) {
   /** A clean uninstall tells Control, so a device that just disappears can be told apart from one that was removed on purpose. */
   app.post('/agent/v1/goodbye', { preHandler: requireDevice }, async (req) => {
     const { id, orgId } = req.device!;
+    const lost = (await db.query('SELECT lost_mode FROM devices WHERE id=$1', [id])).rows[0]?.lost_mode;
+    if (lost) { await audit({ orgId, actorType: 'device', actorId: id, action: 'device.uninstall_attempt_while_lost', targetType: 'device', targetId: id, ip: req.ip }); return { ok: true }; }   // a device reported lost is never marked as cleanly removed by its own say-so
     await db.query('UPDATE devices SET revoked_at=now(), uninstalled_at=now() WHERE id=$1', [id]);
     await db.query(`UPDATE jobs SET status='cancelled', finished_at=now(), error='agent was uninstalled' WHERE device_id=$1 AND status IN ('queued','running')`, [id]);
     await db.query(`UPDATE alerts SET resolved_at=now() WHERE device_id=$1 AND resolved_at IS NULL`, [id]);
@@ -512,6 +517,7 @@ export async function buildApp(cfg: AppConfig) {
   registerFleetRoutes(app, jobCtx);
   registerWakeRoutes(app, jobCtx as any, onlineWindow);
   registerAnatomyRoutes(app, jobCtx as any);
+  registerLostModeRoutes(app, jobCtx);
   registerUpgradeRoutes(app, jobCtx as any);
   registerPatchingRoutes(app, jobCtx);
   registerReportRoutes(app, jobCtx, orgId => listDevices(orgId));

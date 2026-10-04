@@ -24,6 +24,7 @@ export const FEATURES: Record<string, { title: string; tier: Tier }> = {
   'backup.check': { title: 'Backup check', tier: 'plus' },
   'maintenance.scheduled': { title: 'Scheduled fixes and a weekly "what we fixed" report', tier: 'plus' },
   'history.machine': { title: 'Machine history', tier: 'plus' },
+  'device.lost_mode': { title: 'Lost or stolen: lock it and see where it last connected', tier: 'plus' },
   'move.cloud': { title: 'Viro Move: your apps, files and settings on your next PC', tier: 'plus' },
   // human help
   'help.technician': { title: 'Ask a technician', tier: 'help' },
