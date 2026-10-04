@@ -77,7 +77,7 @@ pages['index.html'] = head('Viro WorkCare: your PC, looked after and proved', 'V
   <div class="actions"><a class="btn" href="${DL}">Download free for Windows</a><a class="btn ghost" href="${SIGNUP}">Create a free account</a><a class="textlink" href="${DEMO}">For schools and companies: request a demo</a></div>
   <p class="note">Free to start. When you want more, pay by mobile money, bank transfer or cash.</p>
   <div class="stage"><div class="frame">${shot('app-overview', 'The Viro WorkCare window: this PC at a glance, with its health, memory, drive and the three things that need attention.', { eager: true })}</div></div>
-  <p class="caption">Sample data.</p>
+  <p class="caption">Sample data from a fictional school, Riverside Academy.</p>
 </div></section>
 
 <section class="strip"><div class="wrap"><ul class="proof">

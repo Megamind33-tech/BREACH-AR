@@ -31,7 +31,7 @@ test('every link and file a page uses exists, and sign-in leads to the console',
   for (const f of PAGES) {
     const html = read(f);
     for (const m of html.matchAll(/(?:href|src)="([^"#]*)(#[^"]*)?"/g)) {
-      const u = m[1]!; if (!u || /^(https?:|mailto:|tel:)/.test(u)) continue;
+      const u = m[1]!; if (!u || /^(https?:|mailto:|tel:)/.test(u) || u === '/install/ViroAgent.msi') continue;       // the installer is served by the server, not a file in public/
       assert.ok(u.startsWith('/'), `${f}: use root-relative paths (${u})`);
       assert.ok(u === '/' || existsSync(urlToFile(u)), `${f}: ${u} does not exist`);
     }
