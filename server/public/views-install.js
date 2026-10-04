@@ -9,6 +9,7 @@ async function addComputers() {
     `${inst.available ? "" : "<p class=\"mute\">The one-file installer has not been published to this server yet, so only a connection code can be created (for a PC that already has Viro installed).</p>"}<ol><li>Download the installer file below.</li>
        <li>On each PC, right-click it and choose <b>Run with PowerShell</b> as administrator. Or deploy it with Intune, Group Policy or your remote-management tool.</li>
        <li>The PC appears in Viro within a minute and starts looking after itself.</li></ol>
+     <p class="mute">Windows will show "Windows protected your PC." This is normal for a new app that has not yet built up enough downloads for Windows to recognise it: click <b>More info</b>, then <b>Run anyway</b>.</p>
      <label>Put these computers in</label><select name="where"><option value="">No site yet (you can move them later)</option>${siteOpts.join('')}</select>
      <label><input type="checkbox" name="code"${inst.available ? "" : " checked"}> Create a short connection code for one PC instead (the person pastes it into the Viro window)</label>
      <p class="mute">The file contains a private enrollment token that works for 14 days. Keep it private and delete it afterwards.</p>`, 'Download installer');

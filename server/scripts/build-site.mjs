@@ -92,6 +92,7 @@ pages['index.html'] = head('Viro WorkCare: your PC, looked after and proved', 'V
     <p class="lead">Free cleaners clear junk and hope. Viro checks the whole PC, software and hardware: what is wrong, how old it really is and what it is worth. It fixes what it can, proves the fix worked, and lets you undo it.</p>
     <div class="actions"><a class="btn big" href="${DL}">Download free for Windows</a><a class="btn big ghost" href="${BUY}">Get Viro Care</a></div>
     <p class="note">The free tools need no account. For a school, shop or office: <a href="${DEMO}">request a demonstration</a>.</p>
+    <p class="note">Windows may show "Windows protected your PC" on first install, since Viro is new. Click <b>More info</b>, then <b>Run anyway</b>.</p>
   </div>
   <div class="collage">
     ${shot('app-overview', 'The Viro WorkCare window: this PC at a glance, with its health score, memory, drive and the seven things that need attention.', { eager: true })}
@@ -216,6 +217,7 @@ pages['index.html'] = head('Viro WorkCare: your PC, looked after and proved', 'V
   <div class="sec-head"><h2>Questions</h2></div>
   <div class="faq">
     <details><summary>Which computers does it work on?</summary><p>Windows 10 and Windows 11 PCs. Viro is built for Windows only today: it does not run on Mac, Linux or phones. It also tells you when a PC cannot run Windows 11 and what that means for its security updates.</p></details>
+    <details><summary>Why does Windows show a warning when I install it?</summary><p>Windows shows "Windows protected your PC" for any new app that has not yet been downloaded by enough people for Windows to recognise it: it is not a sign that anything is wrong. Click <b>More info</b>, then <b>Run anyway</b>. We are working towards a signed release, which will remove this.</p></details>
     <details><summary>Is it safe to let Viro change my PC?</summary><p>Viro checks the result of every change and keeps what it needs to undo it. It refuses to touch Windows itself, Microsoft runtimes and Viro. A program removed by force is moved aside, not deleted, so it can be brought back.</p></details>
     <details><summary>Do I need an account?</summary><p>Not for the free tools: download Viro and use them straight away. An account is made when you buy Viro Care, because the paid features (backups, the technician, certificates) live on our servers and need to know who you are.</p></details>
     <details><summary>What does the free plan include?</summary><p>A full scan that tells you what is wrong, clearing temporary files, start-up programs, memory, the installed programs list with sizes, and Windows and program updates. It does not expire.</p></details>
