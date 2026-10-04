@@ -70,14 +70,29 @@ function loginView(msg = '', creds = null) {
     ${second ? `<label for="l-code">Code</label><input id="l-code" name="code" inputmode="text" autocomplete="one-time-code" placeholder="123456" required autofocus>`
     : `<label for="l-email">Email</label><input id="l-email" name="email" type="email" placeholder="you@company.com" autocomplete="username" required autofocus>
     <label for="l-pw">Password</label><input id="l-pw" name="password" type="password" placeholder="Your password" autocomplete="current-password" required>`}
-    <button>${second ? 'Verify' : 'Sign in'}</button>${second ? '<button type="button" class="ghost" id="back">Back</button>' : ''}<span class="err" role="alert">${esc(msg === '' ? '' : msg)}</span></form><p class="mute signin-about">${second ? '' : 'New here? <a href="#" id="newacct">Create a personal account</a> · '}<a href="/site/">About Viro WorkCare</a> · <a href="/site/contact.html">Contact us</a></p></div></div>`;
+    <button>${second ? 'Verify' : 'Sign in'}</button>${second ? '<button type="button" class="ghost" id="back">Back</button>' : ''}<span class="err" role="alert">${esc(msg === '' ? '' : msg)}</span></form><p class="mute signin-about">${second ? '' : 'New here? <a href="#" id="newacct">Get Viro Care</a> · '}<a href="/site/">About Viro WorkCare</a> · <a href="/site/contact.html">Contact us</a></p></div></div>`;
   if (second) $('#back').onclick = () => loginView();
-  if (!second && /[?&]signup\b/.test(location.search) && !window.__signupShown) { window.__signupShown = true; setTimeout(() => $('#newacct')?.click(), 50); }
+  if (!second && /[?&](buy|signup)\b/.test(location.search) && !window.__buyShown) { window.__buyShown = true; setTimeout(() => $('#newacct')?.click(), 50); }
   $('#newacct')?.addEventListener('click', async e => {
     e.preventDefault();
-    const v = await dialog('Create a personal account', '<p class="mute">For your own PC or a few PCs at home. You will confirm your email address before you can sign in.</p><label>Your name</label><input name="name" required minlength="2" autocomplete="name"><label>Email</label><input name="email" type="email" required autocomplete="email"><label>Password (10 or more characters)</label><input name="password" type="password" required minlength="10" autocomplete="new-password"><label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" name="terms" required style="margin-top:4px"><span>I agree to the <a href="/site/terms.html" target="_blank" rel="noopener">terms</a> and <a href="/site/privacy.html" target="_blank" rel="noopener">privacy notice</a>.</span></label>', 'Create account');
+    // An account is made when you buy: there is no free sign-up. The free tools in the Windows app need no account.
+    let cat; try { cat = await (await fetch('/api/v1/public/plans')).json(); } catch { cat = null; }
+    const plans = (cat?.plans ?? []).filter(p => p.audience === 'person' || p.audience === 'shop');
+    if (!plans.length || !(cat?.methods ?? []).length) { await dialog('Viro Care', '<p>Viro Care is not on sale just yet. The free tools in the Windows app work without an account. Write to <b>info@viro3.online</b> and we will tell you when it opens.</p>', 'OK'); return; }
+    const money = p => (p.currency === 'ZMW' ? 'K ' : p.currency + ' ') + Number(p.price).toLocaleString('en-US') + (p.period === 'year' ? ' a year' : p.period === 'month' ? ' a month' : '') + (p.per === 'pc' ? ' per computer' : '');
+    const v = await dialog('Get Viro Care', `<p class="mute">Your account is created when you buy. Pay by mobile money, bank or cash; your plan starts when we confirm the money has arrived.</p>
+      <label>Plan</label><select name="plan">${plans.map(p => `<option value="${esc(p.code)}">${esc(p.name)} · ${esc(money(p))}</option>`).join('')}</select>
+      <label>How many computers?</label><input name="q" type="number" min="1" max="50" value="1">
+      <label>How will you pay?</label><select name="m">${cat.methods.map(m => `<option value="${esc(m.id)}">${esc(m.label)}</option>`).join('')}</select>
+      <label>Your name</label><input name="name" required minlength="2" autocomplete="name"><label>Email</label><input name="email" type="email" required autocomplete="email"><label>Password (10 or more characters)</label><input name="password" type="password" required minlength="10" autocomplete="new-password">
+      <label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" name="terms" required style="margin-top:4px"><span>I agree to the <a href="/site/terms.html" target="_blank" rel="noopener">terms</a> and <a href="/site/privacy.html" target="_blank" rel="noopener">privacy notice</a>.</span></label>`, 'Place my order');
     if (!v) return;
-    try { const r = await post('/api/v1/signup', { name: v.name, email: v.email, password: v.password, acceptTerms: true }); loginView(r.message); } catch (x) { loginView(x.message); }
+    try {
+      const r = await post('/api/v1/checkout', { name: v.name, email: v.email, password: v.password, acceptTerms: true, planCode: v.plan, quantity: +v.q || 1, methodId: v.m });
+      await dialog('Pay to start your plan', `<p>Pay <b>${esc(r.currency)} ${esc(r.amount)}</b> by <b>${esc(r.pay.method)}</b>.</p><p>${esc(r.pay.instructions)}</p>${Object.keys(r.pay.details || {}).length ? '<div class="kv">' + Object.entries(r.pay.details).map(([k, x]) => `<div><span class="mute">${esc(k)}</span> <b>${esc(x)}</b></div>`).join('') + '</div>' : ''}
+        <p style="font-size:18px;margin:12px 0"><span class="mute" style="font-size:13px">Your reference</span><br><b>${esc(r.reference)}</b></p><p class="mute">We emailed you a link: open it to confirm your email, then sign in here and choose <b>Plan and payments</b> and <b>I have paid</b>. The same details are in that email.</p>`, 'Done');
+      loginView();
+    } catch (x) { loginView(x.message); }
   });
   $('#f').onsubmit = async e => {
     e.preventDefault();

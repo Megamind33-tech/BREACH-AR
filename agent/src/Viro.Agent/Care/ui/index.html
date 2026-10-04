@@ -680,22 +680,17 @@ RENDER.account = async () => {
     return;
   }
   $('#view').innerHTML = `<div class="page"><div class="grid">
-    <div class="card page"><h2>Sign in</h2><div class="sub">Use your Viro account to unlock the plan you paid for on this PC.</div>
+    <div class="card page"><h2>Sign in</h2><div class="sub">Bought Viro Care? Sign in to unlock it on this PC. The free tools need no account.</div>
       <input id="em" type="email" placeholder="Email" autocomplete="username" style="margin-top:12px;width:100%;height:40px;border-radius:8px;border:0;background:var(--bg);color:#fff;padding:0 12px;font:inherit"><input id="pw" type="password" placeholder="Password" autocomplete="current-password" style="margin-top:8px;width:100%;height:40px;border-radius:8px;border:0;background:var(--bg);color:#fff;padding:0 12px;font:inherit">
       <input id="cd" placeholder="6-digit code (only if you use one)" style="display:none;margin-top:8px;width:100%;height:40px;border-radius:8px;border:0;background:var(--bg);color:#fff;padding:0 12px;font:inherit">
-      <div class="tight row"><button class="btn primary" id="go">Sign in</button><button class="btn ghost" id="mk">Create an account</button><span class="muted" id="msg"></span></div></div>
+      <div class="tight row"><button class="btn primary" id="go">Sign in</button><button class="btn ghost" id="mk">Get Viro Care</button><span class="muted" id="msg"></span></div></div>
     <div class="card page"><h2>Free</h2><div class="sub">${a.free.map(k => esc(a.titles[k] || k)).join(' · ')}</div><h2 style="margin-top:16px">Viro Care adds</h2><div class="sub">${paid.map(k => esc(a.titles[k])).join('<br>')}</div></div></div></div>`;
   $('#go').onclick = e => busy(e.currentTarget, 'Signing in', async () => {
     const r = await call('account.signin', { email: $('#em').value, password: $('#pw').value, code: $('#cd').value });
     $('#msg').textContent = r.ok ? '' : r.message; if (r.needsCode) $('#cd').style.display = '';
     if (r.ok) { S.acct = r.state; toast(r.message); drawStrip(); RENDER.account(); }
   });
-  $('#mk').onclick = async () => {
-    const body = `<p>For your own PC. We will email you a link to confirm your address.</p><input id="mn" placeholder="Your name" style="width:100%;height:38px;margin-top:6px;border-radius:8px;border:0;background:var(--bg);color:#fff;padding:0 10px;font:inherit"><input id="me" type="email" placeholder="Email" style="width:100%;height:38px;margin-top:6px;border-radius:8px;border:0;background:var(--bg);color:#fff;padding:0 10px;font:inherit"><input id="mp2" type="password" placeholder="Password (10 or more characters)" style="width:100%;height:38px;margin-top:6px;border-radius:8px;border:0;background:var(--bg);color:#fff;padding:0 10px;font:inherit">`;
-    if (!(await modal('Create a Viro account', body, 'Create account'))) return;
-    const r = await call('account.signup', { name: $('#mn')?.value || '', email: $('#me')?.value || '', password: $('#mp2')?.value || '' }).catch(x => ({ ok: false, message: x.message }));
-    toast(r.message, r.ok ? 'ok' : 'bad');
-  };
+  $('#mk').onclick = () => call('account.manage');
 };
 
 /* ---------- PC report: hardware health, repair or replace, history ---------- */

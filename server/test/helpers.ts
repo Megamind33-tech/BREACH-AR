@@ -43,7 +43,7 @@ export async function startHarness(wantedPort: number) {
   await migrate(db);
   const signer = JobSigner.generate();
   const releasesDir = mkdtempSync(join(tmpdir(), 'viro-rel-'));   // each harness gets its own release/installer store: no state leaks between runs
-  const app = await buildApp({ db, signer, releasesDir, jwtSecret: 'test-secret-test-secret-test-secret', platformKey: 'platform-key', onlineWindowSeconds: 120, loginRateLimitPerMinute: 1000 });
+  const app = await buildApp({ db, signer, releasesDir, jwtSecret: 'test-secret-test-secret-test-secret', platformKey: 'platform-key', onlineWindowSeconds: 120, loginRateLimitPerMinute: 1000, signupRateLimitPerMinute: 1000 });
   const log = (m: string) => { if (process.env.VIRO_DEBUG) console.log('[stop]', m); };
   return { app, db, signer, async stop() { log('close app'); await app.close(); log('end pool'); await db.end(); log('stop postgres'); try { const ok = await Promise.race([pg.stop().then(() => true), new Promise<boolean>(r => setTimeout(() => r(false), 15_000))]); if (!ok) killDatabase(dir); } catch { /* embedded-postgres removes its own dir; EBUSY on Windows is harmless */ } try { rmSync(releasesDir, { recursive: true, force: true }); } catch { /* disposable */ } try { rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 300 }); } catch { /* Windows may hold the dir briefly; temp dir is disposable */ } } };
 }

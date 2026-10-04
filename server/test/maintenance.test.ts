@@ -2,6 +2,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 process.env.VIRO_MAIL_MODE = 'outbox';
 const { startHarness } = await import('./helpers.js');
+import { openAccount, pay } from './people.js';
 
 let h: Awaited<ReturnType<typeof startHarness>>;
 before(async () => { h = await startHarness(54431); });
@@ -13,17 +14,12 @@ const outbox = () => (h.app as any).mailer.outbox as { to: string; subject: stri
 const PK = { 'x-platform-key': 'platform-key' };
 
 test('the weekly care report is part of a paid plan and is emailed to the person with what was measured', async () => {
-  await post('/api/v1/signup', { name: 'Test Person', email: 'weekly@example.com', password: 'a-long-password-1', acceptTerms: true });
-  await get(`/verify-email?token=${outbox().pop()!.text.match(/token=([\w-]+)/)![1]}`);
-  const me = { authorization: `Bearer ${(await post('/api/v1/auth/login', { email: 'weekly@example.com', password: 'a-long-password-1' })).json().token}` };
+  const me = await openAccount(h, 'weekly@example.com');
   const report = { machine: 'LAPTOP-7', version: '0.1.14', before: { freeBytes: 20e9, memoryPercent: 71, startupItems: 14 }, after: { freeBytes: 31.8e9, memoryPercent: 52, startupItems: 8 },
     steps: [{ title: 'Clear temporary files and caches', applied: true, verified: true, summary: 'Cleared 11.8 GB' }, { title: 'Turn off start-up programs', applied: true, verified: false, summary: 'could not confirm' }] };
   assert.equal((await post('/api/v1/my-pc/maintenance-report', report, me)).statusCode, 402);
 
-  await put('/api/v1/platform/billing/plans/care-year', { name: 'Care', audience: 'person', price: 250, currency: 'ZMW', period: 'year', active: true }, PK);
-  const method = (await post('/api/v1/platform/billing/methods', { kind: 'cash', label: 'Cash', instructions: 'Pay in person.' }, PK)).json().id;
-  const order = (await post('/api/v1/billing/orders', { planCode: 'care-year', quantity: 1, methodId: method }, me)).json();
-  await post(`/api/v1/billing/orders/${order.id}/paid`, { payerName: 'T', transactionId: 'R1' }, me); await post(`/api/v1/platform/billing/orders/${order.id}/confirm`, {}, PK);
+  await pay(h, me);
 
   assert.equal((await post('/api/v1/my-pc/maintenance-report', { ...report, before: { freeBytes: -5, memoryPercent: 71, startupItems: 14 } }, me)).statusCode, 400);
   const before = outbox().length;

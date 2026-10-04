@@ -61,6 +61,7 @@ export interface AppConfig {
   platformKey: string;          // authenticates platform-level operator calls (org creation)
   onlineWindowSeconds?: number; // device considered online if seen within this window
   loginRateLimitPerMinute?: number;
+  signupRateLimitPerMinute?: number;   // purchases and sign-up links per address per minute (default 5)
   enrollRateLimitPerMinute?: number; // per source IP; a whole office often shares one
   releasesDir?: string;         // where signed agent release packages are stored
   /** Addresses of reverse proxies whose X-Forwarded-For is believed (so rate limits and the audit log see the real visitor). Off by default. */
@@ -503,7 +504,7 @@ export async function buildApp(cfg: AppConfig) {
   registerMyPcRoutes(app, jobCtx, { mailer });
   registerMoveRoutes(app, jobCtx, { dir: process.env.MOVE_DIR || join(tmpdir(), 'viro-move') });
   registerHelpRoutes(app, jobCtx, { mailer, inbox: process.env.HELP_INBOX || undefined });
-  registerSignupRoutes(app, jobCtx, { mailer, baseUrl: process.env.PUBLIC_BASE_URL || 'https://control.viro3.online' });
+  registerSignupRoutes(app, jobCtx, { mailer, limitPerMinute: cfg.signupRateLimitPerMinute, baseUrl: process.env.PUBLIC_BASE_URL || 'https://control.viro3.online' });
   registerCertificateRoutes(app, jobCtx, { mailer, signer: CertSigner.load(), baseUrl: process.env.PUBLIC_BASE_URL || 'https://control.viro3.online' });
   registerIncidentRoutes(app, { ...jobCtx, signer: cfg.signer }, { healthOf });
   registerFleetRoutes(app, jobCtx);

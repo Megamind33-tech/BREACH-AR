@@ -2,6 +2,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 process.env.VIRO_MAIL_MODE = 'outbox';
 const { startHarness } = await import('./helpers.js');
+import { openAccount, pay } from './people.js';
 
 let h: Awaited<ReturnType<typeof startHarness>>;
 before(async () => { h = await startHarness(54401); });
@@ -12,21 +13,14 @@ const get = (url: string, headers: Record<string, string> = {}) => h.app.inject(
 const outbox = () => (h.app as any).mailer.outbox as { to: string; subject: string; text: string }[];
 const PK = { 'x-platform-key': 'platform-key' };
 
-async function personal(email: string) {
-  await post('/api/v1/signup', { name: 'Test Person', email, password: 'a-long-password-1', acceptTerms: true });
-  const token = outbox().filter(m => m.to === email).pop()!.text.match(/token=([\w-]+)/)![1]!; await get(`/verify-email?token=${token}`);
-  return { authorization: `Bearer ${(await post('/api/v1/auth/login', { email, password: 'a-long-password-1' })).json().token}` };
-}
+const personal = (email: string) => openAccount(h, email, { planCode: 'help-year', audience: 'shop', price: 400, name: 'Care with help' });
 
 test('asking a technician is part of a paid plan, the reply is emailed to the person, and nobody else can see the request', async () => {
   const me = await personal('help@example.com'), other = await personal('other@example.com');
   const ask = { subject: 'My laptop is very slow', message: 'It takes ten minutes to start and the fan is loud all the time.', contact: '0961111111', details: { machine: 'HP ProBook', windows: 'Windows 11', freeGb: 4, issues: ['Disk almost full'] } };
   assert.equal((await post('/api/v1/help/requests', ask, me)).statusCode, 402, 'free plan: not included');
 
-  await put('/api/v1/platform/billing/plans/help-year', { name: 'Care with help', audience: 'shop', price: 400, currency: 'ZMW', period: 'year', active: true }, PK);
-  const method = (await post('/api/v1/platform/billing/methods', { kind: 'cash', label: 'Cash', instructions: 'Pay in person.' }, PK)).json().id;
-  const order = (await post('/api/v1/billing/orders', { planCode: 'help-year', quantity: 1, methodId: method }, me)).json();
-  await post(`/api/v1/billing/orders/${order.id}/paid`, { payerName: 'Test', transactionId: 'R9' }, me); await post(`/api/v1/platform/billing/orders/${order.id}/confirm`, {}, PK);
+  await pay(h, me);
 
   assert.equal((await post('/api/v1/help/requests', { ...ask, message: 'short' }, me)).statusCode, 400);
   const sent = await post('/api/v1/help/requests', ask, me); assert.equal(sent.statusCode, 201);

@@ -21,6 +21,28 @@ export function nextPeriodEnd(period: 'month' | 'year' | 'once', currentEnd: Dat
   return d;
 }
 
+export type PlaceResult = { ok: true; body: Record<string, unknown> } | { ok: false; code: number; error: string };
+/** Places an order for a plan: the amount is worked out here from the plan's price, never taken from the customer. Used by the first purchase and by later orders. */
+export async function placeOrder(db: JobCtx['db'], audit: JobCtx['audit'], o: { orgId: string; userId: string; planCode: string; quantity: number; methodId: string }): Promise<PlaceResult> {
+  const plan = (await db.query(`SELECT code, name, price, currency, period, per FROM billing_plans WHERE code=$1 AND active`, [o.planCode])).rows[0];
+  if (!plan) return { ok: false, code: 404, error: 'that plan is not available' };
+  const method = (await db.query(`SELECT id, kind, label, instructions, details, currency FROM payment_methods WHERE id=$1 AND active`, [o.methodId])).rows[0];
+  if (!method) return { ok: false, code: 404, error: 'that payment method is not available' };
+  if (method.currency && method.currency !== plan.currency) return { ok: false, code: 400, error: `${method.label} takes ${method.currency}, but this plan is priced in ${plan.currency}` };
+  const quantity = plan.per === 'pc' || plan.per === 'certificate' ? o.quantity : 1;
+  const amount = Math.round(Number(plan.price) * quantity * 100) / 100;
+  let ref = newReference();
+  for (let i = 0; i < 5; i++) { if (!(await db.query('SELECT 1 FROM billing_orders WHERE reference=$1', [ref])).rowCount) break; ref = newReference(); }
+  const r = await db.query(`INSERT INTO billing_orders(org_id,created_by,plan_code,quantity,amount,currency,method_id,method_kind,reference) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`,
+    [o.orgId, o.userId, plan.code, quantity, amount, plan.currency, method.id, method.kind, ref]);
+  await audit({ orgId: o.orgId, actorType: 'user', actorId: o.userId, action: 'billing.order', targetType: 'billing_order', targetId: r.rows[0].id, next: { plan: plan.code, quantity, amount, method: method.kind, reference: ref } });
+  return { ok: true, body: {
+    id: r.rows[0].id, reference: ref, status: 'pending', plan: plan.name, quantity, amount, currency: plan.currency,
+    pay: { method: method.label, kind: method.kind, instructions: method.instructions, details: method.details, useReference: ref },
+    next: 'Pay the amount exactly, quote the reference, then tell us you have paid. The plan starts when Viro confirms the payment.',
+  } };
+}
+
 export function registerBillingRoutes(app: FastifyInstance, c: JobCtx) {
   const { db } = c;
   const guard = (app as any).platformGuard as (req: FastifyRequest, reply: FastifyReply) => Promise<unknown>;
@@ -32,8 +54,8 @@ export function registerBillingRoutes(app: FastifyInstance, c: JobCtx) {
   // ---- public: what is on sale (for the website) --------------------------------------------------------------------------------------------------------
   app.get('/api/v1/public/plans', async (_req, reply) => {
     const plans = (await db.query(`SELECT code, name, audience, price, currency, period, per, description, features FROM billing_plans WHERE active ORDER BY sort, price`)).rows.map(p => ({ ...p, price: Number(p.price) }));
-    const kinds = (await db.query(`SELECT DISTINCT kind FROM payment_methods WHERE active`)).rows.map(r => r.kind as string);
-    return reply.header('cache-control', 'public, max-age=300').header('access-control-allow-origin', '*').send({ plans, paymentKinds: kinds });
+    const methods = (await db.query(`SELECT id, kind, label, currency FROM payment_methods WHERE active ORDER BY sort, label`)).rows;
+    return reply.header('cache-control', 'public, max-age=300').header('access-control-allow-origin', '*').send({ plans, methods, paymentKinds: [...new Set(methods.map(m => m.kind as string))] });
   });
 
   // ---- the customer's side ------------------------------------------------------------------------------------------------------------------------
@@ -54,23 +76,8 @@ export function registerBillingRoutes(app: FastifyInstance, c: JobCtx) {
 
   app.post('/api/v1/billing/orders', { preHandler: c.requireRole('admin') }, async (req, reply) => {
     const b = z.object({ planCode: z.string().min(2).max(40), quantity: z.number().int().min(1).max(5000), methodId: uuid }).strict().parse(req.body);
-    const plan = (await db.query(`SELECT code, name, price, currency, period, per FROM billing_plans WHERE code=$1 AND active`, [b.planCode])).rows[0];
-    if (!plan) return reply.code(404).send({ error: 'that plan is not available' });
-    const method = (await db.query(`SELECT id, kind, label, instructions, details, currency FROM payment_methods WHERE id=$1 AND active`, [b.methodId])).rows[0];
-    if (!method) return reply.code(404).send({ error: 'that payment method is not available' });
-    if (method.currency && method.currency !== plan.currency) return reply.code(400).send({ error: `${method.label} takes ${method.currency}, but this plan is priced in ${plan.currency}` });
-    const quantity = plan.per === 'pc' || plan.per === 'certificate' ? b.quantity : 1;
-    const amount = Math.round(Number(plan.price) * quantity * 100) / 100;
-    let ref = newReference();
-    for (let i = 0; i < 5; i++) { if (!(await db.query('SELECT 1 FROM billing_orders WHERE reference=$1', [ref])).rowCount) break; ref = newReference(); }
-    const r = await db.query(`INSERT INTO billing_orders(org_id,created_by,plan_code,quantity,amount,currency,method_id,method_kind,reference) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id, created_at`,
-      [req.user.org, req.user.sub, plan.code, quantity, amount, plan.currency, method.id, method.kind, ref]);
-    await c.audit({ orgId: req.user.org, actorType: 'user', actorId: req.user.sub, action: 'billing.order', targetType: 'billing_order', targetId: r.rows[0].id, next: { plan: plan.code, quantity, amount, method: method.kind, reference: ref } });
-    return reply.code(201).send({
-      id: r.rows[0].id, reference: ref, status: 'pending', plan: plan.name, quantity, amount, currency: plan.currency,
-      pay: { method: method.label, kind: method.kind, instructions: method.instructions, details: method.details, useReference: ref },
-      next: 'Pay the amount exactly, quote the reference, then tell us you have paid. The plan starts when Viro confirms the payment.',
-    });
+    const r = await placeOrder(db, c.audit, { orgId: req.user.org, userId: req.user.sub, ...b });
+    return r.ok ? reply.code(201).send(r.body) : reply.code(r.code).send({ error: r.error });
   });
 
   app.post('/api/v1/billing/orders/:id/paid', { preHandler: c.requireRole('admin') }, async (req, reply) => {
@@ -130,11 +137,11 @@ export function registerBillingRoutes(app: FastifyInstance, c: JobCtx) {
     const { code } = z.object({ code: z.string().regex(/^[a-z0-9-]{2,40}$/) }).parse(req.params);
     const b = z.object({
       name: z.string().min(2).max(80), audience: z.enum(['person', 'business', 'shop']), price: z.number().min(0).max(1e9), currency: z.string().regex(/^[A-Z]{3}$/),
-      period: z.enum(['month', 'year', 'once']), per: z.enum(['pc', 'certificate', 'account']).default('pc'), description: z.string().max(400).optional(), features: z.array(z.string().max(160)).max(20).default([]), active: z.boolean().default(false), sort: z.number().int().min(0).max(1000).default(100), moveQuotaGb: z.number().min(0).max(5000).default(5),
+      period: z.enum(['month', 'year', 'once']), per: z.enum(['pc', 'certificate', 'account']).default('pc'), description: z.string().max(400).optional(), features: z.array(z.string().max(160)).max(20).default([]), active: z.boolean().default(false), sort: z.number().int().min(0).max(1000).default(100), moveQuotaGb: z.number().min(0).max(5000).default(5), entitlements: z.array(z.string().max(60)).max(40).default([]),
     }).strict().parse(req.body);
-    await db.query(`INSERT INTO billing_plans(code,name,audience,price,currency,period,per,description,features,active,sort,move_quota_gb) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
-                    ON CONFLICT (code) DO UPDATE SET name=EXCLUDED.name, audience=EXCLUDED.audience, price=EXCLUDED.price, currency=EXCLUDED.currency, period=EXCLUDED.period, per=EXCLUDED.per, description=EXCLUDED.description, features=EXCLUDED.features, active=EXCLUDED.active, sort=EXCLUDED.sort, move_quota_gb=EXCLUDED.move_quota_gb, updated_at=now()`,
-      [code, b.name, b.audience, b.price, b.currency, b.period, b.per, b.description ?? null, JSON.stringify(b.features), b.active, b.sort, b.moveQuotaGb]);
+    await db.query(`INSERT INTO billing_plans(code,name,audience,price,currency,period,per,description,features,active,sort,move_quota_gb,entitlements) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+                    ON CONFLICT (code) DO UPDATE SET name=EXCLUDED.name, audience=EXCLUDED.audience, price=EXCLUDED.price, currency=EXCLUDED.currency, period=EXCLUDED.period, per=EXCLUDED.per, description=EXCLUDED.description, features=EXCLUDED.features, active=EXCLUDED.active, sort=EXCLUDED.sort, move_quota_gb=EXCLUDED.move_quota_gb, entitlements=EXCLUDED.entitlements, updated_at=now()`,
+      [code, b.name, b.audience, b.price, b.currency, b.period, b.per, b.description ?? null, JSON.stringify(b.features), b.active, b.sort, b.moveQuotaGb, JSON.stringify(b.entitlements)]);
     await c.audit({ orgId: null, actorType: 'user', actorId: actor(req), action: 'platform.billing.plan', targetType: 'billing_plan', targetId: code, next: b, ip: req.ip } as any);
     return reply.code(200).send({ ok: true });
   });

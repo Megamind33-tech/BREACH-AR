@@ -31,7 +31,6 @@ public sealed class LocalBridge(LocalActions act, Func<bool>? isAdmin = null, Ac
             case "account.status": { var m = await ManagedAsync(ct); return Shape(account.State(m)); }
             case "account.refresh": { await account.RefreshAsync(ct); return Shape(account.State(await ManagedAsync(ct))); }
             case "account.signin": { var r = await account.SignInAsync(Str(args, "email"), Str(args, "password"), args.TryGetProperty("code", out var cd) && cd.ValueKind == JsonValueKind.String ? cd.GetString() : null, ct); return new { ok = r.Ok, message = r.Message, needsCode = r.NeedsCode, state = Shape(account.State(await ManagedAsync(ct))) }; }
-            case "account.signup": { var r = await account.SignUpAsync(Str(args, "name"), Str(args, "email"), Str(args, "password"), ct); return new { ok = r.Ok, message = r.Message }; }
             case "account.signout": account.SignOut(); return Shape(account.State(await ManagedAsync(ct)));
             case "pc.report":      // read this PC in full, have Viro work out what it means, and show it; nothing is stored on the server
             {

@@ -32,11 +32,11 @@ public class AccountTests
     public async Task SigningInStoresThePlanAndUnlocksItsFeatures()
     {
         var store = new MemStore(); var svc = new AccountService(store, Server(), "https://example.test");
-        Assert.False(svc.State().SignedIn); Assert.False(svc.Has("diagnose.cause")); Assert.True(svc.Has("clean.space"));
+        Assert.False(svc.State().SignedIn); Assert.False(svc.Has("diagnose.cause")); Assert.True(svc.Has("clean.space")); Assert.EndsWith("/?buy=1", svc.ManageUrl);     // no free sign-up: someone without an account is sent to buy
         var r = await svc.SignInAsync("A@Example.com", "pw", null, default);
         Assert.True(r.Ok); var s = svc.State(); Assert.True(s.SignedIn); Assert.Equal("a@example.com", s.Email); Assert.Equal("Viro Care", s.PlanName);
         Assert.True(svc.Has("diagnose.cause")); Assert.True(svc.Has("clean.space")); Assert.False(svc.Has("move.cloud"));
-        Assert.DoesNotContain("pw", store.Text);                              // the password itself is never kept
+        Assert.EndsWith("/#/billing", svc.ManageUrl); Assert.DoesNotContain("pw", store.Text);                              // the password itself is never kept
     }
 
     [Fact]

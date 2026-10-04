@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { createHash, randomBytes } from 'node:crypto';
 process.env.VIRO_MAIL_MODE = 'outbox';
 const { startHarness } = await import('./helpers.js');
+import { openAccount, pay } from './people.js';
 
 let h: Awaited<ReturnType<typeof startHarness>>;
 before(async () => { h = await startHarness(54421); });
@@ -17,17 +18,8 @@ const sha = (b: Buffer) => createHash('sha256').update(b).digest('hex');
 const chunk = (id: string, n: number, body: Buffer, auth: Record<string, string>, hash = sha(body)) =>
   h.app.inject({ method: 'PUT', url: `/api/v1/move/snapshots/${id}/chunks/${n}`, payload: body, headers: { ...auth, 'content-type': 'application/octet-stream', 'x-chunk-sha256': hash } });
 
-async function person(email: string) {
-  await post('/api/v1/signup', { name: 'Test Person', email, password: 'a-long-password-1', acceptTerms: true });
-  await get(`/verify-email?token=${outbox().filter(m => m.to === email).pop()!.text.match(/token=([\w-]+)/)![1]}`);
-  return { authorization: `Bearer ${(await post('/api/v1/auth/login', { email, password: 'a-long-password-1' })).json().token}` };
-}
-async function buy(auth: Record<string, string>, quotaGb: number) {
-  await put('/api/v1/platform/billing/plans/care-year', { name: 'Care', audience: 'person', price: 250, currency: 'ZMW', period: 'year', active: true, moveQuotaGb: quotaGb }, PK);
-  const method = (await post('/api/v1/platform/billing/methods', { kind: 'cash', label: 'Cash ' + Math.random(), instructions: 'Pay in person.' }, PK)).json().id;
-  const order = (await post('/api/v1/billing/orders', { planCode: 'care-year', quantity: 1, methodId: method }, auth)).json();
-  await post(`/api/v1/billing/orders/${order.id}/paid`, { payerName: 'T', transactionId: 'R' + Math.random() }, auth); await post(`/api/v1/platform/billing/orders/${order.id}/confirm`, {}, PK);
-}
+const person = (email: string) => openAccount(h, email, { quotaGb: 0.01 });
+async function buy(auth: Record<string, string>, _quotaGb: number) { await pay(h, auth); }
 const header = { label: 'Old laptop', machine: 'LAPTOP-7', kdf: { alg: 'pbkdf2-sha256', iterations: 600000, salt: randomBytes(16).toString('base64') }, keyCheck: randomBytes(40).toString('base64') };
 
 test('Viro Move stores only what the app sends, enforces the plan allowance, checks every chunk, and keeps each person snapshots private', async () => {

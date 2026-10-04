@@ -2,6 +2,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 process.env.VIRO_MAIL_MODE = 'outbox';
 const { startHarness } = await import('./helpers.js');
+import { openAccount, pay } from './people.js';
 
 const reading = (): any => ({
   version: 1, collectedAt: '2026-10-01T10:00:00Z',
@@ -27,9 +28,7 @@ const outbox = () => (h.app as any).mailer.outbox as { to: string; text: string 
 const PK = { 'x-platform-key': 'platform-key' };
 
 test('a free plan sees that there is something to look at, a paid plan gets the detail, and the reading is not kept', async () => {
-  await post('/api/v1/signup', { name: 'Test Person', email: 'mypc@example.com', password: 'a-long-password-1', acceptTerms: true });
-  await get(`/verify-email?token=${outbox().pop()!.text.match(/token=([\w-]+)/)![1]}`);
-  const me = { authorization: `Bearer ${(await post('/api/v1/auth/login', { email: 'mypc@example.com', password: 'a-long-password-1' })).json().token}` };
+  const me = await openAccount(h, 'mypc@example.com');
 
   assert.equal((await post('/api/v1/my-pc/report', {}, me)).statusCode, 400);
   const free = (await post('/api/v1/my-pc/report', { anatomy: reading() }, me)).json();
@@ -37,10 +36,7 @@ test('a free plan sees that there is something to look at, a paid plan gets the 
   assert.equal(free.health.locked, true); assert.equal(free.health.feature, 'health.warnings'); assert.equal(free.advice.feature, 'advice.replace'); assert.equal(free.history.feature, 'history.machine');
   assert.equal(free.machine.model, 'Latitude 5400'); assert.ok(!JSON.stringify(free).includes('ABC1234XYZ'));
 
-  await put('/api/v1/platform/billing/plans/care-year', { name: 'Care', audience: 'person', price: 250, currency: 'ZMW', period: 'year', active: true }, PK);
-  const method = (await post('/api/v1/platform/billing/methods', { kind: 'cash', label: 'Cash', instructions: 'Pay in person.' }, PK)).json().id;
-  const order = (await post('/api/v1/billing/orders', { planCode: 'care-year', quantity: 1, methodId: method }, me)).json();
-  await post(`/api/v1/billing/orders/${order.id}/paid`, { payerName: 'T', transactionId: 'R1' }, me); await post(`/api/v1/platform/billing/orders/${order.id}/confirm`, {}, PK);
+  await pay(h, me);
 
   const paid = (await post('/api/v1/my-pc/report', { anatomy: reading(), purchaseCost: 900 }, me)).json();
   assert.ok(paid.health.parts.length > 5); const battery = paid.health.parts.find((p: any) => p.kind === 'Battery'); assert.ok(['WATCH', 'HIGH', 'CRITICAL'].includes(battery.risk)); assert.ok(battery.action);

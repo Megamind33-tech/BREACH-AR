@@ -1,6 +1,7 @@
 import { buildApp } from './app.js';
 import { connect, migrate } from './db.js';
 import { JobSigner, sweepJobs } from './jobs.js';
+import { sweepUnpaidAccounts } from './signup.js';
 import { schedulerTick } from './policies.js';
 import { rolloutTick, autoStartDriverRollouts } from './patching.js';
 import { offlineSweep } from './alerts.js';
@@ -23,6 +24,7 @@ const first = await ensureFirstPlatformAdmin(db, process.env.PLATFORM_ADMIN_EMAI
 if (first === 'created') console.log('created the first platform admin from PLATFORM_ADMIN_EMAIL');
 if (first === 'skipped') console.warn('no platform admin exists: set PLATFORM_ADMIN_EMAIL and PLATFORM_ADMIN_PASSWORD (12+ characters) to create one');
 const signer = JobSigner.load(process.env);
+setInterval(() => sweepUnpaidAccounts(db).catch(e => console.error('unpaid account sweep failed', e)), 3_600_000).unref();
 setInterval(() => sweepJobs(db).catch(e => console.error('job sweep failed', e)), 30_000).unref();
 setInterval(() => schedulerTick(db, signer).catch(e => console.error('scheduler failed', e)), 60_000).unref();
 setInterval(() => rolloutTick(db, signer).catch(e => console.error('rollout tick failed', e)), 30_000).unref();

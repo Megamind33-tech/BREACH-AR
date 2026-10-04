@@ -84,18 +84,6 @@ public sealed class AccountService(IAccountStore store, HttpMessageHandler? hand
         return true;
     }
 
-    public async Task<(bool Ok, string Message)> SignUpAsync(string name, string email, string password, CancellationToken ct)
-    {
-        try
-        {
-            var r = await http.PostAsync(server + "/api/v1/signup", new StringContent(JsonSerializer.Serialize(new { name, email, password, acceptTerms = true }, Web), Encoding.UTF8, "application/json"), ct);
-            using var doc = JsonDocument.Parse(await r.Content.ReadAsStringAsync(ct));
-            var msg = doc.RootElement.TryGetProperty(r.IsSuccessStatusCode ? "message" : "error", out var m) ? m.GetString() ?? "" : "";
-            return (r.IsSuccessStatusCode, r.IsSuccessStatusCode ? msg : msg.Length > 0 ? msg : "Could not create the account. Check the details and try again.");
-        }
-        catch (Exception e) when (e is HttpRequestException or TaskCanceledException) { return (false, "Could not reach Viro. Check your internet connection and try again."); }
-    }
-
     /// <summary>One call to Viro as the signed-in person. Returns the status code and the JSON body; a rejected token signs the person out.</summary>
     public async Task<(int Status, JsonElement Body)> SendAsync(HttpMethod method, string path, object? body, CancellationToken ct)
     {
@@ -127,7 +115,8 @@ public sealed class AccountService(IAccountStore store, HttpMessageHandler? hand
     }
 
     public void SignOut() => store.Clear();
-    public string ManageUrl => server + "/#/billing";
+    /// <summary>Where "see plans" goes: the plan page for a customer who is signed in, the purchase page for everyone else. There is no free sign-up; an account is made when you buy.</summary>
+    public string ManageUrl => Read() is null ? server + "/?buy=1" : server + "/#/billing";
 }
 
 /// <summary>Which paid feature each command in the window needs. Anything not listed is free.</summary>

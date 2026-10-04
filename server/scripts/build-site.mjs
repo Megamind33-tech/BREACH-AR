@@ -13,7 +13,7 @@ const CO = {
 const DEMO = `mailto:${CO.email}?subject=${encodeURIComponent('Viro WorkCare demonstration')}&body=${encodeURIComponent('Hello,\n\nI would like to see Viro WorkCare.\n\nNumber of computers we look after:\nNumber of sites:\nOrganization:\n')}`;
 const NAV = [['/site/features.html', 'Features'], ['/site/#pricing', 'Pricing'], ['/site/security.html', 'Security & privacy'], ['/site/about.html', 'About'], ['/site/contact.html', 'Contact']];
 const PRICE = { care: 250, careHelp: 450, orgFrom: 35, certificate: 60 };
-const DL = '/install/ViroAgent.msi', SIGNUP = 'https://control.viro3.online/?signup=1';
+const DL = '/install/ViroAgent.msi', BUY = 'https://control.viro3.online/?buy=1';
 const esc = s => s.replace(/&(?!amp;|#)/g, '&amp;');
 const IMG = Object.fromEntries(readdirSync(join(OUT, 'img')).filter(f => f.endsWith('.webp')).map(f => [f.replace('.webp', ''), execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'stream=width,height', '-of', 'csv=p=0', join(OUT, 'img', f)]).toString().trim().split(',').map(Number)]));
 const shot = (name, alt, { eager = false, fade = false } = {}) => `<img class="pic${fade ? ' fade' : ''}" src="/site/img/${name}.webp" width="${IMG[name][0]}" height="${IMG[name][1]}" alt="${alt}"${eager ? ' fetchpriority="high"' : ' loading="lazy" decoding="async"'}>`;
@@ -45,7 +45,7 @@ const foot = () => `</main>
 <footer><div class="wrap">
   <div class="foot">
     <div><a class="brand" href="/site/"><span class="mark"><img src="/logo.png" alt="" width="26" height="26"></span><span>Viro <b>WorkCare</b></span></a><p>Care for your Windows PC, or for every computer in an organization: fixes that are checked, changes you can undo, and a way to move to a new PC without starting over.</p></div>
-    <div><h4>Product</h4><ul><li><a href="/site/features.html">Features</a></li><li><a href="/site/#pricing">Pricing</a></li><li><a href="${DL}">Download for Windows</a></li><li><a href="${SIGNUP}">Create an account</a></li><li><a href="/site/security.html">Security &amp; privacy</a></li><li><a href="https://control.viro3.online/" data-signin>Sign in</a></li></ul></div>
+    <div><h4>Product</h4><ul><li><a href="/site/features.html">Features</a></li><li><a href="/site/#pricing">Pricing</a></li><li><a href="${DL}">Download for Windows</a></li><li><a href="${BUY}">Get Viro Care</a></li><li><a href="/site/security.html">Security &amp; privacy</a></li><li><a href="https://control.viro3.online/" data-signin>Sign in</a></li></ul></div>
     <div><h4>Company</h4><ul><li><a href="/site/about.html">About us</a></li><li><a href="/site/contact.html">Contact</a></li><li><a href="/site/privacy.html">Privacy</a></li><li><a href="/site/terms.html">Terms</a></li><li><a href="${DEMO}">Request a demo</a></li></ul></div>
     <div><h4>${CO.name}</h4><ul><li><a href="mailto:${CO.email}">${CO.email}</a></li><li><a href="tel:${CO.phone}">${CO.phoneShown}</a></li><li>${CO.addr.join('<br>')}</li></ul></div>
   </div>
@@ -84,8 +84,8 @@ pages['index.html'] = head('Viro WorkCare: your PC, looked after and proved', 'V
     <p class="eyebrow">Windows PC care, made in Zambia</p>
     <h1>Your PC, looked after. And proved.</h1>
     <p class="lead">Free cleaners clear junk and hope. Viro finds what is actually wrong, fixes it, checks that the fix worked, and lets you undo it. When you buy a new PC, everything comes with you.</p>
-    <div class="actions"><a class="btn big" href="${DL}">Download free for Windows</a><a class="btn big ghost" href="${SIGNUP}">Create a free account</a></div>
-    <p class="note">Free to start. For a school, shop or office: <a href="${DEMO}">request a demonstration</a>.</p>
+    <div class="actions"><a class="btn big" href="${DL}">Download free for Windows</a><a class="btn big ghost" href="${BUY}">Get Viro Care</a></div>
+    <p class="note">The free tools need no account. For a school, shop or office: <a href="${DEMO}">request a demonstration</a>.</p>
   </div>
   <div class="collage">
     ${shot('app-overview', 'The Viro WorkCare window: this PC at a glance, with its health score, memory, drive and the seven things that need attention.', { eager: true })}
@@ -154,11 +154,11 @@ pages['index.html'] = head('Viro WorkCare: your PC, looked after and proved', 'V
 </div></section>
 
 <section id="pricing"><div class="wrap">
-  <div class="sec-head"><h2>Start free. Pay when it earns it.</h2><p>No card needed. Pay by mobile money, bank transfer or cash, and your plan starts when we confirm the payment.</p></div>
+  <div class="sec-head"><h2>Start free. Pay when it earns it.</h2><p>No card. Pay by mobile money, bank transfer or cash, and your plan starts when we confirm the payment.</p></div>
   <div class="plans">
-    <div class="plan"><h3>Free</h3><p class="amt"><b>K&nbsp;0</b><span>free for ever</span></p><ul><li>Full scan of what is wrong</li><li>Free up space, start-up programs, memory</li><li>Installed programs with sizes</li><li>Windows and program updates</li></ul><a class="btn ghost" href="${DL}">Download free</a></div>
-    <div class="plan feat-plan" data-plan-code="care-year"><span class="badge">Most people</span><h3>Viro Care</h3><p class="amt"><b data-amt>K&nbsp;${PRICE.care}</b><span>a year, for one PC</span></p><ul><li>Everything in Free</li><li>Fixes that are checked, with undo</li><li>Why it is slow or crashing</li><li>Failing drive and battery warnings</li><li>Repair or replace advice with a price</li><li>Remove stubborn programs</li><li>Backup check and weekly care</li><li>Viro Move to a new PC</li></ul><a class="btn" href="${SIGNUP}">Create a free account</a></div>
-    <div class="plan" data-plan-code="care-help-year"><h3>Care with help</h3><p class="amt"><b data-amt>K&nbsp;${PRICE.careHelp}</b><span>a year, for one PC</span></p><ul><li>Everything in Viro Care</li><li>Ask a technician, by email, any time</li><li>Replies from a real person</li></ul><a class="btn ghost" href="${SIGNUP}">Create a free account</a></div>
+    <div class="plan"><h3>Free</h3><p class="amt"><b>K&nbsp;0</b><span>free for ever, no account</span></p><ul><li>Full scan of what is wrong</li><li>Free up space, start-up programs, memory</li><li>Installed programs with sizes</li><li>Windows and program updates</li></ul><a class="btn ghost" href="${DL}">Download free</a></div>
+    <div class="plan feat-plan" data-plan-code="care-year"><span class="badge">Most people</span><h3>Viro Care</h3><p class="amt"><b data-amt>K&nbsp;${PRICE.care}</b><span>a year, for one PC</span></p><ul><li>Everything in Free</li><li>Fixes that are checked, with undo</li><li>Why it is slow or crashing</li><li>Failing drive and battery warnings</li><li>Repair or replace advice with a price</li><li>Remove stubborn programs</li><li>Backup check and weekly care</li><li>Viro Move to a new PC</li></ul><a class="btn" href="${BUY}">Get Viro Care</a></div>
+    <div class="plan" data-plan-code="care-help-year"><h3>Care with help</h3><p class="amt"><b data-amt>K&nbsp;${PRICE.careHelp}</b><span>a year, for one PC</span></p><ul><li>Everything in Viro Care</li><li>Ask a technician, by email, any time</li><li>Replies from a real person</li></ul><a class="btn ghost" href="${BUY}">Get Viro Care</a></div>
     <div class="plan"><h3>Organizations</h3><p class="amt"><b>from K&nbsp;${PRICE.orgFrom}</b><span>a computer, a month</span></p><ul><li>Every computer in one console</li><li>Autopilot, alerts and remote support</li><li>Updates and drivers in stages</li><li>Audit log and two-step sign-in</li></ul><a class="btn ghost" href="${DEMO}">Request a demo</a></div>
   </div>
   <p class="foot-note">Buyer certificates for sellers and shops: K&nbsp;${PRICE.certificate} each. Prices are in Zambian kwacha. <a href="/site/terms.html#plans">Plan terms</a>.</p>
@@ -185,6 +185,7 @@ pages['index.html'] = head('Viro WorkCare: your PC, looked after and proved', 'V
   <div class="faq">
     <details><summary>Which computers does it work on?</summary><p>Windows 10 and Windows 11 PCs. Viro is built for Windows only today: it does not run on Mac, Linux or phones. It also tells you when a PC cannot run Windows 11 and what that means for its security updates.</p></details>
     <details><summary>Is it safe to let Viro change my PC?</summary><p>Viro checks the result of every change and keeps what it needs to undo it. It refuses to touch Windows itself, Microsoft runtimes and Viro. A program removed by force is moved aside, not deleted, so it can be brought back.</p></details>
+    <details><summary>Do I need an account?</summary><p>Not for the free tools: download Viro and use them straight away. An account is made when you buy Viro Care, because the paid features (backups, the technician, certificates) live on our servers and need to know who you are.</p></details>
     <details><summary>What does the free plan include?</summary><p>A full scan that tells you what is wrong, clearing temporary files, start-up programs, memory, the installed programs list with sizes, and Windows and program updates. It does not expire.</p></details>
     <details><summary>How do I pay?</summary><p>By mobile money, bank transfer or cash. You place an order, pay quoting your reference, and tell us you have paid. Your plan starts as soon as we confirm the money has arrived.</p></details>
     <details><summary>What if I lose my backup passphrase?</summary><p>Viro cannot recover it, because we never have it. That is what keeps your files private. Write it down somewhere safe when you create a backup.</p></details>
