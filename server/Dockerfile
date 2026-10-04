@@ -19,7 +19,7 @@ COPY public ./public
 # Final guard: the server image must never contain a mining component (see the mining directive's "NO VPS MINING" rule).
 # The endpoint miner is packaged exclusively with the Windows agent build, never copied in here.
 RUN node scripts/check-no-miner-in-image.mjs dist && node scripts/check-no-miner-in-image.mjs public
-RUN mkdir -p /data/releases && chown -R node:node /data
+RUN mkdir -p /data/releases /data/move && chown -R node:node /data
 USER node
 EXPOSE 8080
 CMD ["node", "dist/index.js"]

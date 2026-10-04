@@ -81,7 +81,7 @@ public class AccountTests
         Assert.True((await Call(bridge, "slow.analyze")).GetProperty("locked").GetBoolean());
         Assert.True((await Call(bridge, "apps.uninstall", "{\"kind\":\"other\",\"id\":\"x\",\"forced\":true}")).GetProperty("locked").GetBoolean());
         Assert.Null(FeatureGate.Required("apps.uninstall", J("{\"kind\":\"other\",\"id\":\"x\"}")));        // a normal uninstall stays free
-        Assert.Null(FeatureGate.Required("space.clean", J())); Assert.Equal("fix.verified", FeatureGate.Required("fix.all", J()));
+        Assert.Null(FeatureGate.Required("space.clean", J())); Assert.Equal("fix.verified", FeatureGate.Required("fix.all", J())); Assert.Equal("move.cloud", FeatureGate.Required("move.backup", J())); Assert.Equal("move.cloud", FeatureGate.Required("move.restore", J())); Assert.Null(FeatureGate.Required("move.status", J()));
         Assert.Equal("repair.programs", FeatureGate.Required("recipe.run", J("{\"recipe\":\"printer.repair\"}")));
         Assert.Null(FeatureGate.Required("recipe.run", J("{\"recipe\":\"memory.trim-idle\"}")));
 

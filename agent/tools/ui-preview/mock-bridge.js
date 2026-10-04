@@ -110,6 +110,15 @@
     advice: { age: { ageYears: 6.7 }, lifeStage: { stage: 'Past its typical life' }, windows: { supportNote: null }, priceNote: 'Viro typical prices (an estimate, not a quote)',
       cost: { priced: true, currency: 'USD', decision: 'REPAIR', repairTotal: 125, residualValue: 63, replacementCost: 700, lines: [ { title: 'Replace the memory with 16 GB', total: 65, priced: true }, { title: 'Cooling service', total: 60, priced: true } ], reasoning: ['The repairs cost 18% of a new computer; the rule is to repair when that is 35% or less.'] } },
     history: { facts: [ { label: 'Windows versions upgraded through', value: '2', basis: 'measured' }, { label: 'Memory changes seen', value: '0', basis: 'observed' }, { label: 'NVMe drive: time powered on', value: '2,148 hours (about 0.2 years)', basis: 'measured' } ], limits: ['A clean reinstall erases Windows own upgrade records, so the reinstall count is a minimum, never an exact count.'] } } };
+  if (SCENARIO === 'plus') {
+    data['account.status'].features.push('move.cloud');
+    data['move.status'] = { idle: true };
+    data['move.list'] = { ok: true, usedBytes: 3.2 * GB, quotaBytes: 10 * GB, snapshots: [ { id: 's1', label: 'Old laptop', machine: 'LAPTOP-7', status: 'complete', bytes: 3.2 * GB, created_at: '2026-10-01T10:00:00Z' } ] };
+    data['move.preview'] = { folders: [ { root: 'Documents', path: 'C:\\Users\\chanda\\Documents', bytes: 2.1 * GB, files: 4180 }, { root: 'Desktop', path: 'C:\\Users\\chanda\\Desktop', bytes: 310 * MB, files: 62 }, { root: 'Pictures', path: 'C:\\Users\\chanda\\Pictures', bytes: 5.4 * GB, files: 9120 }, { root: 'Music', path: 'x', bytes: 0, files: 0 }, { root: 'Videos', path: 'x', bytes: 1.1 * GB, files: 31 } ] };
+    data['move.open'] = { ok: true, label: 'Old laptop', machine: 'LAPTOP-7', createdAt: '2026-10-01T10:00:00Z', os: 'Windows 11', folders: [ { root: 'Documents', files: 4180, bytes: 2.1 * GB }, { root: 'Pictures', files: 9120, bytes: 1.1 * GB } ], settings: 9, hasWallpaper: true, bookmarks: true, wifi: ['Home', 'Office'],
+      apps: [ { name: '7-Zip', version: '24.07', publisher: 'Igor Pavlov', wingetId: '7zip.7zip' }, { name: 'Google Chrome', version: '130', publisher: 'Google', wingetId: 'Google.Chrome' }, { name: 'VLC media player', version: '3.0', publisher: 'VideoLAN', wingetId: 'VideoLAN.VLC' }, { name: 'Old Vendor Tool', version: '1.0', publisher: 'Old Co', wingetId: null } ] };
+    data['move.backup'] = { ok: true, message: 'Backup started.' }; data['move.restore'] = { ok: true, message: 'Restore started.' };
+  }
   if (SCENARIO === 'free') data['slow.analyze'] = { locked: true, feature: 'diagnose.cause', title: 'Why it is slow or crashing: the actual cause' };
   window.chrome = { webview: {
     addEventListener: (t, f) => { if (t === 'message') listeners.push(f); },

@@ -30,6 +30,25 @@ public static class Winget
         return string.IsNullOrEmpty(dir) ? (wingetPath, args) : ("cmd.exe", $"/d /c cd /d \"{dir}\" && \"{Path.GetFileName(wingetPath)}\" {args}");
     }
 
+    /// <summary>Parses the table printed by "winget list": program name to its winget package id, only for programs winget knows by its own catalogue (the Source column says "winget").</summary>
+    public static Dictionary<string, string> ParseInstalled(string output)
+    {
+        var o = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var lines = output.Replace("\r", "").Split('\n');
+        var sep = Array.FindIndex(lines, l => Regex.IsMatch(l, @"^-{5,}\s*$"));
+        if (sep < 1) return o;
+        var header = lines[sep - 1];
+        int cName = header.IndexOf("Name", StringComparison.Ordinal), cId = header.IndexOf("Id", StringComparison.Ordinal), cVer = header.IndexOf("Version", StringComparison.Ordinal), cSrc = header.IndexOf("Source", StringComparison.Ordinal);
+        if (cName < 0 || cId <= cName || cVer <= cId || cSrc <= cVer) return o;
+        foreach (var l in lines.Skip(sep + 1))
+        {
+            if (l.Length <= cSrc) continue;
+            var name = l[cName..cId].Trim(); var id = l[cId..cVer].Trim(); var src = l[cSrc..].Trim();
+            if (name.Length > 0 && id.Length > 0 && src.Equals("winget", StringComparison.OrdinalIgnoreCase)) o[name] = id;
+        }
+        return o;
+    }
+
     /// <summary>Parses the table printed by "winget upgrade": header row, dashed separator, then columns aligned to the header positions.</summary>
     public static List<AvailableUpgrade> ParseUpgrades(string output)
     {

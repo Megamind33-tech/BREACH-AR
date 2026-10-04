@@ -222,14 +222,14 @@ const S = { env: null, view: undefined, page: null, sys: null, timer: null };
 const PAGES = [
   ['Protect', [['overview', 'Overview', 'home'], ['report', 'PC report', 'gauge'], ['security', 'Security', 'shield'], ['updates', 'Updates and drivers', 'update'], ['swupdates', 'Program updates', 'refresh'], ['stability', 'Crashes and freezes', 'alert']]],
   ['Optimize', [['performance', 'Performance', 'gauge'], ['slow', 'Start-up and shut-down', 'power'], ['apps', 'Repair programs', 'wrench'], ['installed', 'Installed programs', 'trash'], ['space', 'Free space', 'broom'], ['startup', 'Start-up programs', 'rocket'], ['memory', 'Memory', 'chip']]],
-  ['This PC', [['workspace', 'Workspace', 'link'], ['account', 'Viro account', 'lock'], ['help', 'Ask a technician', 'info']]],
+  ['This PC', [['workspace', 'Workspace', 'link'], ['account', 'Viro account', 'lock'], ['move', 'Viro Move', 'update'], ['help', 'Ask a technician', 'info']]],
   ['History', [['activity', 'What Viro did', 'clock'], ['undo', 'Undo changes', 'undo']]],
 ];
 const TITLES = {
   overview: ["Overview", "Your PC at a glance"], security: ["Security", "Windows protection"], updates: ["Updates and drivers", "Waiting Windows updates"],
   performance: ["Performance", "Heat, battery, start-up"], space: ["Free space", "Remove temporary files"], startup: ["Start-up programs", "What starts with Windows"], memory: ["Memory", "What is using memory"],
   swupdates: ["Program updates", "Newer versions available"], stability: ["Crashes and freezes", "What Windows recorded"], slow: ["Start-up and shut-down", "What slows this PC"],
-  installed: ["Installed programs", "Sizes, and removal"], apps: ["Repair programs", "Fix programs that misbehave"], workspace: ["Workspace", "Your organization"], account: ["Viro account", "Your plan and what it includes"], report: ["PC report", "Health, repair or replace, and history"], help: ["Ask a technician", "A real person looks at it"], activity: ["What Viro did", "Verified changes"], undo: ["Undo changes", "Put things back"],
+  installed: ["Installed programs", "Sizes, and removal"], apps: ["Repair programs", "Fix programs that misbehave"], workspace: ["Workspace", "Your organization"], account: ["Viro account", "Your plan and what it includes"], report: ["PC report", "Health, repair or replace, and history"], help: ["Ask a technician", "A real person looks at it"], move: ["Viro Move", "Your files, settings and programs on your next PC"], activity: ["What Viro did", "Verified changes"], undo: ["Undo changes", "Put things back"],
 };
 const NOSERVICE = 'The Viro background service is not reachable, so health details are unavailable. Free space, start-up programs and memory still work.';
 const note = t => `<div class="note">${ic('info')}<div>${t}</div></div>`;
@@ -714,6 +714,97 @@ RENDER.report = async () => {
     ${!S.env?.admin ? note('For the most complete drive readings, run Viro as administrator (Viro account page, or the shield button).') : ''}</div>`;
   $('#rr').onclick = () => RENDER.report(); wireUpgrade();
 };
+
+/* ---------- Viro Move: back up this PC, put it back on another ---------- */
+const FOLDER_NAMES = { Documents: 'Documents', Desktop: 'Desktop', Pictures: 'Pictures', Music: 'Music', Videos: 'Videos' };
+const fieldCss = 'width:100%;height:40px;border-radius:8px;border:0;background:var(--bg);color:#fff;padding:0 12px;font:inherit;margin-top:8px';
+RENDER.move = async () => {
+  head(); const a = S.acct = await call('account.status');
+  if (a.managed) { $('#view').innerHTML = `<div class="page">${note('This PC is managed by your organization. Viro Move is for your own account: sign in on a personal PC to use it.')}</div>`; return; }
+  if (!a.signedIn) { $('#view').innerHTML = `<div class="page">${note('Sign in to your Viro account to back up this PC or restore another one.')}<div class="tight row"><button class="btn primary" id="si">Sign in</button></div></div>`; $('#si').onclick = () => go('account'); return; }
+  const st = await call('move.status');
+  if (!st.idle && st.running) return moveProgress();
+  const l = await call('move.list');                                  // a plan without Viro Move shows the upgrade screen here
+  if (l.signedOut) { go('account'); return; }
+  const used = l.usedBytes, quota = l.quotaBytes, pctUsed = quota ? Math.min(100, Math.round(used / quota * 100)) : 0;
+  const snaps = l.snapshots || [];
+  const finished = !st.idle && !st.running ? `<div class="card page" style="margin-bottom:12px"><div class="row"><span style="color:var(--${st.phase === 'Done' ? 'green' : 'red'})">${ic(st.phase === 'Done' ? 'check' : 'alert', 20)}</span><div><b style="color:#fff">${esc(st.message)}</b>${(st.notes || []).map(n => `<div class="sub">${esc(n)}</div>`).join('')}</div></div></div>` : '';
+  $('#view').innerHTML = `<div class="page">${finished}${sum([{ k: 'Space used', v: gb(used), sub: 'of ' + gb(quota), bar: pctUsed, barTone: pctUsed > 90 ? 'red' : pctUsed > 75 ? 'amber' : '' }, { k: 'Backups', v: snaps.filter(x => x.status === 'complete').length }, { k: 'Protection', v: 'Encrypted here', sub: 'Viro cannot read it' }])}
+    ${panel('Your backups', 'Each one is a full copy of what you chose, encrypted on this PC before it leaves it.', '<button class="btn primary sm" id="newbk">' + ic('update') + 'Back up this PC</button>',
+      snaps.filter(x => x.status === 'complete').map(x => `<div class="ctl"><div class="grow"><b>${esc(x.label)}</b><small>${esc(x.machine || '')} · ${esc(new Date(x.created_at).toLocaleDateString([], { dateStyle: 'medium' }))} · ${gb(x.bytes)}</small></div><button class="btn primary sm" data-restore="${esc(x.id)}">Put on this PC</button><button class="btn ghost sm" data-del="${esc(x.id)}">${ic('trash', 15)}</button></div>`).join('') || '<div class="empty">' + ic('update') + '<b>No backups yet</b>Back up this PC, then sign in on your next PC to put everything back.</div>')}</div>`;
+  $('#newbk').onclick = () => moveSetup(l);
+  $$('[data-restore]').forEach(b => b.onclick = () => moveOpen(b.dataset.restore, snaps.find(x => x.id === b.dataset.restore)));
+  $$('[data-del]').forEach(b => b.onclick = async () => { if (!await modal('Delete this backup?', 'It is removed from Viro for good. This cannot be undone.', 'Delete', true)) return; await busy(b, 'Deleting', async () => { await call('move.delete', { id: b.dataset.del }); RENDER.move(); }); });
+  animateBars();
+};
+
+async function moveSetup(l) {
+  $('#view').innerHTML = scanning('update', 'Measuring your folders…', 'This only counts files; nothing is sent yet.');
+  const p = await call('move.preview'); const choose = new Set(p.folders.filter(f => f.bytes > 0 && ['Documents', 'Desktop', 'Pictures'].includes(f.root)).map(f => f.root));
+  const opt = { settings: true, bookmarks: true, apps: true, wifi: false };
+  const left = Math.max(0, l.quotaBytes - l.usedBytes);
+  const draw = () => {
+    const total = p.folders.filter(f => choose.has(f.root)).reduce((n, f) => n + f.bytes, 0), over = total + total / 500 > left;
+    $('#view').innerHTML = `<div class="page">${sum([{ k: 'To back up', v: gb(total), tone: over ? 'warn' : '', sub: over ? 'more than your space left' : 'about ' + Math.max(1, Math.round(total / 1048576 / 60)) + ' min at 1 MB/s' }, { k: 'Space left', v: gb(left) }])}
+      ${panel('Folders', 'Pick what to keep. Files that are only in OneDrive, and very large files, are left out.', '', p.folders.map(f => `<div class="ctl" data-f="${esc(f.root)}"><span class="check ${choose.has(f.root) ? 'on' : ''}">${ic('check', 12)}</span><div class="grow"><b>${esc(FOLDER_NAMES[f.root] || f.root)}</b><small>${f.files.toLocaleString()} files</small></div><b>${gb(f.bytes)}</b></div>`).join(''))}
+      ${panel('Settings and programs', '', '', [['settings', 'Settings and wallpaper', 'Wallpaper, light or dark mode, taskbar position, file extensions.'], ['bookmarks', 'Browser bookmarks', 'Chrome and Edge, as a file you can import into any browser.'], ['apps', 'List of installed programs', 'So you can reinstall them on the new PC. Programs are not copied; most can be installed again by Windows Package Manager.'], ['wifi', 'Wi-Fi networks and passwords', 'Encrypted with your passphrase like everything else.']].map(([k, t, d]) => `<div class="ctl" data-o="${k}"><span class="check ${opt[k] ? 'on' : ''}">${ic('check', 12)}</span><div class="grow"><b>${t}</b><small>${d}</small></div></div>`).join(''))}
+      <div class="card page"><h2>Protect it with a passphrase</h2><div class="sub">Your files are locked here with this passphrase. <b>Viro cannot read your backup or recover the passphrase</b>: if you lose it, the backup cannot be opened. Write it down somewhere safe.</div>
+        <input id="bl" placeholder="Name this backup" value="${esc(S.env?.machine || 'My PC')}" style="${fieldCss}"><input id="bp" type="password" placeholder="Passphrase (10 or more characters)" autocomplete="new-password" style="${fieldCss}"><input id="bp2" type="password" placeholder="Type it again" autocomplete="new-password" style="${fieldCss}">
+        <div class="tight row"><button class="btn primary" id="gobk" ${over ? 'disabled' : ''}>Back up now</button><button class="btn ghost" id="cancelbk">Cancel</button><span class="muted" id="bm"></span></div></div></div>`;
+    $$('[data-f]').forEach(r => r.onclick = () => { const k = r.dataset.f; choose.has(k) ? choose.delete(k) : choose.add(k); const keep = [$('#bl').value, $('#bp').value, $('#bp2').value]; draw(); $('#bl').value = keep[0]; $('#bp').value = keep[1]; $('#bp2').value = keep[2]; });
+    $$('[data-o]').forEach(r => r.onclick = () => { const k = r.dataset.o; opt[k] = !opt[k]; r.querySelector('.check').classList.toggle('on', opt[k]); });
+    $('#cancelbk').onclick = () => RENDER.move();
+    $('#gobk').onclick = e => busy(e.currentTarget, 'Starting', async () => {
+      if ($('#bp').value !== $('#bp2').value) { $('#bm').textContent = 'The two passphrases do not match.'; return; }
+      const r = await call('move.backup', { passphrase: $('#bp').value, label: $('#bl').value, folders: [...choose], settings: opt.settings, bookmarks: opt.bookmarks, apps: opt.apps, wifi: opt.wifi });
+      if (!r.ok) { $('#bm').textContent = r.message; return; } moveProgress();
+    });
+  }; draw();
+}
+
+function moveProgress() {
+  head(); if (S.timer) clearInterval(S.timer);
+  const tick = async () => {
+    const j = await call('move.status'); if (S.page !== 'move') { clearInterval(S.timer); return; }
+    const pct = j.bytesTotal ? Math.min(100, Math.round(j.bytesDone / j.bytesTotal * 100)) : (j.running ? 3 : 100);
+    $('#view').innerHTML = `<div class="page">${sum([{ k: j.kind === 'restore' ? 'Restoring' : 'Backing up', v: pct + '%', bar: pct }, { k: 'Done', v: gb(j.bytesDone), sub: 'of ' + gb(j.bytesTotal) }, { k: 'Files', v: (j.filesDone || 0).toLocaleString(), sub: 'of ' + (j.filesTotal || 0).toLocaleString() }])}
+      ${panel(esc(j.message || 'Working…'), 'You can keep using the PC. Keep it switched on and connected until this finishes.', j.running ? '<button class="btn ghost sm" id="stopmv">Stop</button>' : '', (j.notes || []).map(n => `<div class="ctl"><div class="grow sub">${esc(n)}</div></div>`).join('') || '<div class="ctl"><div class="grow sub">Nothing to report yet.</div></div>')}</div>`;
+    $('#stopmv')?.addEventListener('click', async () => { await call('move.cancel'); });
+    animateBars();
+    if (!j.running) { clearInterval(S.timer); S.timer = null; if (j.phase === 'Done' || j.phase === 'Failed' || j.phase === 'Cancelled') { setTimeout(() => { if (S.page === 'move') RENDER.move(); }, 2500); } }
+  };
+  tick(); S.timer = setInterval(tick, 1000);
+}
+
+async function moveOpen(id, snap) {
+  const pw = document.createElement('div'); pw.className = 'scrim';
+  pw.innerHTML = `<div class="modal" role="dialog" aria-modal="true"><h2>Open "${esc(snap?.label || 'backup')}"</h2><p>Enter the passphrase you chose when you backed up. It is checked on this PC; Viro never sees it.</p><input id="op" type="password" placeholder="Passphrase" autocomplete="off" style="${fieldCss}"><div class="muted" id="om" style="margin-top:8px;min-height:18px"></div><div class="row"><button class="btn ghost" data-n>Cancel</button><button class="btn primary" data-y>Open</button></div></div>`;
+  document.body.appendChild(pw); $('#op').focus(); $('[data-n]', pw).onclick = () => pw.remove();
+  $('[data-y]', pw).onclick = async e => {
+    const btn = e.currentTarget; btn.disabled = true; btn.innerHTML = '<span class="spin"></span>Checking'; $('#om').textContent = '';
+    const r = await call('move.open', { id, passphrase: $('#op').value }).catch(x => ({ ok: false, message: x.message }));
+    btn.disabled = false; btn.textContent = 'Open'; if (!r.ok) { $('#om').textContent = r.message; return; }
+    pw.remove(); movePlan(r);
+  };
+  $('#op').onkeydown = ev => { if (ev.key === 'Enter') $('[data-y]', pw).click(); };
+}
+
+function movePlan(r) {
+  head(); const useFiles = new Set(r.folders.map(f => f.root)); const o = { settings: r.settings > 0 || r.hasWallpaper, wifi: false }; const apps = new Set(r.apps.filter(a => a.wingetId).map(a => a.wingetId));
+  const draw = () => {
+    $('#view').innerHTML = `<div class="page">${sum([{ k: 'From', v: esc(r.machine || r.label), sub: new Date(r.createdAt).toLocaleDateString([], { dateStyle: 'medium' }) }, { k: 'Files', v: r.folders.reduce((n, f) => n + f.files, 0).toLocaleString(), sub: gb(r.folders.reduce((n, f) => n + f.bytes, 0)) }, { k: 'Programs to reinstall', v: apps.size, sub: 'of ' + r.apps.length + ' listed' }])}
+      ${panel('Files', 'They go back to the same folders. A file that is already here is never replaced: the old PC copy is saved next to it.', '', r.folders.map(f => `<div class="ctl" data-rf="${esc(f.root)}"><span class="check ${useFiles.has(f.root) ? 'on' : ''}">${ic('check', 12)}</span><div class="grow"><b>${esc(FOLDER_NAMES[f.root] || f.root)}</b><small>${f.files.toLocaleString()} files</small></div><b>${gb(f.bytes)}</b></div>`).join('') || '<div class="empty"><b>No files in this backup</b></div>')}
+      ${panel('Settings', '', '', `<div class="ctl" data-ro="settings"><span class="check ${o.settings ? 'on' : ''}">${ic('check', 12)}</span><div class="grow"><b>Settings and wallpaper</b><small>${r.settings} settings${r.hasWallpaper ? ' and your wallpaper' : ''}. Taskbar changes show after you sign out and in.</small></div></div>${r.wifi.length ? `<div class="ctl" data-ro="wifi"><span class="check ${o.wifi ? 'on' : ''}">${ic('check', 12)}</span><div class="grow"><b>Wi-Fi networks</b><small>${esc(r.wifi.join(', '))}</small></div></div>` : ''}`)}
+      ${r.apps.length ? panel('Programs', 'Windows installs the ticked ones for you. Programs it cannot find are listed so you can install them yourself.', '<button class="btn ghost sm" id="allapps">Select all</button>', r.apps.map(a => a.wingetId ? `<div class="ctl" data-ra="${esc(a.wingetId)}"><span class="check ${apps.has(a.wingetId) ? 'on' : ''}">${ic('check', 12)}</span><div class="grow"><b>${esc(a.name)}</b><small>${esc([a.publisher, a.version].filter(Boolean).join(' · '))}</small></div></div>` : `<div class="ctl"><span class="check">${ic('info', 12)}</span><div class="grow"><b>${esc(a.name)}</b><small>Install this one yourself${a.publisher ? ' · ' + esc(a.publisher) : ''}</small></div></div>`).join('')) : ''}
+      <div class="tight row"><button class="btn primary lg" id="gorst">Put it on this PC</button><button class="btn ghost" id="cancelrst">Cancel</button><span class="muted" id="rm"></span></div></div>`;
+    $$('[data-rf]').forEach(x => x.onclick = () => { const k = x.dataset.rf; useFiles.has(k) ? useFiles.delete(k) : useFiles.add(k); draw(); });
+    $$('[data-ro]').forEach(x => x.onclick = () => { const k = x.dataset.ro; o[k] = !o[k]; draw(); });
+    $$('[data-ra]').forEach(x => x.onclick = () => { const k = x.dataset.ra; apps.has(k) ? apps.delete(k) : apps.add(k); draw(); });
+    $('#allapps')?.addEventListener('click', () => { r.apps.filter(a => a.wingetId).forEach(a => apps.add(a.wingetId)); draw(); });
+    $('#cancelrst').onclick = () => RENDER.move();
+    $('#gorst').onclick = e => busy(e.currentTarget, 'Starting', async () => { const x = await call('move.restore', { folders: [...useFiles], settings: o.settings, wifi: o.wifi, appIds: [...apps] }); if (!x.ok) { $('#rm').textContent = x.message; return; } moveProgress(); });
+  }; draw();
+}
 
 /* ---------- ask a technician ---------- */
 RENDER.help = async () => {

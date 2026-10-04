@@ -28,7 +28,7 @@ public sealed class AccountService(IAccountStore store, HttpMessageHandler? hand
 
     readonly string server = (baseUrl ?? DefaultServer).TrimEnd('/');
     readonly Func<DateTime> now = clock ?? (() => DateTime.UtcNow);
-    readonly HttpClient http = new(handler ?? new HttpClientHandler()) { Timeout = TimeSpan.FromSeconds(20) };
+    readonly HttpClient http = new(handler ?? new HttpClientHandler()) { Timeout = TimeSpan.FromMinutes(5) };
     static readonly JsonSerializerOptions Web = new(JsonSerializerDefaults.Web);
 
     sealed record Saved(string Email, string Token, string? Plan, string? PlanName, bool Active, DateTime? ValidUntil, string[] Features, DateTime? CheckedAt, string Kind);
@@ -111,6 +111,21 @@ public sealed class AccountService(IAccountStore store, HttpMessageHandler? hand
         catch (Exception e) when (e is HttpRequestException or TaskCanceledException) { return (0, JsonDocument.Parse("{\"error\":\"Could not reach Viro. Check your internet connection and try again.\"}").RootElement.Clone()); }
     }
 
+    /// <summary>A binary call to Viro as the signed-in person (Viro Move chunks). Returns the status, the body bytes and the chunk checksum header.</summary>
+    public async Task<(int Status, byte[] Data, string? Sha)> SendBytesAsync(HttpMethod method, string path, byte[]? body, string? sha, CancellationToken ct)
+    {
+        var s = Read(); if (s is null) return (401, [], null);
+        using var req = new HttpRequestMessage(method, server + path); req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", s.Token);
+        if (body is not null) { req.Content = new ByteArrayContent(body); req.Content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream"); if (sha is not null) req.Headers.Add("x-chunk-sha256", sha); }
+        try
+        {
+            using var r = await http.SendAsync(req, ct);
+            if (r.StatusCode == System.Net.HttpStatusCode.Unauthorized) store.Clear();
+            return ((int)r.StatusCode, await r.Content.ReadAsByteArrayAsync(ct), r.Headers.TryGetValues("x-chunk-sha256", out var v) ? v.FirstOrDefault() : null);
+        }
+        catch (Exception e) when (e is HttpRequestException or TaskCanceledException) { if (ct.IsCancellationRequested) throw; return (0, [], null); }
+    }
+
     public void SignOut() => store.Clear();
     public string ManageUrl => server + "/#/billing";
 }
@@ -126,6 +141,7 @@ public static class FeatureGate
             case "apps.repair": return "repair.programs";
             case "fix.all": return "fix.verified";
             case "help.request": return "help.technician";
+            case "move.list": case "move.backup": case "move.open": case "move.restore": case "move.delete": case "move.preview": return "move.cloud";
             case "apps.uninstall": return args.ValueKind == JsonValueKind.Object && args.TryGetProperty("forced", out var f) && f.ValueKind == JsonValueKind.True ? "uninstall.forced" : null;
             case "recipe.run":
                 var r = args.ValueKind == JsonValueKind.Object && args.TryGetProperty("recipe", out var x) ? x.GetString() : null;

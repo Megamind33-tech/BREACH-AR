@@ -123,11 +123,11 @@ export function registerBillingRoutes(app: FastifyInstance, c: JobCtx) {
     const { code } = z.object({ code: z.string().regex(/^[a-z0-9-]{2,40}$/) }).parse(req.params);
     const b = z.object({
       name: z.string().min(2).max(80), audience: z.enum(['person', 'business', 'shop']), price: z.number().min(0).max(1e9), currency: z.string().regex(/^[A-Z]{3}$/),
-      period: z.enum(['month', 'year', 'once']), per: z.enum(['pc', 'certificate', 'account']).default('pc'), description: z.string().max(400).optional(), features: z.array(z.string().max(160)).max(20).default([]), active: z.boolean().default(false), sort: z.number().int().min(0).max(1000).default(100),
+      period: z.enum(['month', 'year', 'once']), per: z.enum(['pc', 'certificate', 'account']).default('pc'), description: z.string().max(400).optional(), features: z.array(z.string().max(160)).max(20).default([]), active: z.boolean().default(false), sort: z.number().int().min(0).max(1000).default(100), moveQuotaGb: z.number().min(0).max(5000).default(5),
     }).strict().parse(req.body);
-    await db.query(`INSERT INTO billing_plans(code,name,audience,price,currency,period,per,description,features,active,sort) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
-                    ON CONFLICT (code) DO UPDATE SET name=EXCLUDED.name, audience=EXCLUDED.audience, price=EXCLUDED.price, currency=EXCLUDED.currency, period=EXCLUDED.period, per=EXCLUDED.per, description=EXCLUDED.description, features=EXCLUDED.features, active=EXCLUDED.active, sort=EXCLUDED.sort, updated_at=now()`,
-      [code, b.name, b.audience, b.price, b.currency, b.period, b.per, b.description ?? null, JSON.stringify(b.features), b.active, b.sort]);
+    await db.query(`INSERT INTO billing_plans(code,name,audience,price,currency,period,per,description,features,active,sort,move_quota_gb) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+                    ON CONFLICT (code) DO UPDATE SET name=EXCLUDED.name, audience=EXCLUDED.audience, price=EXCLUDED.price, currency=EXCLUDED.currency, period=EXCLUDED.period, per=EXCLUDED.per, description=EXCLUDED.description, features=EXCLUDED.features, active=EXCLUDED.active, sort=EXCLUDED.sort, move_quota_gb=EXCLUDED.move_quota_gb, updated_at=now()`,
+      [code, b.name, b.audience, b.price, b.currency, b.period, b.per, b.description ?? null, JSON.stringify(b.features), b.active, b.sort, b.moveQuotaGb]);
     await c.audit({ orgId: null, actorType: 'user', actorId: actor(req), action: 'platform.billing.plan', targetType: 'billing_plan', targetId: code, next: b, ip: req.ip } as any);
     return reply.code(200).send({ ok: true });
   });

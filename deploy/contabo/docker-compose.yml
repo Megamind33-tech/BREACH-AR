@@ -40,13 +40,15 @@ services:
       PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-https://control.viro3.online}
       NODE_ENV: production
       RELEASES_DIR: /data/releases
+      MOVE_DIR: /data/move                      # Viro Move: encrypted snapshots (the server cannot read them)
+      MOVE_BUSINESS_QUOTA_GB: "20"
       REQUIRE_TRUSTED_SIGNATURE: "0"          # the installer is not code-signed yet; turn on once it is
       TRUST_PROXY: "127.0.0.1,::1,172.16.0.0/12"   # the host's nginx (via the Docker bridge) tells us each visitor's real address
       HOST: 0.0.0.0
       PORT: "8080"
-    volumes: [releases:/data/releases]
+    volumes: [releases:/data/releases, move:/data/move]
     healthcheck: { test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/healthz | grep -q ok"], interval: 15s, timeout: 5s, retries: 5, start_period: 20s }
     mem_limit: 1g
     logging: { driver: json-file, options: { max-size: "20m", max-file: "5" } }
 
-volumes: { pgdata: {}, releases: {} }
+volumes: { pgdata: {}, releases: {}, move: {} }

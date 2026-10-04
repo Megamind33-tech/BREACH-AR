@@ -13,7 +13,7 @@ const agentRoot = join(here, '..', '..');
 const WebSocket = createRequire(join(agentRoot, '..', 'server', 'package.json'))('ws');
 const arg = (n, d) => { const i = process.argv.indexOf('--' + n); return i > 0 ? process.argv[i + 1] : d; };
 const tag = arg('tag', 'shot'), width = +arg('width', 1240), height = +arg('height', 800), scenario = arg('scenario', 'attention');
-const ALL = ['overview', 'security', 'updates', 'swupdates', 'stability', 'performance', 'slow', 'apps', 'installed', 'space', 'startup', 'memory', 'workspace', 'account', 'report', 'activity', 'undo'];
+const ALL = ['overview', 'security', 'updates', 'swupdates', 'stability', 'performance', 'slow', 'apps', 'installed', 'space', 'startup', 'memory', 'workspace', 'account', 'report', 'move', 'activity', 'undo'];
 const pages = arg('pages', ALL.join(',')).split(',').filter(Boolean);
 const OUT = join(here, 'out'); mkdirSync(OUT, { recursive: true });
 const ui = pathToFileURL(join(agentRoot, 'src', 'Viro.Agent', 'Care', 'ui', 'index.html')).href;

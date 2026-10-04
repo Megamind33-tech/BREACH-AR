@@ -8,13 +8,16 @@ namespace Viro.Agent.Care;
 /// The only things the window's interface can ask for. Every command maps onto <see cref="LocalActions"/>, which uses the same engines and safety rules as the
 /// service; there is no command that runs arbitrary code or reads files. The only network traffic is to the Viro account service (sign-in and plan) and, for program updates, winget. Results are plain JSON for the interface to draw.
 /// </summary>
-public sealed class LocalBridge(LocalActions act, Func<bool>? isAdmin = null, Action? relaunchElevated = null, WorkspaceActions? workspace = null, AccountService? accounts = null, Action<string>? openUrl = null, Func<Task<bool>>? isManaged = null)
+public sealed class LocalBridge(LocalActions act, Func<bool>? isAdmin = null, Action? relaunchElevated = null, WorkspaceActions? workspace = null, AccountService? accounts = null, Action<string>? openUrl = null, Func<Task<bool>>? isManaged = null, Viro.Agent.Care.Move.MoveEngine? moveEngine = null)
 {
     static readonly JsonSerializerOptions Web = new(JsonSerializerDefaults.Web);
     static object Shape(AccountState a) => new { signedIn = a.SignedIn, email = a.Email, plan = a.Plan, planName = a.PlanName, active = a.Active, validUntil = a.ValidUntil, features = a.Features, managed = a.Managed, stale = a.Stale, checkedAt = a.CheckedAt, free = AccountService.FreeFeatures, titles = FeatureGate.Titles };
     readonly Func<bool> admin = isAdmin ?? (() => new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator));
 
     readonly AccountService account = accounts ?? new AccountService(new DpapiAccountStore());
+    Viro.Agent.Care.Move.MoveEngine? engine = moveEngine; Viro.Agent.Care.Move.MoveJob? moveJob; Viro.Agent.Care.Move.MoveEngine.Opened? moveOpened;
+    Viro.Agent.Care.Move.MoveEngine Move => engine ??= new Viro.Agent.Care.Move.MoveEngine(new Viro.Agent.Care.Move.WindowsMoveHost(), new Viro.Agent.Care.Move.AccountMoveApi(account));
+    static object JobView(Viro.Agent.Care.Move.MoveJob? j) => j is null ? new { idle = true } : new { idle = false, kind = j.Kind, phase = j.Phase.ToString(), running = j.Running, message = j.Message, bytesDone = Interlocked.Read(ref j.BytesDone), bytesTotal = j.BytesTotal, filesDone = j.FilesDone, filesTotal = j.FilesTotal, error = j.Error, notes = j.Notes.ToArray() };
 
     /// <summary>True when an organization manages this PC through the Viro service: its administrators set what is included, so the window does not lock anything.</summary>
     async Task<bool> ManagedAsync(CancellationToken ct) { if (isManaged is not null) return await isManaged(); try { return await act.SelfAsync(ct) is not null; } catch (Exception) { return false; } }
@@ -39,6 +42,40 @@ public sealed class LocalBridge(LocalActions act, Func<bool>? isAdmin = null, Ac
                 var ok = status is >= 200 and < 300;
                 return new { ok, report = ok ? (object)body.Clone() : null, message = ok ? null : body.TryGetProperty("error", out var e) ? e.GetString() : "Could not read your PC report.", signedOut = status == 401 };
             }
+            case "move.status": return JobView(moveJob);
+            case "move.preview": return new { folders = (await Move.PreviewAsync(ct)).Select(x => new { root = x.Root, path = x.Path, bytes = x.Bytes, files = x.Files }).ToList() };
+            case "move.list":
+            {
+                var (st, body) = await account.SendAsync(HttpMethod.Get, "/api/v1/move/snapshots", null, ct);
+                return new { ok = st is >= 200 and < 300, signedOut = st == 401, snapshots = st is >= 200 and < 300 && body.TryGetProperty("snapshots", out var sn) ? (object)sn.Clone() : Array.Empty<object>(), usedBytes = body.TryGetProperty("usedBytes", out var ub) && ub.ValueKind == JsonValueKind.Number ? ub.GetInt64() : 0, quotaBytes = body.TryGetProperty("quotaBytes", out var qb) && qb.ValueKind == JsonValueKind.Number ? qb.GetInt64() : 0 };
+            }
+            case "move.backup":
+            {
+                if (moveJob is { Running: true }) return new { ok = false, message = "A backup or restore is already running." };
+                var pass = Str(args, "passphrase"); if (pass.Length < 10) return new { ok = false, message = "Choose a passphrase of at least 10 characters. It protects your backup, and Viro cannot recover it for you." };
+                var o = new Viro.Agent.Care.Move.MoveBackupOptions(Str(args, "label") is { Length: > 0 } l ? l : Environment.MachineName, Strings(args, "folders"), Flag(args, "settings"), Flag(args, "wifi"), Flag(args, "bookmarks"), Flag(args, "apps"));
+                var job = moveJob = new Viro.Agent.Care.Move.MoveJob(); _ = Task.Run(() => Move.BackupAsync(o, pass, job, job.Cts.Token));
+                return new { ok = true, message = "Backup started." };
+            }
+            case "move.open":
+            {
+                try
+                {
+                    moveOpened = await Move.OpenAsync(Str(args, "id"), Str(args, "passphrase"), ct); var m = moveOpened.Manifest;
+                    return new { ok = true, label = moveOpened.Label, machine = m.Machine, createdAt = m.CreatedAt, os = m.Os, folders = m.Files.Where(f => f.Mtime != -1 && f.Root is not ("Settings" or "Bookmarks")).GroupBy(f => f.Root).Select(g => new { root = g.Key, files = g.Count(), bytes = g.Sum(x => x.Size) }).ToList(), settings = m.Settings.Count, hasWallpaper = m.Files.Any(f => f.Root == "Settings"), bookmarks = m.Files.Any(f => f.Root == "Bookmarks"), wifi = m.Wifi.Select(w => w.Name).ToList(), apps = m.Apps.Select(a => new { name = a.Name, version = a.Version, publisher = a.Publisher, wingetId = a.WingetId }).ToList() };
+                }
+                catch (Viro.Agent.Care.Move.MoveException e) { moveOpened = null; return new { ok = false, message = e.Message }; }
+            }
+            case "move.restore":
+            {
+                if (moveOpened is null) return new { ok = false, message = "Open the backup with its passphrase first." };
+                if (moveJob is { Running: true }) return new { ok = false, message = "A backup or restore is already running." };
+                var opened = moveOpened; var o = new Viro.Agent.Care.Move.MoveRestoreOptions(Strings(args, "folders"), Flag(args, "settings"), Flag(args, "wifi"), Strings(args, "appIds"));
+                var job = moveJob = new Viro.Agent.Care.Move.MoveJob(); _ = Task.Run(() => Move.RestoreAsync(opened, o, job, job.Cts.Token));
+                return new { ok = true, message = "Restore started." };
+            }
+            case "move.cancel": moveJob?.Cts.Cancel(); return JobView(moveJob);
+            case "move.delete": { var (st, _) = await account.SendAsync(HttpMethod.Delete, "/api/v1/move/snapshots/" + Uri.EscapeDataString(Str(args, "id")), null, ct); return new { ok = st is >= 200 and < 300 }; }
             case "help.request":
             {
                 object? details = null;
@@ -198,6 +235,7 @@ public sealed class LocalBridge(LocalActions act, Func<bool>? isAdmin = null, Ac
         }
     }
 
+    static bool Flag(JsonElement a, string name) => a.ValueKind == JsonValueKind.Object && a.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.True;
     static string Str(JsonElement a, string name) => a.ValueKind == JsonValueKind.Object && a.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() ?? "" : "";
     static List<string> Strings(JsonElement a, string name) => a.ValueKind == JsonValueKind.Object && a.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.Array ? [.. v.EnumerateArray().Select(x => x.GetString() ?? "").Where(x => x.Length > 0)] : [];
 

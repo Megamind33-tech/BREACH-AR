@@ -7,6 +7,7 @@ import { hashPassword } from './security.js';
 import { ensureAutopilot } from './autopilot.js';
 import { entitlementsOf, FEATURES } from './entitlements.js';
 import { esc } from './certificate-pages.js';
+import { moveQuotaBytes } from './move.js';
 
 const sha = (s: string) => createHash('sha256').update(s).digest('hex');
 const VERIFY_HOURS = 48;
@@ -80,6 +81,6 @@ export function registerSignupRoutes(app: FastifyInstance, c: JobCtx, deps: { ma
   // ---- what this person can use (the same answer the Windows app caches) -------------------------------------------------------------------------------------
   app.get('/api/v1/entitlements', { preHandler: c.requireRole('viewer') }, async req => {
     const e = await entitlementsOf(db, req.user.org);
-    return { ...e, catalog: FEATURES };
+    return { ...e, moveQuotaBytes: await moveQuotaBytes(db, req.user.org), catalog: FEATURES };
   });
 }
