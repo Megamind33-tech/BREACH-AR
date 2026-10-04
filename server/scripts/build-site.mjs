@@ -194,6 +194,9 @@ pages['index.html'] = head('Viro WorkCare: your PC, looked after and proved', 'V
 </div></section>
 ` + band('Try it on your own PC.', 'Download it free, or create an account. If you look after many computers, we will arrange a demonstration.') + foot();
 
+// the comparison reads as a table on a wide screen and as one card per feature on a phone: each cell names its column
+pages['index.html'] = pages['index.html'].replace(/<tr><th scope="row">[\s\S]*?<\/tr>/g, row => { let i = 0; return row.replace(/<td /g, () => `<td data-label="${['Free cleaners', 'Viro Free', 'Viro Care'][i++]}" `); });
+
 // ------------------------------------------------------------------ features
 const feat = items => `<div class="feat">${items.map(([b, s]) => `<div><b>${b}</b><span>${s}</span></div>`).join('')}</div>`;
 const block = (id, h, p, items, img) => `<div class="section-block" id="${id}"><h2>${h}</h2><p>${p}</p>${feat(items)}${img ? `<div class="media" style="margin-top:34px">${shot(...img)}</div>` : ''}</div>`;

@@ -174,3 +174,16 @@ footer { border-top:1px solid var(--line); padding:64px 0 36px; background:#f4f8
 @media (max-width:1000px) { .grid3 { grid-template-columns:repeat(2, minmax(0,1fr)); } }
 @media (max-width:900px) { .hero3-in { grid-template-columns:minmax(0,1fr); gap:36px; } .hero3 { padding:44px 0 64px; } .collage .float { left:0; width:52%; } }
 @media (max-width:560px) { .grid3 { grid-template-columns:minmax(0,1fr); } .collage .float { display:none; } .collage { padding-bottom:0; } }
+
+/* ---- comparison on a phone: one card per feature, never a sideways-scrolling table ---- */
+@media (max-width:700px) {
+  .compare-wrap { border:0; background:transparent; overflow:visible; border-radius:0; }
+  .compare { min-width:0; display:block; } .compare thead { display:none; } .compare tbody { display:grid; gap:12px; }
+  .compare tr { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); background:#fff; border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+  .compare tbody th { grid-column:1 / -1; width:auto; padding:14px 16px 12px; border:0; font-weight:600; font-size:16px; line-height:1.35; }
+  .compare td { width:auto; padding:10px 6px 12px; text-align:center; border-top:1px solid var(--line); border-left:1px solid var(--line); font-size:15px; }
+  .compare td:nth-of-type(1) { border-left:0; }
+  .compare td::before { content:attr(data-label); display:block; font-size:10.5px; font-weight:500; text-transform:uppercase; letter-spacing:.04em; color:var(--mute); margin-bottom:4px; }
+  .compare td.hl { background:color-mix(in srgb, var(--accent) 9%, #fff); }
+}
+.plan li { position:relative; padding-left:17px; } .plan li::before { position:absolute; left:0; top:.62em; margin:0; }
