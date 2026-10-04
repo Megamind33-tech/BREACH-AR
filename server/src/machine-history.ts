@@ -52,7 +52,7 @@ export function machineHistory(i: HistoryInput) {
   const mods = (a.memory?.modules ?? []) as Obj[];
   if (mods.length) facts.push({ label: 'Memory fitted', value: `${gb(mods.reduce((n, m) => n + (num(m.capacityBytes) ?? 0), 0))} in ${mods.length} module${mods.length > 1 ? 's' : ''}${a.memory?.slotsTotal ? ` of ${a.memory.slotsTotal} slots` : ''}`, basis: 'measured' });
   const manufacturers = new Set(mods.map(m => `${m.manufacturer ?? ''}|${m.partNumber ?? ''}`.trim()));
-  if (mods.length > 1 && manufacturers.size > 1) facts.push({ label: 'Memory modules', value: 'Different makes or models mixed together (a sign memory was added later)', basis: 'measured' });
+  if (mods.length > 1 && manufacturers.size > 1) facts.push({ label: 'Memory modules', value: 'Different makes or models mixed together (this can mean memory was added or replaced later)', basis: 'measured' });
   const disks = ((a.diagnostics?.storage?.disks ?? []) as Obj[]);
   for (const d of disks) {
     const poh = num(d.nvme?.powerOnHours) ?? num(d.reliability?.powerOnHours), unsafe = num(d.nvme?.unsafeShutdowns) ?? num(d.reliability?.unsafeShutdowns), cycles = num(d.nvme?.powerCycles) ?? num(d.reliability?.powerCycleCount);

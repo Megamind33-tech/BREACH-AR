@@ -37,7 +37,7 @@ export function buildStatement(o: {
   const reasons: string[] = report.headline.slice(0, 4).map(h => `${h.part}: ${h.why}`);
   if (win.windows11Ready === false) reasons.push('Cannot run Windows 11' + (win.runningWindows10 ? ', and Windows 10 no longer gets regular security updates.' : '.'));
   if (!reasons.length) reasons.push('Nothing measured on this computer gave cause for concern.');
-  const label = { SOUND: 'Sound', FAIR: 'Fair: budget for some work', POOR: 'Only worth it at a low price: repairs cost about as much as it is worth' }[rating];
+  const label = { SOUND: 'No work needed', FAIR: 'Budget for some work', POOR: 'Only worth it at a low price: repairs cost about as much as it is worth' }[rating];
   const age = report.age;
 
   // ---- what to expect to spend ----------------------------------------------------------------------------------------------------------------------------
@@ -62,7 +62,7 @@ export function buildStatement(o: {
     issuedFor: o.buyerMasked, listedBy: o.listedBy,
     verdict: { rating, label, reasons },
     machine: {
-      manufacturer: a.system?.manufacturer ?? null, model: a.system?.model ?? null, formFactor: a.system?.formFactor ?? null, serialLast4: serial ? serial.slice(-4) : null,
+      manufacturer: a.system?.manufacturer ?? null, model: String(a.system?.model ?? '').replace(new RegExp('^' + String(a.system?.manufacturer ?? '#').split(' ')[0]!.replace(/[^A-Za-z0-9]/g, '') + '\s+', 'i'), '') || null, formFactor: a.system?.formFactor ?? null, serialLast4: serial ? serial.slice(-4) : null,
       cpu: a.cpu?.name ?? null, cpuGeneration: report.age.cpu?.generation ?? null,
       ramGb: mods.length ? Math.round(mods.reduce((n, m) => n + (m.capacityBytes ?? 0), 0) / 2 ** 30) : a.system?.totalPhysicalMemoryBytes ? Math.round(a.system.totalPhysicalMemoryBytes / 2 ** 30) : null,
       ramSlots: a.memory ? { total: a.memory.slotsTotal ?? null, used: mods.length } : null,
@@ -78,7 +78,7 @@ export function buildStatement(o: {
     condition: {
       drives: disks.map(d => ({ model: d.model ?? null, health: d.health ?? null, wearPercent: d.nvme?.percentageUsed ?? d.reliability?.wearPercent ?? null, powerOnHours: d.nvme?.powerOnHours ?? d.reliability?.powerOnHours ?? null })),
       battery: a.battery ? { wearPercent: a.battery.wearPercent ?? null, cycles: a.battery.cycleCount ?? null, designMWh: a.battery.designMWh ?? null, fullChargeMWh: a.battery.fullChargeMWh ?? null } : null,
-      healthScore: o.health, openIssues: o.openIssues,
+      healthScore: o.health, openIssues: o.openIssues.filter(t => !/viro/i.test(t)),
     },
     history: { summary: history.summary, facts: history.facts, timeline: history.timeline.slice(0, 40), limits: history.limits },
     // how the buyer ties this paper to the machine in front of them: the machine's own serial number, stored only as a salted hash
