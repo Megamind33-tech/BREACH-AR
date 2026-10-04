@@ -34,9 +34,10 @@ export function registerPlatformOps(app: FastifyInstance, c: Ctx) {
     const ev = (await db.query(`SELECT count(*) FILTER (WHERE status='ok')::int ok, count(*) FILTER (WHERE status='rolled_back')::int rolled_back, count(*) FILTER (WHERE status='failed')::int failed FROM agent_update_events WHERE at > now() - interval '30 days'`)).rows[0];
     const total = ev.ok + ev.rolled_back + ev.failed;
     const crit = (await db.query(`SELECT count(*)::int n FROM alerts WHERE severity='critical' AND resolved_at IS NULL`)).rows[0].n;
+    const awaiting = (await db.query(`SELECT count(*)::int n FROM billing_orders WHERE status='submitted'`)).rows[0].n;
     const hours = (await db.query(`SELECT COALESCE(sum(seconds),0)::float8 s FROM compute_usage WHERE day = current_date`)).rows[0].s;
     const rollout = (await db.query(`SELECT version, stage, status FROM agent_releases WHERE status='active' AND stage <> '100' ORDER BY string_to_array(version,'.')::int[] DESC`)).rows;
-    return { versions, updates30d: { ...ev, successRate: total ? Math.round(ev.ok / total * 100) : null }, criticalAlerts: crit, computeHoursToday: Math.round(hours / 36) / 100, releasesInRollout: rollout };
+    return { versions, updates30d: { ...ev, successRate: total ? Math.round(ev.ok / total * 100) : null }, criticalAlerts: crit, ordersAwaiting: awaiting, computeHoursToday: Math.round(hours / 36) / 100, releasesInRollout: rollout };
   });
 
   // ---------------- devices across organizations ----------------

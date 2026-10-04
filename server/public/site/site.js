@@ -22,6 +22,16 @@
     });
     document.querySelectorAll('a.wa').forEach(a => { const u = new URL(a.href); const t = u.searchParams.get('text') || ''; u.searchParams.set('text', t + ' (' + (v.source || v.ref || 'website') + (v.campaign ? ', ' + v.campaign : '') + ')'); a.href = u.toString(); });
   })();
+  // Anonymous counters: one visit a day per device, and a click on the download button. No cookie, nothing personal; a browser that asks not to be tracked is left alone.
+  (function () {
+    if (navigator.doNotTrack === '1' || !window.fetch) return;
+    const base = /^control\./.test(location.hostname) ? '' : 'https://control.viro3.online';
+    let v = {}; try { const s = JSON.parse(localStorage.getItem('viro_src') || 'null'); v = (s && s.v) || {}; } catch (e) { /* none */ }
+    const source = v.source || v.ref || 'direct';
+    const send = event => { try { fetch(base + '/api/v1/public/event', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ event: event, source: source }), keepalive: true }).catch(function () { }); } catch (e) { /* counting never breaks the page */ } };
+    try { const day = new Date().toISOString().slice(0, 10); if (localStorage.getItem('viro_seen') !== day) { localStorage.setItem('viro_seen', day); send('visit'); } } catch (e) { send('visit'); }
+    document.querySelectorAll('a[href$="ViroAgent.msi"]').forEach(a => a.addEventListener('click', () => send('download_click')));
+  })();
   // "Sign in" goes to the console. On the console's own address (or a local copy) that is this same site's root; on the company domain it is the console address in the link.
   if (/^(control\.|localhost$|127\.)/.test(location.hostname)) document.querySelectorAll('[data-signin]').forEach(a => a.setAttribute('href', '/'));
   // Prices on this page are the starting prices. When the owner has set plans on sale, the live price replaces the printed one, so the page never shows a price nobody chose.

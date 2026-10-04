@@ -43,6 +43,7 @@ import { registerJobRoutes, jobsForHeartbeat, type JobSigner } from './jobs.js';
 import { registerPlatformRoutes } from './platform.js';
 import { registerPlatformOps } from './platform-ops.js';
 import { registerBillingRoutes } from './billing.js';
+import { registerGrowthRoutes } from './growth.js';
 import { registerSignupRoutes } from './signup.js';
 import { registerHelpRoutes } from './help.js';
 import { registerMyPcRoutes } from './mypc.js';
@@ -479,7 +480,8 @@ export async function buildApp(cfg: AppConfig) {
   });
   (app as any).platformKeyOk = (k: string) => !!cfg.platformKey && safeEq(k, cfg.platformKey);
   registerTwinRoutes(app, jobCtx, { healthOf, hardwareRawOf, onlineWindowSeconds: onlineWindow });
-  registerBillingRoutes(app, jobCtx);
+  registerGrowthRoutes(app, { db });
+  registerBillingRoutes(app, jobCtx, { alertTo: process.env.ALERT_EMAIL || process.env.HELP_INBOX || undefined, mailer: () => (app as any).mailer ?? null, baseUrl: process.env.PUBLIC_BASE_URL || 'https://control.viro3.online' });
   registerPlatformOps(app, { db, jwtSecret: cfg.jwtSecret, onlineWindowSeconds: onlineWindow, audit });
   registerAccountRoutes(app, { ...jobCtx, jwtSecret: cfg.jwtSecret, invalidateUser: id => userCache.delete(id) });
   registerJobRoutes(app, jobCtx);

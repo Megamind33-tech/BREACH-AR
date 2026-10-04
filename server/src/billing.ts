@@ -43,7 +43,7 @@ export async function placeOrder(db: JobCtx['db'], audit: JobCtx['audit'], o: { 
   } };
 }
 
-export function registerBillingRoutes(app: FastifyInstance, c: JobCtx) {
+export function registerBillingRoutes(app: FastifyInstance, c: JobCtx, deps: { alertTo?: string; mailer?: () => { send(m: { to: string; subject: string; text: string; purpose: string }): Promise<void> } | null; baseUrl?: string } = {}) {
   const { db } = c;
   const guard = (app as any).platformGuard as (req: FastifyRequest, reply: FastifyReply) => Promise<unknown>;
   const uuid = z.string().uuid();
@@ -87,6 +87,16 @@ export function registerBillingRoutes(app: FastifyInstance, c: JobCtx) {
       [id, req.user.org, b.payerName, b.payerPhone ?? null, b.transactionId, b.note ?? null]);
     if (!r.rowCount) return reply.code(404).send({ error: 'order not found, or it is already settled' });
     await c.audit({ orgId: req.user.org, actorType: 'user', actorId: req.user.sub, action: 'billing.paid_claim', targetType: 'billing_order', targetId: id, next: { reference: r.rows[0].reference } });
+    // Tell the owner at once: a customer who has paid should not wait for someone to notice. A failed email never stops the customer's claim from being recorded.
+    const m = deps.mailer?.();
+    if (m && deps.alertTo) {
+      try {
+        const o = (await db.query(`SELECT o.reference, o.plan_code, o.quantity, o.amount, o.currency, o.method_kind, o.source, g.name AS org FROM billing_orders o JOIN organizations g ON g.id=o.org_id WHERE o.id=$1`, [id])).rows[0];
+        const src = o?.source ? [o.source.source, o.source.campaign, o.source.ref].filter(Boolean).join(', ') : 'direct';
+        await m.send({ to: deps.alertTo, purpose: 'order-alert', subject: `Payment to confirm: ${o.reference} (${o.currency} ${Number(o.amount).toLocaleString('en-US')})`,
+          text: `A customer says they have paid.\n\nReference: ${o.reference}\nCustomer: ${o.org}\nPlan: ${o.plan_code} x ${o.quantity}\nAmount: ${o.currency} ${Number(o.amount).toLocaleString('en-US')} by ${String(o.method_kind).replace('_', ' ')}\nPaid by: ${b.payerName}${b.payerPhone ? ', ' + b.payerPhone : ''}\nTransaction ID: ${b.transactionId}\nCame from: ${src}\n\nCheck that the money has arrived in the account, then confirm it here:\n${deps.baseUrl ?? ''}/platform.html\n(Billing, then "Money received".)\n` });
+      } catch { /* the order is already recorded and shows in Billing */ }
+    }
     return { status: 'submitted', message: 'Thank you. Viro will confirm your payment and start the plan, usually within one working day.' };
   });
 

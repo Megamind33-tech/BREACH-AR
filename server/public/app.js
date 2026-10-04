@@ -78,6 +78,8 @@ function loginView(msg = '', creds = null) {
   $('#newacct')?.addEventListener('click', async e => {
     e.preventDefault();
     // An account is made when you buy: there is no free sign-up. The free tools in the Windows app need no account.
+    // count the start of a purchase (anonymous: a number per day and source, nothing else)
+    try { if (navigator.doNotTrack !== '1') { const s = JSON.parse(sessionStorage.getItem('viro_src') || 'null') || {}; fetch('/api/v1/public/event', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ event: 'checkout_start', source: s.source || s.ref || 'direct' }), keepalive: true }).catch(() => { }); } } catch { /* counting never blocks buying */ }
     let cat; try { cat = await (await fetch('/api/v1/public/plans')).json(); } catch { cat = null; }
     const plans = (cat?.plans ?? []).filter(p => p.audience === 'person' || p.audience === 'shop');
     if (!plans.length || !(cat?.methods ?? []).length) { await dialog('Viro Care', '<p>Viro Care is not on sale just yet. The free tools in the Windows app work without an account. Write to <b>info@viro3.online</b> and we will tell you when it opens.</p>', 'OK'); return; }

@@ -57,6 +57,7 @@ exit 0
 `.replace(/\n/g, '\r\n');
 }
 
+import { countEvent } from './growth.js';
 export function registerInstallerRoutes(app: FastifyInstance, c: JobCtx, o: { releasesDir: string; platformGuard?: (req: FastifyRequest, reply: FastifyReply) => Promise<unknown>; platformKey?: string; safeEq: (a: string, b: string) => boolean }) {
   const { db } = c;
   const dir = join(o.releasesDir, 'installer');
@@ -80,6 +81,7 @@ export function registerInstallerRoutes(app: FastifyInstance, c: JobCtx, o: { re
   app.get('/install/ViroAgent.msi', async (_req, reply) => {
     const m = await meta();
     if (!m) return reply.code(404).send({ error: 'the installer has not been published to this server yet' });
+    void countEvent(db, 'download').catch(() => { /* a counter never stops a download */ });
     return reply.header('content-type', 'application/x-msi').header('content-length', String((await stat(msiPath)).size)).header('x-sha256', m.sha256)
       .header('content-disposition', 'attachment; filename="ViroAgent.msi"').send(createReadStream(msiPath));
   });
