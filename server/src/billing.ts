@@ -29,6 +29,13 @@ export function registerBillingRoutes(app: FastifyInstance, c: JobCtx) {
   const pAudit = (req: FastifyRequest, orgId: string | null, action: string, targetId: string, next?: unknown) =>
     c.audit({ orgId, actorType: 'user', actorId: actor(req), action: 'platform.billing.' + action, targetType: 'billing_order', targetId, next, ip: req.ip } as any);
 
+  // ---- public: what is on sale (for the website) --------------------------------------------------------------------------------------------------------
+  app.get('/api/v1/public/plans', async (_req, reply) => {
+    const plans = (await db.query(`SELECT code, name, audience, price, currency, period, per, description, features FROM billing_plans WHERE active ORDER BY sort, price`)).rows.map(p => ({ ...p, price: Number(p.price) }));
+    const kinds = (await db.query(`SELECT DISTINCT kind FROM payment_methods WHERE active`)).rows.map(r => r.kind as string);
+    return reply.header('cache-control', 'public, max-age=300').header('access-control-allow-origin', '*').send({ plans, paymentKinds: kinds });
+  });
+
   // ---- the customer's side ------------------------------------------------------------------------------------------------------------------------
   app.get('/api/v1/billing', { preHandler: c.requireRole('viewer') }, async req => {
     const plans = (await db.query(`SELECT code, name, audience, price, currency, period, per, description, features FROM billing_plans WHERE active ORDER BY sort, price`)).rows

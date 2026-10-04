@@ -9,5 +9,12 @@
   }
   // "Sign in" goes to the console. On the console's own address (or a local copy) that is this same site's root; on the company domain it is the console address in the link.
   if (/^(control\.|localhost$|127\.)/.test(location.hostname)) document.querySelectorAll('[data-signin]').forEach(a => a.setAttribute('href', '/'));
+  // The price of Viro Care comes from the live plan list, so the page never shows a price nobody chose. With no plan on sale it keeps its default words.
+  const price = document.querySelector('[data-price]');
+  if (price && window.fetch) fetch('https://control.viro3.online/api/v1/public/plans').then(r => r.ok ? r.json() : null).then(d => {
+    const p = d && (d.plans || []).find(x => x.audience === 'person'); if (!p) return;
+    const per = p.per === 'pc' ? ' per computer' : ''; const when = p.period === 'year' ? ' a year' : p.period === 'month' ? ' a month' : '';
+    price.textContent = p.currency + ' ' + Number(p.price).toLocaleString('en-US') + when + per;
+  }).catch(() => { /* the default words stay */ });
   document.querySelectorAll('[data-year]').forEach(el => { el.textContent = String(new Date().getFullYear()); });
 })();
