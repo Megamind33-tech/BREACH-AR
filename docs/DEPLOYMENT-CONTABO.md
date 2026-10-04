@@ -30,4 +30,4 @@ Upload the new `server/` and `deploy/contabo/`, then `bash install.sh` again (it
 
 
 ## Marketing site on the company domain
-The landing site is part of the Control app (`/site/`). To show it at the root of `viro3.online` and `www.viro3.online`, add DNS A records for both names to this server, then (with sudo) install `deploy/contabo/nginx-landing.conf`, run certbot for both names, test and reload nginx. The console stays on `control.viro3.online`. The site's "Sign in" links lead to the console address when served from the company domain.
+The landing site is part of the Control app (`/site/`) and is live at `https://control.viro3.online/site/`. The company name `viro3.online` is already used by another site on this host, so the landing site gets its own name, `workcare.viro3.online`: add a DNS A record for it to 79.143.177.140, then someone with sudo runs `deploy/contabo/enable-workcare.sh` (installs `nginx-workcare.conf`, gets the certificate, reloads nginx). The console stays on `control.viro3.online`.
