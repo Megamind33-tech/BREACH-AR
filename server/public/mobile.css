@@ -1,0 +1,55 @@
+/* Viro console on a phone. Loaded last, so it only tidies what the shared styles leave cramped at narrow widths: the header strip, page titles, the banner,
+   filter bars, the computers list (one card per computer instead of a sideways-scrolling table), rows with a button, and toggles. */
+@media (max-width:700px) {
+  /* the live status strip is repeated in the banner, and above the header it only costs space */
+  #statusbar { display:none; }
+  main { padding:16px 16px 72px; }
+  main > h1 { font-size:27px; line-height:1.15; letter-spacing:-.02em; }
+  h1[data-eyebrow]::before { margin-bottom:4px; font-size:10px; letter-spacing:.14em; }
+  main > .lead, main > p.lead { font-size:15px; margin-bottom:14px; }
+
+  /* the banner: one clear headline, no overlapping labels, buttons the width of the screen */
+  .hero-card { padding:22px 18px 20px; min-height:0; border-radius:16px; }
+  .hero-card h1 { font-size:27px; line-height:1.15; display:block; }
+  .hero-card h1[data-eyebrow]::before, .hero-card .h1-ico { display:none; }
+  .hero-card .eyebrow { font-size:10.5px; letter-spacing:.14em; margin-bottom:6px; }
+  .hero-card .lead { font-size:15px; max-width:none; }
+  .hero-card .chips { gap:8px; margin-top:12px; } .hero-card .chip { font-size:10px; padding:5px 10px; letter-spacing:.06em; }
+  .hero-card .hero-actions { margin-top:14px; } .hero-card .hero-actions > * , .hero-card > button, .hero-card > .btn { width:100%; justify-content:center; }
+
+  /* filters and tool bars: search on its own line, the rest in two even columns, buttons full width */
+  .bar-tools { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:8px; }
+  .bar-tools > * { min-width:0; width:100%; margin:0; }
+  .bar-tools > input[type=search], .bar-tools > input[type=text], .bar-tools > .grow { grid-column:1 / -1; }
+  .bar-tools > a.btn, .bar-tools > button { justify-content:center; text-align:center; }
+  .bar-tools.bulk > b { grid-column:1 / -1; }
+
+  /* computers: one card each, with the name, health, alerts and last report in plain view */
+  table:has(tr.row) { display:block; overflow:visible; }
+  table:has(tr.row) thead { display:none; } table:has(tr.row) tbody { display:grid; gap:10px; }
+  tr.row { display:grid; grid-template-columns:26px minmax(0,1fr) auto; grid-template-areas:"chk host alerts" ". posture last"; gap:8px 10px; align-items:start; padding:14px; background:var(--panel, #fff); border:1px solid var(--line, rgba(0,0,0,.1)); border-radius:14px; }
+  tr.row > td { display:block; padding:0; border:0; max-width:none; }
+  tr.row > td:nth-child(1) { grid-area:chk; padding-top:2px; } tr.row > td.host { grid-area:host; font-size:15px; line-height:1.3; letter-spacing:0; word-break:break-word; }
+  tr.row > td.posture { grid-area:posture; } tr.row > td:nth-child(6) { grid-area:alerts; justify-self:end; } tr.row > td:nth-child(7) { grid-area:last; justify-self:end; align-self:center; font-size:12px; color:var(--mute); }
+  tr.row > td.hide-sm { display:none; }
+
+  /* a row with a price or status on the right and a button: stack them instead of squeezing */
+  .issue .pts { float:none; display:block; margin:0 0 4px; }
+  .issue .pts:has(> button), .issue .pts:has(> a) { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 0; }
+  .toggle-row { flex-wrap:wrap; gap:10px; } .toggle-row > button, .toggle-row > .btn { width:100%; }
+
+  /* cards and dialogs */
+  .card { padding:16px 16px; } dialog { max-width:calc(100vw - 24px); width:calc(100vw - 24px); }
+  dialog .foot { flex-wrap:wrap; } dialog .foot button { flex:1 1 120px; }
+  .tiles { gap:10px; }
+}
+
+@media (max-width:700px) {
+  /* nothing may push the page sideways: cards take the width of the screen, long names wrap */
+  html, body { overflow-x:hidden; max-width:100vw; }
+  main { max-width:100vw; box-sizing:border-box; }
+  table:has(tr.row), table:has(tr.row) tbody { width:100%; max-width:100%; box-sizing:border-box; }
+  tr.row { box-sizing:border-box; width:100%; min-width:0; }
+  tr.row > td.host { font-family:inherit; text-transform:none; font-size:14px; font-weight:600; overflow-wrap:anywhere; }
+  .table-wrap, .tablewrap, main > div:has(> table) { overflow:visible; max-width:100%; }
+}
