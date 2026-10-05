@@ -282,15 +282,32 @@ function keepPlace(main) {
 }
 /** Changes only what changed. Panels filled in later (the placeholders below, and cards marked data-injected) are left alone here and refreshed in place by whoever fills them. */
 const PLACEHOLDERS = /^care-(top|low)$/;
+// A card almost always has SOMETHING ticking inside it (a "2m ago", a live percentage), so comparing by outerHTML and
+// replacing the whole card on every poll would tear down and reinsert nearly every card, every 20-30s: lost hover/focus/typed
+// text, and a visible jump as the browser reflows a freshly-inserted subtree. Patch down to the changed leaf instead.
+function patchNode(c, n) {
+  if (c.nodeType !== n.nodeType || c.nodeName !== n.nodeName) { c.replaceWith(n); return; }
+  if (c.nodeType !== Node.ELEMENT_NODE) { if (c.nodeValue !== n.nodeValue) c.nodeValue = n.nodeValue; return; }
+  if (c.hasAttribute('data-injected')) return;                          // filled in later by its own refresh
+  for (const a of [...c.attributes]) if (!n.hasAttribute(a.name)) c.removeAttribute(a.name);
+  for (const a of n.attributes) if (c.getAttribute(a.name) !== a.value) c.setAttribute(a.name, a.value);
+  const cc = [...c.childNodes], nc = [...n.childNodes];
+  let j = 0;
+  for (; j < nc.length; j++) cc[j] ? patchNode(cc[j], nc[j]) : c.appendChild(nc[j]);
+  for (; j < cc.length; j++) cc[j].remove();
+}
 function morph(target, html) {
   const tpl = document.createElement('template'); tpl.innerHTML = html;
   const next = [...tpl.content.children], cur = [...target.children].filter(e => !e.hasAttribute('data-injected'));
   let i = 0;
   for (; i < next.length; i++) {
-    const n = next[i], c = cur[i];
+    const n = next[i]; let c = cur[i];
     if (!c) { const first = target.querySelector(':scope > [data-injected]'); first ? target.insertBefore(n, first) : target.append(n); continue; }
     if (n.id && c.id === n.id && PLACEHOLDERS.test(n.id)) continue;       // keep what is already shown until the new data arrives
-    if (c.outerHTML !== n.outerHTML) c.replaceWith(n);
+    // wrapTables() wraps a rendered <table> in a .table-wrap div in the live DOM; the next render still renders the bare
+    // table, so compare/patch through the wrapper instead of tearing the whole table (and its wrap) down every poll.
+    if (n.tagName === 'TABLE' && c.tagName === 'DIV' && c.classList.contains('table-wrap') && c.firstElementChild?.tagName === 'TABLE') c = c.firstElementChild;
+    if (c.outerHTML !== n.outerHTML) patchNode(c, n);
   }
   for (; i < cur.length; i++) cur[i].remove();
 }
