@@ -110,7 +110,9 @@ export async function schedulerTick(db: Db, signer: JobSigner, now = new Date())
         if (created >= MAX_JOBS_PER_TICK) return created;
         if (!isDue(s, last.get(`${s.key}|${dev}`) ?? null, new Date(pol.created_at), now, off)) continue;
         if (openSet.has(`${dev}|${s.type}`)) continue;                 // never pile up the same job on a device
-        const id = await createSystemJob(db, signer, { orgId: pol.org_id, deviceId: dev, type: s.type, params: s.params, ttlMinutes: s.weekly ? 6 * 60 : 12 * 60, source: { policyId: pol.id, schedule: s.key } });
+        // windowOnly jobs are created right at the start of the maintenance window (often overnight), when the PC may
+        // still be asleep; they need to survive until it is next turned on, not just until the window itself ends.
+        const id = await createSystemJob(db, signer, { orgId: pol.org_id, deviceId: dev, type: s.type, params: s.params, ttlMinutes: s.windowOnly ? 20 * 60 : s.weekly ? 6 * 60 : 12 * 60, source: { policyId: pol.id, schedule: s.key } });
         if (!id) continue;
         await db.query(`INSERT INTO policy_runs(policy_id,schedule_key,device_id,last_run_at) VALUES ($1,$2,$3,$4) ON CONFLICT (policy_id,schedule_key,device_id) DO UPDATE SET last_run_at=EXCLUDED.last_run_at`, [pol.id, s.key, dev, now]);
         openSet.add(`${dev}|${s.type}`); created++;
