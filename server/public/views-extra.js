@@ -102,6 +102,13 @@ VIEWS.updates = async main => {
 };
 
 // ---------------------------------------------------------------- Drivers (staged rollout)
+// Windows' own driver model name usually already starts with the manufacturer ("Realtek(R) Audio", "Intel(R) Wi-Fi 6 AX201"), so stating it again
+// in front reads as "Realtek Realtek(R) Audio". Only add it when the model does not already carry it.
+const driverName = u => {
+  const bare = s => (s ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const name = u.model ?? u.title;
+  return (u.manufacturer && !bare(name).startsWith(bare(u.manufacturer))) ? `${u.manufacturer} ${name}` : name;
+};
 VIEWS.drivers = async main => {
   const d = await api('/api/v1/drivers/overview');
   const stageBadge = r => `<span class="pill ${r.status === 'halted' ? 'critical' : r.status === 'completed' ? 'healthy' : 'attention'}">${r.status === 'active' ? r.stage.toUpperCase() : r.status.toUpperCase()}</span>`;
@@ -117,7 +124,7 @@ VIEWS.drivers = async main => {
         <small class="mono">${r.verified}/${r.devices} verified</small>${r.halt_reason ? `<small class="alert-line">${esc(r.halt_reason)}</small>` : ''}</div>
         <div class="side">${stageBadge(r)}${act}${back}</div></div>`;
     }).join('')}</div>` : ''}
-    ${d.updates.length ? d.updates.map(u => `<div class="card"><h2>${esc(u.manufacturer ?? '')} ${esc(u.model ?? u.title)}</h2><div class="kv">${kv('Class', u.class)}${kv('Recommended version', u.version)}${kv('Affected PCs', u.devices.length)}</div>
+    ${d.updates.length ? d.updates.map(u => `<div class="card"><h2>${esc(driverName(u))}</h2><div class="kv">${kv('Class', u.class)}${kv('Recommended version', u.version)}${kv('Affected PCs', u.devices.length)}</div>
       <p class="mute">${u.devices.slice(0, 8).map(x => esc(x.hostname)).join(', ')}${u.devices.length > 8 ? '…' : ''}</p>
       ${can('admin') ? `<div class="actions"><button class="sm" data-test="${esc(u.id)}">Test on one PC</button></div>` : ''}</div>`).join('') : '<div class="card empty">No pending driver updates reported. Scan computers to check Windows Update for drivers.</div>'}
     ${d.problems.length ? `<div class="card"><h2>Devices with driver problems</h2>${d.problems.map(p => `<div class="issue"><span class="pts">code ${p.code}</span>${esc(p.name)}<small>${p.devices.map(esc).join(', ')}</small></div>`).join('')}</div>` : ''}`;

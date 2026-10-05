@@ -27,3 +27,14 @@ test('the console escapes untrusted text before putting it in the page', () => {
     assert.deepEqual(bad, [], `${f} interpolates a hostname/message without esc()`);
   }
 });
+
+test('a driver card never repeats the manufacturer name when Windows already put it in the model string', () => {
+  const src = readFileSync(join(pub, 'views-extra.js'), 'utf8');
+  const m = src.match(/const driverName = u => \{[\s\S]*?\n\};/);
+  assert.ok(m, 'driverName helper not found');
+  const driverName = new Function(`${m![0]}\nreturn driverName;`)();
+  assert.equal(driverName({ manufacturer: 'Realtek', model: 'Realtek(R) Audio' }), 'Realtek(R) Audio');
+  assert.equal(driverName({ manufacturer: 'Intel', model: 'Intel(R) Wi-Fi 6 AX201 160MHz' }), 'Intel(R) Wi-Fi 6 AX201 160MHz');
+  assert.equal(driverName({ manufacturer: 'Dell', model: 'Universal Audio Driver' }), 'Dell Universal Audio Driver');
+  assert.equal(driverName({ manufacturer: null, model: null, title: 'Some Update' }), 'Some Update');
+});
