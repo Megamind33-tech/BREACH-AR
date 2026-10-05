@@ -217,6 +217,40 @@ async function upgradeModal(e) {
   document.body.appendChild(s); $('[data-n]', s).onclick = () => s.remove(); s.onclick = ev => { if (ev.target === s) s.remove(); }; wireUpgrade(s);
 }
 
+/* ---------- first-run tour: a short walk through the four things a new person most needs to see ---------- */
+const TOUR = [
+  { icon: 'home', title: 'Welcome to Viro', body: 'Viro looks after this PC: finds what is wrong, fixes the safe things, and proves what it did. A 30-second look around, then you are free to explore.' },
+  { page: 'overview', icon: 'wrench', title: 'Start here', body: 'Overview shows what needs attention and one health score. Press <b>Fix my PC</b> any time: it clears temporary files, gives back idle memory and turns off slow start-up programs, each one checked afterwards.' },
+  { page: 'report', icon: 'gauge', title: 'Know this PC', body: '<b>PC report</b> reads the drive, battery and memory, and tells you how old this PC really is, what it is worth, and whether to repair or replace.' },
+  { page: 'move', icon: 'update', title: 'Changing PC one day?', body: '<b>Viro Move</b> backs up your files, programs and settings, encrypted on this PC before they leave it, so your next PC can have it all back.' },
+  { page: 'account', icon: 'lock', title: 'Free, and Viro Care', body: 'Everything you have just seen works free, with no account. <b>Viro Care</b> adds checked fixes, backups and a technician to ask, any time, from here.' },
+];
+function tourStep(step, n, total) {
+  return new Promise(res => {
+    const s = document.createElement('div'); s.className = 'scrim';
+    s.innerHTML = `<div class="modal" role="dialog" aria-modal="true" style="max-width:420px">
+      <div class="row" style="justify-content:space-between;align-items:center">${ic(step.icon, 26)}<span class="sub" style="margin:0">${n} of ${total}</span></div>
+      <h2 style="margin-top:10px">${esc(step.title)}</h2><p>${step.body}</p>
+      <div class="row" style="justify-content:space-between;margin-top:6px">
+        <button class="btn ghost" data-skip>Skip tour</button>
+        <button class="btn primary" data-next>${n === total ? 'Done' : 'Next'}</button>
+      </div></div>`;
+    const done = skip => { s.remove(); res(skip); };
+    $('[data-skip]', s).onclick = () => done(true); $('[data-next]', s).onclick = () => done(false);
+    s.onclick = e => { if (e.target === s) done(true); };
+    document.body.appendChild(s); $('[data-next]', s).focus();
+  });
+}
+async function runTutorial() {
+  for (let i = 0; i < TOUR.length; i++) {
+    const step = TOUR[i];
+    if (step.page && step.page !== S.page) { try { await go(step.page); } catch { /* still shown: the step explains itself either way */ } }
+    if (await tourStep(step, i + 1, TOUR.length)) break;   // skipped
+  }
+  try { await go('overview'); } catch { /* already there, or offline: nothing to recover */ }
+  call('tutorial.seen').catch(() => { /* shown is shown; a failed save just means it may show again once */ });
+}
+
 /* ---------- state and pages ---------- */
 const S = { env: null, view: undefined, page: null, sys: null, timer: null };
 const PAGES = [
@@ -861,6 +895,7 @@ RENDER.help = async () => {
   const start = (window.__start && RENDER[window.__start]) ? window.__start : 'overview'; drawNav();
   await go(start);
   if (S.page !== 'overview') load().then(drawNav);
+  if (S.env.firstRun && start === 'overview') runTutorial();   // only on a normal, un-deep-linked open, so it never interrupts someone sent straight to a page
 })();
 
 </script>

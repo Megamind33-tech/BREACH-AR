@@ -4,6 +4,15 @@ using Viro.Agent.Repair;
 
 namespace Viro.Agent.Care;
 
+/// <summary>Whether this Windows user has seen the first-run tour. A bare marker file (nothing secret), per user, so each person who signs in to a shared
+/// PC sees it once for themselves.</summary>
+public static class TutorialState
+{
+    static string File => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Viro", "tutorial-seen");
+    public static bool Seen => System.IO.File.Exists(File);
+    public static void MarkSeen() { try { Directory.CreateDirectory(Path.GetDirectoryName(File)!); System.IO.File.WriteAllText(File, DateTime.UtcNow.ToString("O")); } catch (IOException) { } catch (UnauthorizedAccessException) { } }
+}
+
 /// <summary>
 /// The only things the window's interface can ask for. Every command maps onto <see cref="LocalActions"/>, which uses the same engines and safety rules as the
 /// service; there is no command that runs arbitrary code or reads files. The only network traffic is to the Viro account service (sign-in and plan) and, for program updates, winget. Results are plain JSON for the interface to draw.
@@ -96,7 +105,8 @@ public sealed class LocalBridge(LocalActions act, Func<bool>? isAdmin = null, Ac
             }
             case "account.manage": openUrl?.Invoke(account.ManageUrl); return new { opened = openUrl is not null, url = account.ManageUrl };
 
-            case "env": return new { admin = admin(), user = Environment.UserName, machine = Environment.MachineName, version = Collectors.AgentVersion };
+            case "env": return new { admin = admin(), user = Environment.UserName, machine = Environment.MachineName, version = Collectors.AgentVersion, firstRun = !TutorialState.Seen };
+            case "tutorial.seen": TutorialState.MarkSeen(); return new { ok = true };
             case "sys":      // the facts for the line under every page title; the first reading of CPU use is taken here so the live figures are ready by the time they are asked for
             {
                 _ = Collectors.CpuPercent();

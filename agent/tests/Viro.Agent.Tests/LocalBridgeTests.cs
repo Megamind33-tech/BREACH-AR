@@ -52,6 +52,33 @@ public class LocalBridgeTests
     }
 
     [Fact]
+    public void The_first_run_tour_only_points_at_pages_that_exist_and_only_starts_on_a_normal_un_deep_linked_open()
+    {
+        using var s = typeof(LocalBridge).Assembly.GetManifestResourceStream("ui.html"); var html = new StreamReader(s!).ReadToEnd();
+        Assert.Contains("const TOUR = [", html); Assert.Contains("function runTutorial", html);
+        Assert.Contains("if (S.env.firstRun && start === 'overview') runTutorial();", html);
+        Assert.Contains("call('tutorial.seen')", html);
+        var tour = html[html.IndexOf("const TOUR = [")..html.IndexOf("];", html.IndexOf("const TOUR = ["))];
+        foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(tour, "page: '([a-z]+)'"))
+            Assert.Contains("RENDER." + m.Groups[1].Value + " = async", html);
+    }
+
+    [Fact]
+    public async Task The_first_run_tour_shows_once_per_Windows_user_and_env_reflects_it()
+    {
+        var file = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Viro", "tutorial-seen");
+        try { File.Delete(file); } catch (IOException) { }
+        Assert.False(TutorialState.Seen);
+        var bridge = Bridge();
+        Assert.True(Parse(await bridge.RespondAsync("""{"id":"1","cmd":"env"}""", default)).GetProperty("data").GetProperty("firstRun").GetBoolean());
+        var r = Parse(await bridge.RespondAsync("""{"id":"2","cmd":"tutorial.seen"}""", default));
+        Assert.True(r.GetProperty("ok").GetBoolean()); Assert.True(r.GetProperty("data").GetProperty("ok").GetBoolean());
+        Assert.True(TutorialState.Seen);
+        Assert.False(Parse(await bridge.RespondAsync("""{"id":"3","cmd":"env"}""", default)).GetProperty("data").GetProperty("firstRun").GetBoolean());
+        File.Delete(file);   // leave this developer machine as it was found
+    }
+
+    [Fact]
     public async Task Unknown_command_is_a_plain_error_not_a_crash()
     {
         var r = Parse(await Bridge().RespondAsync("""{"id":"2","cmd":"format-disk"}""", default));
