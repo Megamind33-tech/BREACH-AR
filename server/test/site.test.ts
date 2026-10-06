@@ -65,3 +65,10 @@ test('the site is public (no sign-in), and the console and operator console link
   assert.match(readFileSync(join(pub, 'platform.html'), 'utf8'), /href="\/site\/about\.html"/);
   assert.match(readFileSync(join(pub, 'about.html'), 'utf8'), /url=\/site\/about\.html/, 'the old About address redirects to the new page');
 });
+
+test('media and fonts are cached so the same clip is not downloaded twice on one page; pages themselves always revalidate', async () => {
+  for (const u of ['/media/hero.mp4', '/site/img/shot-overview.webp', '/fonts/inter-latin-wght-normal.woff2', '/logo.png'])
+    assert.match(String((await h.app.inject({ method: 'GET', url: u })).headers['cache-control']), /max-age=3600/, u);
+  for (const u of ['/site/index.html', '/site/site.css', '/site/site.js', '/app.js'])
+    assert.equal((await h.app.inject({ method: 'GET', url: u })).headers['cache-control'], 'no-cache', u);
+});

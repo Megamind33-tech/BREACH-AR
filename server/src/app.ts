@@ -94,7 +94,11 @@ export async function buildApp(cfg: AppConfig) {
   await app.register(rateLimit, { global: false });
   await app.register(websocket, { options: { maxPayload: 4 * 1024 * 1024 } });
   await app.register(fastifyJwt, { secret: cfg.jwtSecret, sign: { expiresIn: '12h' } });
-  await app.register(fastifyStatic, { root: join(dirname(fileURLToPath(import.meta.url)), '..', 'public'), cacheControl: false, setHeaders: res => res.setHeader('cache-control', 'no-cache') });      // the browser always checks for the newest page files
+  // Pages, styles and scripts always revalidate, so an edit shows up on the next load. Media and fonts rarely change and
+  // are large (a background video is hundreds of KB): without caching, two <video> tags pointing at the same clip on one
+  // page both download it in full, and every repeat visit re-fetches images that look the same.
+  const CACHEABLE_MEDIA = /[/\\](media|fonts|site[/\\]img)[/\\]|(^|[/\\])logo\.png$/;
+  await app.register(fastifyStatic, { root: join(dirname(fileURLToPath(import.meta.url)), '..', 'public'), cacheControl: false, setHeaders: (res, path) => res.setHeader('cache-control', CACHEABLE_MEDIA.test(path) ? 'public, max-age=3600' : 'no-cache') });
 
   async function audit(e: {
     orgId: string | null; actorType: 'user' | 'device' | 'system'; actorId?: string; action: string;
