@@ -485,7 +485,7 @@ export async function buildApp(cfg: AppConfig) {
   });
   (app as any).platformKeyOk = (k: string) => !!cfg.platformKey && safeEq(k, cfg.platformKey);
   registerTwinRoutes(app, jobCtx, { healthOf, hardwareRawOf, onlineWindowSeconds: onlineWindow });
-  registerGrowthRoutes(app, { db });
+  registerGrowthRoutes(app, { db, mailer: () => (app as any).mailer ?? null, leadInbox: process.env.LEAD_INBOX || process.env.ALERT_EMAIL || undefined });
   registerBillingRoutes(app, jobCtx, { alertTo: process.env.ALERT_EMAIL || process.env.HELP_INBOX || undefined, mailer: () => (app as any).mailer ?? null, baseUrl: process.env.PUBLIC_BASE_URL || 'https://control.viro3.online' });
   registerPlatformOps(app, { db, jwtSecret: cfg.jwtSecret, onlineWindowSeconds: onlineWindow, audit });
   registerAccountRoutes(app, { ...jobCtx, jwtSecret: cfg.jwtSecret, invalidateUser: id => userCache.delete(id) });

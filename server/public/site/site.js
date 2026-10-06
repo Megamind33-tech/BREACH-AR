@@ -44,4 +44,46 @@
     });
   }).catch(() => { /* the printed prices stay */ });
   document.querySelectorAll('[data-year]').forEach(el => { el.textContent = String(new Date().getFullYear()); });
+  // The installer's real size, checksum and release date, so the download line never says more than the server can prove.
+  // If the installer is not published yet, or the request fails, the line is simply left hidden rather than shown with blanks.
+  (function () {
+    const facts = document.querySelector('[data-dl-facts]'); if (!facts || !window.fetch) return;
+    const base = /^control\./.test(location.hostname) ? '' : 'https://control.viro3.online';
+    fetch(base + '/api/v1/public/installer').then(r => r.ok ? r.json() : null).then(d => {
+      if (!d || !d.available) return;
+      facts.querySelector('[data-dl-size]').textContent = (d.size / (1024 * 1024)).toFixed(0) + ' MB';
+      facts.querySelector('[data-dl-date]').textContent = new Date(d.updatedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+      const sha = facts.querySelector('[data-dl-sha]'); sha.textContent = 'SHA-256 ' + d.sha256.slice(0, 12) + '…'; sha.title = d.sha256;
+      sha.addEventListener('click', e => { e.preventDefault(); navigator.clipboard?.writeText(d.sha256).then(() => { sha.textContent = 'Copied the full checksum'; setTimeout(() => { sha.textContent = 'SHA-256 ' + d.sha256.slice(0, 12) + '…'; }, 2000); }); });
+      facts.hidden = false;
+    }).catch(() => { /* the rest of the page works without this line */ });
+  })();
+  // The "Request a demo" form. Posted straight to the console (same API as the counters above), with a honeypot field
+  // a real visitor never sees or fills in. A lead is never lost silently: on failure the form says so and leaves the
+  // mailto link visible underneath, so there is always a second way to reach us.
+  (function () {
+    const form = document.querySelector('[data-lead-form]'); if (!form || !window.fetch) return;
+    const base = /^control\./.test(location.hostname) ? '' : 'https://control.viro3.online';
+    const status = form.querySelector('[data-lead-status]');
+    let v = {}; try { const s = JSON.parse(localStorage.getItem('viro_src') || 'null'); v = (s && s.v) || {}; } catch (e) { /* none */ }
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      const btn = form.querySelector('button[type=submit]'), was = btn.textContent;
+      const data = Object.fromEntries(new FormData(form));
+      if (!data.name || !data.organization || !data.email) { status.textContent = 'Please fill in your name, organization and email.'; status.hidden = false; return; }
+      btn.disabled = true; btn.textContent = 'Sending…'; status.hidden = true;
+      fetch(base + '/api/v1/public/lead', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(Object.assign({}, data, { source: v.source || v.ref || 'direct' })) })
+        .then(function (r) {
+          if (!r.ok) throw new Error('failed');
+          form.hidden = true;
+          const ok = document.createElement('p'); ok.className = 'lead-ok'; ok.setAttribute('role', 'status');
+          ok.textContent = "Thank you — we've received your request and will be in touch shortly.";
+          form.insertAdjacentElement('afterend', ok);
+        })
+        .catch(function () {
+          btn.disabled = false; btn.textContent = was;
+          status.textContent = 'That did not go through. Please try again, or email us directly below.'; status.hidden = false;
+        });
+    });
+  })();
 })();

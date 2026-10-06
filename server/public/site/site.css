@@ -88,6 +88,19 @@ section { padding:112px 0; } section.tight { padding:72px 0; } section.tint { ba
 .contact-cards { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:20px; margin-top:8px; } .contact-cards a, .contact-cards div { display:block; border:1px solid var(--line); border-radius:var(--radius); padding:24px; text-decoration:none; color:var(--ink); background:#fff; }
 .contact-cards a:hover { border-color:#b9c9c0; box-shadow:0 8px 24px -14px rgba(8,50,34,.3); } .contact-cards small { display:block; color:var(--mute); font-size:13.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; margin-bottom:8px; } .contact-cards strong { font-size:19px; font-weight:600; letter-spacing:-.01em; }
 
+/* ---- lead form ---- */
+.lead-form { display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:28px; max-width:640px; }
+.lead-form .full { grid-column:1 / -1; }
+.lead-form label { display:block; font-size:13.5px; font-weight:600; color:var(--mute); margin-bottom:7px; }
+.lead-form input, .lead-form textarea { width:100%; border:1px solid var(--line); border-radius:9px; padding:11px 13px; font:inherit; font-size:15.5px; color:var(--ink); background:#fff; }
+.lead-form input:focus, .lead-form textarea:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent); }
+.lead-form textarea { resize:vertical; min-height:88px; }
+.lead-form .hp { position:absolute; left:-9999px; width:1px; height:1px; opacity:0; }
+.lead-form .actions-row { grid-column:1 / -1; display:flex; align-items:center; gap:16px; margin-top:4px; }
+.lead-status { color:#9a3b2e; font-size:14.5px; margin-top:-6px; }
+.lead-ok { margin-top:28px; max-width:640px; border:1px solid var(--line); border-radius:var(--radius); padding:22px 24px; background:var(--tint); font-size:16.5px; }
+@media (max-width:640px) { .lead-form { grid-template-columns:1fr; } }
+
 /* ---- footer ---- */
 footer { border-top:1px solid var(--line); padding:64px 0 36px; background:#f4f8f6; font-size:15.5px; }
 .foot { display:grid; grid-template-columns:1.4fr 1fr 1fr 1.3fr; gap:40px; } .foot h4 { margin:0 0 14px; font-size:13.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--mute); font-weight:600; }

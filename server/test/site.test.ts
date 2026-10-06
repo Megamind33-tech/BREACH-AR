@@ -54,7 +54,8 @@ test('the screenshots are real captures of reasonable size and every page reads 
   const imgs = readdirSync(join(siteDir, 'img')).filter(f => f.endsWith('.webp'));
   assert.ok(imgs.length >= 5, 'screenshots present');
   for (const f of imgs) { const size = statSync(join(siteDir, 'img', f)).size; assert.ok(size > 20_000 && size < 250_000, `${f} is ${size} bytes`); }
-  for (const p of PAGES) assert.ok(!/lorem|placeholder|prototype/i.test(read(p)), `${p} must not read like a draft`);
+  // checked against the visible text only: a form's own `placeholder="…"` attribute is real UI, not draft filler.
+  for (const p of PAGES) assert.ok(!/lorem|placeholder|prototype/i.test(read(p).replace(/<[^>]+>/g, ' ')), `${p} must not read like a draft`);
 });
 
 test('the site is public (no sign-in), and the console and operator console link to it', async () => {

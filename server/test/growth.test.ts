@@ -44,3 +44,26 @@ test('when a customer says they have paid the owner is emailed, and the console 
   assert.equal((await get('/api/v1/platform/fleet', PK)).json().ordersAwaiting, 1);
   const g = (await get('/api/v1/platform/growth', PK)).json(); assert.equal(g.totals.orders, 1); assert.equal(g.sources.find((s: any) => s.source === 'facebook').orders, 1);
 });
+
+test('a demo request is saved and the owner is emailed, even if the form also carries a honeypot that stays empty', async () => {
+  assert.equal((await get('/api/v1/platform/leads', PK)).json().leads.length, 0);
+  const r = await post('/api/v1/public/lead', { name: 'Mwila Banda', organization: 'Riverside Academy', email: 'mwila@example.com', phone: '0971112222', computers: '120', city: 'Ndola', message: 'Two computer labs and the admin office.', source: 'facebook', honeypot: '' });
+  assert.equal(r.statusCode, 204);
+  const mail = outbox().find(m => m.to === 'owner@viro.test' && m.purpose === 'lead')!;
+  assert.ok(mail, 'the owner is told'); assert.ok(mail.subject.includes('Riverside Academy') && mail.text.includes('mwila@example.com') && mail.text.includes('120'));
+  const leads = (await get('/api/v1/platform/leads', PK)).json().leads;
+  assert.equal(leads.length, 1); assert.equal(leads[0].organization, 'Riverside Academy'); assert.ok(leads[0].notified_at);
+  assert.equal((await get('/api/v1/platform/leads')).statusCode, 401, 'leads are for operators only');
+});
+
+test('a filled-in honeypot is a bot: the request is accepted so the bot moves on, but nothing is saved or sent', async () => {
+  const before = (await get('/api/v1/platform/leads', PK)).json().leads.length;
+  const r = await post('/api/v1/public/lead', { name: 'Bot', organization: 'Bot Inc', email: 'bot@example.com', honeypot: 'filled' });
+  assert.equal(r.statusCode, 204);
+  assert.equal((await get('/api/v1/platform/leads', PK)).json().leads.length, before);
+});
+
+test('a demo request needs a name, organization and a real email address', async () => {
+  assert.equal((await post('/api/v1/public/lead', { name: '', organization: 'X', email: 'mwila@example.com' })).statusCode, 400);
+  assert.equal((await post('/api/v1/public/lead', { name: 'X', organization: 'X', email: 'not-an-email' })).statusCode, 400);
+});

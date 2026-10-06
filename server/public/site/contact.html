@@ -8,6 +8,7 @@
 <meta property="og:title" content="Contact | Viro WorkCare"><meta property="og:description" content="Contact Orange Mobility Solutions to request a demonstration of Viro WorkCare, or to ask a question."><meta property="og:type" content="website">
 <meta name="theme-color" content="#fbfcfb">
 <link rel="icon" type="image/png" href="/logo.png">
+<link rel="canonical" href="https://workcare.viro3.online/site/contact.html">
 <link rel="preload" href="/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/site/site.css">
 </head>
@@ -29,8 +30,19 @@
 </div></div>
 <div class="wrap" style="padding-bottom:112px"><div class="prose">
   <h2>Request a demonstration</h2>
-  <p>Tell us how many computers you look after, and whether they are in one place or on several sites. We will arrange a demonstration for your organization.</p>
-  <p style="margin-top:22px"><a class="btn" href="mailto:info@viro3.online?subject=Viro%20WorkCare%20demonstration&body=Hello%2C%0A%0AI%20would%20like%20to%20see%20Viro%20WorkCare.%0A%0ANumber%20of%20computers%20we%20look%20after%3A%0ANumber%20of%20sites%3A%0AOrganization%3A%0A">Request a demo</a></p>
+  <p>Tell us a little about your organization and we will arrange a demonstration of Viro WorkCare for your computers.</p>
+  <form class="lead-form" data-lead-form id="demo">
+    <div><label for="l-name">Your name</label><input id="l-name" name="name" autocomplete="name" required></div>
+    <div><label for="l-org">Organization</label><input id="l-org" name="organization" autocomplete="organization" required></div>
+    <div><label for="l-email">Work email</label><input id="l-email" name="email" type="email" autocomplete="email" required></div>
+    <div><label for="l-phone">Phone</label><input id="l-phone" name="phone" type="tel" autocomplete="tel"></div>
+    <div><label for="l-computers">Approximate number of computers</label><input id="l-computers" name="computers" inputmode="numeric" placeholder="e.g. 40"></div>
+    <div><label for="l-city">City / country</label><input id="l-city" name="city" autocomplete="address-level2" placeholder="e.g. Ndola, Zambia"></div>
+    <div class="full"><label for="l-message">What do you need?</label><textarea id="l-message" name="message" placeholder="How many sites, what kind of computers, when you'd like to start…"></textarea></div>
+    <label class="hp" aria-hidden="true">Leave this blank<input name="honeypot" tabindex="-1" autocomplete="off"></label>
+    <div class="actions-row"><button class="btn" type="submit">Request a WorkCare demo</button><span>or <a href="mailto:info@viro3.online?subject=Viro%20WorkCare%20demonstration">email us directly</a></span></div>
+    <p class="lead-status full" data-lead-status hidden></p>
+  </form>
   <h2>Already a customer?</h2>
   <p>Sign in to your organization’s console, or write to us if you cannot.</p>
   <p style="margin-top:18px"><a class="btn ghost" href="https://control.viro3.online/" data-signin>Sign in</a></p>
@@ -40,7 +52,7 @@
   <div class="foot">
     <div><a class="brand" href="/site/"><span class="mark"><img src="/logo.png" alt="" width="26" height="26"></span><span>Viro <b>WorkCare</b></span></a><p>Care for your Windows PC, or for every computer in an organization: fixes that are checked, changes you can undo, and a way to move to a new PC without starting over.</p></div>
     <div><h4>Product</h4><ul><li><a href="/site/features.html">Features</a></li><li><a href="/site/#pricing">Pricing</a></li><li><a href="/install/ViroAgent.msi">Download for Windows</a></li><li><a href="https://control.viro3.online/?buy=1">Get Viro Care</a></li><li><a href="/site/security.html">Security &amp; privacy</a></li><li><a href="https://control.viro3.online/" data-signin>Sign in</a></li></ul></div>
-    <div><h4>Company</h4><ul><li><a href="/site/about.html">About us</a></li><li><a href="/site/contact.html">Contact</a></li><li><a href="/site/privacy.html">Privacy</a></li><li><a href="/site/terms.html">Terms</a></li><li><a href="mailto:info@viro3.online?subject=Viro%20WorkCare%20demonstration&body=Hello%2C%0A%0AI%20would%20like%20to%20see%20Viro%20WorkCare.%0A%0ANumber%20of%20computers%20we%20look%20after%3A%0ANumber%20of%20sites%3A%0AOrganization%3A%0A">Request a demo</a></li></ul></div>
+    <div><h4>Company</h4><ul><li><a href="/site/about.html">About us</a></li><li><a href="/site/contact.html">Contact</a></li><li><a href="/site/privacy.html">Privacy</a></li><li><a href="/site/terms.html">Terms</a></li><li><a href="/site/contact.html#demo">Request a demo</a></li></ul></div>
     <div><h4>Orange Mobility Solutions</h4><ul><li><a href="mailto:info@viro3.online">info@viro3.online</a></li><li><a href="tel:+260976092585">+260 976 092 585</a></li><li>18 Mukuni Road<br>Kansenshi, Ndola<br>Copperbelt Province, Zambia</li></ul></div>
   </div>
   <div class="legal"><span>&copy; <span data-year>2026</span> Orange Mobility Solutions. All rights reserved.</span><span>Registered in Zambia &middot; PACRA no. 320241014086</span></div>

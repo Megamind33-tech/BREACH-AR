@@ -86,6 +86,13 @@ export function registerInstallerRoutes(app: FastifyInstance, c: JobCtx, o: { re
       .header('content-disposition', 'attachment; filename="ViroAgent.msi"').send(createReadStream(msiPath));
   });
 
+  // What the download page shows before anyone downloads anything: no secret in here, just the facts that let a visitor verify what they got.
+  app.get('/api/v1/public/installer', async (_req, reply) => {
+    const m = await meta();
+    reply.header('cache-control', 'public, max-age=60');
+    return { available: !!m, sha256: m?.sha256, size: m?.size, updatedAt: m?.updatedAt };
+  });
+
   app.get('/api/v1/platform/installer', { preHandler: platform }, async () => { const m = await meta(); return { available: !!m, ...(m ?? {}) }; });
 
   app.get('/api/v1/installer', { preHandler: c.requireRole('admin') }, async () => {

@@ -66,6 +66,10 @@ test('publishing, downloading, and generating the one-file installer: platform-g
   const dl = await get('/install/ViroAgent.msi');
   assert.equal(dl.statusCode, 200); assert.equal(dl.headers['x-sha256'], sha); assert.ok(Buffer.from(dl.rawPayload).equals(msi));
 
+  // the download page reads the same facts with no key at all, so a visitor can verify what they got
+  const pubMeta = (await get('/api/v1/public/installer')).json();
+  assert.equal(pubMeta.available, true); assert.equal(pubMeta.sha256, sha); assert.equal(pubMeta.size, msi.length); assert.ok(pubMeta.updatedAt);
+
   // only administrators generate the script; validation; org isolation
   assert.equal((await post('/api/v1/installer/script', { serverUrl: 'https://control.example.com' }, tech)).statusCode, 403);
   assert.equal((await get('/api/v1/installer', tech)).statusCode, 403);

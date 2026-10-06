@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://workcare.viro3.online/sitemap.xml
