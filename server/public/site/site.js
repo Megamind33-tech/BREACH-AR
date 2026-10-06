@@ -44,19 +44,21 @@
     });
   }).catch(() => { /* the printed prices stay */ });
   document.querySelectorAll('[data-year]').forEach(el => { el.textContent = String(new Date().getFullYear()); });
-  // The installer's real size, checksum and release date, so the download line never says more than the server can prove.
-  // If the installer is not published yet, or the request fails, the line is simply left hidden rather than shown with blanks.
+  // The installer's real size, checksum and release date, so the page never says more than the server can prove. The hero
+  // line is the two facts anyone can use (requirements, how current it is); the checksum itself lives in the FAQ, for the
+  // few visitors who came looking for it rather than having it in front of everyone before they even know what Viro does.
+  // If the installer is not published yet, or the request fails, both are simply left hidden rather than shown with blanks.
   (function () {
-    const facts = document.querySelector('[data-dl-facts]'); if (!facts || !window.fetch) return;
+    const facts = document.querySelector('[data-dl-facts]'); const verify = document.querySelector('[data-dl-verify]');
+    if ((!facts && !verify) || !window.fetch) return;
     const base = /^control\./.test(location.hostname) ? '' : 'https://control.viro3.online';
     fetch(base + '/api/v1/public/installer').then(r => r.ok ? r.json() : null).then(d => {
       if (!d || !d.available) return;
-      facts.querySelector('[data-dl-size]').textContent = (d.size / (1024 * 1024)).toFixed(0) + ' MB';
-      facts.querySelector('[data-dl-date]').textContent = new Date(d.updatedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-      const sha = facts.querySelector('[data-dl-sha]'); sha.textContent = 'SHA-256 ' + d.sha256.slice(0, 12) + '…'; sha.title = d.sha256;
-      sha.addEventListener('click', e => { e.preventDefault(); navigator.clipboard?.writeText(d.sha256).then(() => { sha.textContent = 'Copied the full checksum'; setTimeout(() => { sha.textContent = 'SHA-256 ' + d.sha256.slice(0, 12) + '…'; }, 2000); }); });
-      facts.hidden = false;
-    }).catch(() => { /* the rest of the page works without this line */ });
+      const mb = (d.size / (1024 * 1024)).toFixed(0) + ' MB';
+      const date = new Date(d.updatedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+      if (facts) { facts.querySelector('[data-dl-size]').textContent = mb; facts.querySelector('[data-dl-date]').textContent = date; facts.hidden = false; }
+      if (verify) { verify.querySelector('[data-dl-size2]').textContent = mb; verify.querySelector('[data-dl-date2]').textContent = date; verify.querySelector('[data-dl-sha]').textContent = d.sha256; verify.hidden = false; }
+    }).catch(() => { /* the rest of the page works without this */ });
   })();
   // The "Request a demo" form. Posted straight to the console (same API as the counters above), with a honeypot field
   // a real visitor never sees or fills in. A lead is never lost silently: on failure the form says so and leaves the

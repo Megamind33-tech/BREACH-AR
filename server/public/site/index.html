@@ -17,7 +17,7 @@
 <header class="nav" id="top"><div class="wrap nav-in">
   <a class="brand" href="/site/" aria-label="Viro WorkCare home"><span class="mark"><img src="/logo.png" alt="" width="26" height="26"></span><span>Viro <b>WorkCare</b></span></a>
   <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="menu">Menu</button>
-  <nav class="menu" id="menu" aria-label="Main"><a href="/site/features.html">Features</a><a href="#pricing">Pricing</a><a href="/site/security.html">Security &amp; privacy</a><a href="/site/about.html">About</a><a href="/site/contact.html">Contact</a><a class="only-small" href="https://control.viro3.online/" data-signin>Sign in</a></nav>
+  <nav class="menu" id="menu" aria-label="Main"><a href="/site/features.html">Product</a><a href="#business">Organizations</a><a href="#pricing">Pricing</a><a href="/site/security.html">Security</a><a href="/site/contact.html">Support</a><a class="only-small" href="https://control.viro3.online/" data-signin>Sign in</a></nav>
   <div class="nav-cta"><a class="link" href="https://control.viro3.online/" data-signin>Sign in</a><a class="btn small" href="/install/ViroAgent.msi">Download free</a></div>
 </div></header>
 <main id="main">
@@ -32,7 +32,7 @@
     <div class="actions"><a class="btn big" href="/install/ViroAgent.msi">Download free for Windows</a><a class="btn big ghost" href="https://control.viro3.online/?buy=1">Get Viro Care</a></div>
     <p class="note">The free tools need no account. For a school, shop or office: <a href="/site/contact.html#demo">request a demonstration</a>.</p>
     <p class="note">Windows may show "Windows protected your PC" on first install, since Viro is new. Click <b>More info</b>, then <b>Run anyway</b>.</p>
-    <p class="note" data-dl-facts hidden>Windows 10 or 11, 64-bit · <span data-dl-size></span> · updated <span data-dl-date></span> · <a href="#" data-dl-sha title="SHA-256 checksum">SHA-256 checksum</a></p>
+    <p class="note" data-dl-facts hidden>Windows 10 or 11, 64-bit · <span data-dl-size></span> · updated <span data-dl-date></span></p>
   </div>
   <div class="collage">
     <img class="pic" src="/site/img/app-overview.webp" width="1240" height="1071" alt="The Viro WorkCare window: this PC at a glance, with its health score, memory, drive and the seven things that need attention." fetchpriority="high">
@@ -98,7 +98,8 @@
 
 <section class="tint"><div class="wrap">
   <div class="row">
-  <div class="text"><h2>Know what is wearing out, and what it will cost</h2><p>Viro reads your drives, battery, memory and cooling, and says in plain words what to do. It weighs repair against replacement for a PC of your age, with an estimated price.</p><ul class="points"><li>Warnings for failing drives and tired batteries before they fail</li><li>Repair, upgrade or replace, with the reasons and a price</li><li>How the PC has been used: Windows upgrades, drive hours, unsafe shut-downs</li></ul></div>
+  <div class="text"><h2>Know what is wearing out, and what it will cost</h2><p>Viro reads your drives, battery, memory and cooling, and says in plain words what to do. It weighs repair against replacement for a PC of your age, with an estimated price.</p><ul class="points"><li>Warnings for failing drives and tired batteries before they fail</li><li>Repair, upgrade or replace, with the reasons and a price</li><li>How the PC has been used: Windows upgrades, drive hours, unsafe shut-downs</li></ul>
+    <div class="example"><p class="example-tag">Example verdict</p><p>8 GB of memory, a drive at 71% of its rated wear, 4.2 years old. A 16 GB memory upgrade is compatible and costs a fraction of a new PC: Viro recommends upgrading memory now, and planning a replacement for the next budget cycle rather than this one.</p></div></div>
   <div class="media"><img class="pic" src="/site/img/app-report.webp" width="1016" height="1195" alt="The PC report: one part to replace soon, three to watch, an estimated age of 6.7 years and a verdict of repair it, with USD 125 of work to expect." loading="lazy" decoding="async"></div>
 </div>
   <div class="row flip">
@@ -167,6 +168,7 @@
   <div class="faq">
     <details><summary>Which computers does it work on?</summary><p>Windows 10 and Windows 11 PCs. Viro is built for Windows only today: it does not run on Mac, Linux or phones. It also tells you when a PC cannot run Windows 11 and what that means for its security updates.</p></details>
     <details><summary>Why does Windows show a warning when I install it?</summary><p>Windows shows "Windows protected your PC" for any new app that has not yet been downloaded by enough people for Windows to recognise it: it is not a sign that anything is wrong. Click <b>More info</b>, then <b>Run anyway</b>. We are working towards a signed release, which will remove this.</p></details>
+    <details><summary>How do I check the download has not been tampered with?</summary><p>Every installer we publish has a SHA-256 checksum you can check it against.<span data-dl-verify hidden> The file we currently publish is <b data-dl-size2></b>, updated <span data-dl-date2></span>, with checksum <code data-dl-sha></code>.</span></p></details>
     <details><summary>Is it safe to let Viro change my PC?</summary><p>Viro checks the result of every change and keeps what it needs to undo it. It refuses to touch Windows itself, Microsoft runtimes and Viro. A program removed by force is moved aside, not deleted, so it can be brought back.</p></details>
     <details><summary>Do I need an account?</summary><p>Not for the free tools: download Viro and use them straight away. An account is made when you buy Viro Care, because the paid features (backups, the technician, certificates) live on our servers and need to know who you are.</p></details>
     <details><summary>What does the free plan include?</summary><p>A full scan that tells you what is wrong, clearing temporary files, start-up programs, memory, the installed programs list with sizes, and Windows and program updates. It does not expire.</p></details>
